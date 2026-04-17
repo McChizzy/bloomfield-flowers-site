@@ -328,6 +328,13 @@ p {
   overflow: hidden;
 }
 
+.hero-stage-art-dribbble {
+  background:
+    radial-gradient(circle at 22% 24%, rgba(255, 221, 231, 0.9), transparent 24%),
+    radial-gradient(circle at 82% 18%, rgba(241, 226, 255, 0.72), transparent 22%),
+    linear-gradient(180deg, #fffdfd 0%, #fff6f8 58%, #fff 100%);
+}
+
 .hero-stage-glow {
   position: absolute;
   width: 16rem;
@@ -392,20 +399,72 @@ p {
   font-size: 0.92rem;
 }
 
-.hero-stage-frame {
-  position: absolute;
-  inset: 4.5rem 2rem 2rem 8rem;
-  border-radius: 280px 280px 36px 36px;
-  overflow: hidden;
-  background: rgba(255,255,255,0.45);
-  box-shadow: 0 26px 50px rgba(110, 53, 86, 0.14);
+.hero-stage-copy-card-dribbble {
+  left: auto;
+  right: 1.5rem;
+  top: 5.5rem;
+  bottom: auto;
 }
 
-.hero-stage-frame img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
+.hero-stage-scene-lines {
+  position: absolute;
+  left: 1.8rem;
+  right: 1.8rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(143, 76, 115, 0.18), transparent);
+}
+
+.hero-stage-scene-lines-top {
+  top: 5rem;
+}
+
+.hero-stage-scene-lines-bottom {
+  bottom: 5.6rem;
+}
+
+.hero-stage-cutout-wrap {
+  position: absolute;
+  inset: 5.5rem 7rem 5.5rem 4rem;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+}
+
+.hero-stage-cutout-wrap img {
+  width: min(100%, 530px);
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 30px 40px rgba(110, 53, 86, 0.18));
+}
+
+.hero-stage-base-card {
+  position: absolute;
+  left: 2rem;
+  bottom: 1.75rem;
+  z-index: 2;
+  padding: 1rem 1.1rem;
+  min-width: 16rem;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(255,255,255,0.95);
+  box-shadow: 0 16px 30px rgba(110, 53, 86, 0.08);
+}
+
+.hero-stage-base-card span,
+.hero-stage-base-card strong {
+  display: block;
+}
+
+.hero-stage-base-card span {
+  color: var(--primary);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 0.35rem;
+}
+
+.hero-stage-base-card strong {
+  color: var(--primary-dark);
 }
 
 .showcase-section {
@@ -450,23 +509,29 @@ p {
     min-height: 520px;
   }
 
-  .hero-stage-frame {
-    inset: 4.2rem 1rem 1rem 1rem;
-    border-radius: 36px;
+  .hero-stage-cutout-wrap {
+    inset: 6.5rem 2rem 9rem 2rem;
   }
 
-  .hero-stage-copy-card {
-    position: relative;
+  .hero-stage-copy-card,
+  .hero-stage-copy-card-dribbble {
+    position: absolute;
+    top: 1.4rem;
+    right: 1.4rem;
     left: auto;
     bottom: auto;
-    margin-top: 22rem;
-    width: 100%;
+    width: min(18rem, calc(100% - 3rem));
+  }
+
+  .hero-stage-base-card {
+    left: 1.25rem;
+    bottom: 1.25rem;
   }
 }
 
 @media (max-width: 640px) {
   .hero-stage-art {
-    min-height: 460px;
+    min-height: 500px;
     padding: 1rem;
   }
 
@@ -476,13 +541,30 @@ p {
     margin-bottom: 0.8rem;
   }
 
-  .hero-stage-frame {
-    inset: 4.8rem 0.85rem 0.85rem 0.85rem;
+  .hero-stage-copy-card,
+  .hero-stage-copy-card-dribbble {
+    position: static;
+    width: 100%;
+    margin-top: 0.6rem;
+    margin-bottom: 0.75rem;
+    padding: 0.95rem 1rem;
   }
 
-  .hero-stage-copy-card {
-    margin-top: 19rem;
-    padding: 0.95rem 1rem;
+  .hero-stage-cutout-wrap {
+    position: relative;
+    inset: auto;
+    min-height: 260px;
+    margin-top: 0.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero-stage-scene-lines {
+    display: none;
+  }
+
+  .hero-stage-base-card {
+    position: static;
+    min-width: 0;
   }
 
   .showcase-slide,

@@ -108,19 +108,29 @@ const landingShowcaseSlides = [
     caption: 'A softer alternate hero moment for premium gifting.',
   },
   {
+    image: '/images/pink bouquet.jpeg',
+    title: 'Romantic Bouquets',
+    caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
+  },
+  {
     image: '/images/chrysanthemum bouquet.jpeg',
     title: 'Birthday Blooms',
-    caption: 'Bright, joyful bouquets designed for birthdays and celebrations.',
+    caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
+  },
+  {
+    image: '/images/IMG_6007.JPG.jpeg',
+    title: 'Celebration Flowers',
+    caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
   },
   {
     image: '/images/large bouquet.jpeg',
     title: 'Luxury Arrangements',
-    caption: 'Full, layered statements for grand gifting moments.',
+    caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
   },
   {
     image: '/images/IMG_6001.JPG.jpeg',
     title: 'Just Because',
-    caption: 'Soft everyday florals for thoughtful surprise gifting.',
+    caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
   },
 ]
 
@@ -303,8 +313,8 @@ function homePage() {
         <div class="container hero-reimagined-shell">
           <div class="hero-copy-panel hero-copy-panel-reimagined">
             <p class="hero-mini-copy">Bloomfield Flowers, reimagined for romance, birthdays, and premium everyday gifting</p>
-            <h1>Floral gifting that feels styled, modern, and impossible to ignore</h1>
-            <p class="hero-copy">We can push the Bloomfield landing page into a more editorial direction with a cleaner focal bouquet, bold typography, and a stronger first impression. This first pass keeps the current Bloomfield palette and turns the hero into the centerpiece.</p>
+            <h1>Styled bouquets with the soft luxury feel of a modern flower studio</h1>
+            <p class="hero-copy">This version pushes the homepage closer to that Dribbble-style art direction, with a softer layout, a floating bouquet cutout, and a cleaner editorial composition that makes Bloomfield feel more premium on first glance.</p>
             <div class="hero-actions">
               <a class="btn btn-primary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Order via Instagram DM</a>
               <a class="btn btn-secondary" href="#/shop">Browse Bouquets</a>
@@ -315,17 +325,23 @@ function homePage() {
             </div>
           </div>
           <div class="hero-stage-card">
-            <div class="hero-stage-art">
+            <div class="hero-stage-art hero-stage-art-dribbble">
               <div class="hero-stage-glow hero-stage-glow-left"></div>
               <div class="hero-stage-glow hero-stage-glow-right"></div>
               <div class="hero-stage-badge">Bloomfield bouquet spotlight</div>
-              <div class="hero-stage-copy-card">
+              <div class="hero-stage-copy-card hero-stage-copy-card-dribbble">
                 <p class="hero-showcase-label">Inspired by modern floral landing pages</p>
-                <strong>Premium bouquets for birthdays, romance, and meaningful gifting</strong>
-                <span>We can replace this with a cutout bouquet once we isolate the flower from the background.</span>
+                <strong>Cutout bouquet hero with a softer editorial frame</strong>
+                <span>The bouquet is now lifted out from the background so the hero can feel more designed and less like a flat photo block.</span>
               </div>
-              <div class="hero-stage-frame">
-                <img src="/images/hero1.jpeg" alt="Bloomfield Flowers signature bouquet hero image">
+              <div class="hero-stage-scene-lines hero-stage-scene-lines-top"></div>
+              <div class="hero-stage-scene-lines hero-stage-scene-lines-bottom"></div>
+              <div class="hero-stage-cutout-wrap">
+                <img src="/images/hero1-cutout.png" alt="Bloomfield Flowers bouquet cutout hero image">
+              </div>
+              <div class="hero-stage-base-card">
+                <span>Bloomfield Flowers</span>
+                <strong>Luxury bouquets for meaningful gifting</strong>
               </div>
             </div>
           </div>
@@ -358,26 +374,6 @@ function homePage() {
               <button type="button" class="hero-slider-btn" data-hero-nav="next" aria-label="Next showcase image">›</button>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section class="section container section-tight-top">
-        <div class="section-heading section-heading-centered">
-          <p class="eyebrow">Featured collections</p>
-          <h2>Start with the moments people shop most</h2>
-          <p>We are shaping the full Bloomfield catalog, but these are the gifting directions already guiding the storefront.</p>
-        </div>
-        <div class="collection-grid collection-grid-polished">
-          ${featuredCollections.map((item) => `
-            <article class="info-card collection-card collection-card-with-image">
-              <div class="collection-card-head">
-                <img src="${item.image}" alt="${item.name}">
-                <h3>${item.name}</h3>
-              </div>
-              <p>Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.</p>
-              <a href="#/shop">Explore</a>
-            </article>
-          `).join('')}
         </div>
       </section>
 

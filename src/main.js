@@ -313,8 +313,8 @@ function homePage() {
         <div class="container hero-reimagined-shell">
           <div class="hero-copy-panel hero-copy-panel-reimagined">
             <p class="hero-mini-copy">Bloomfield Flowers, reimagined for romance, birthdays, and premium everyday gifting</p>
-            <h1>Styled bouquets with the soft luxury feel of a modern flower studio</h1>
-            <p class="hero-copy">This version pushes the homepage closer to that Dribbble-style art direction, with a softer layout, a floating bouquet cutout, and a cleaner editorial composition that makes Bloomfield feel more premium on first glance.</p>
+            <h1>Floral gifting that feels styled, modern, and impossible to ignore</h1>
+            <p class="hero-copy">We can push the Bloomfield landing page into a more editorial direction with a cleaner focal bouquet, bold typography, and a stronger first impression. This first pass keeps the current Bloomfield palette and turns the hero into the centerpiece.</p>
             <div class="hero-actions">
               <a class="btn btn-primary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Order via Instagram DM</a>
               <a class="btn btn-secondary" href="#/shop">Browse Bouquets</a>
@@ -325,23 +325,17 @@ function homePage() {
             </div>
           </div>
           <div class="hero-stage-card">
-            <div class="hero-stage-art hero-stage-art-dribbble">
+            <div class="hero-stage-art">
               <div class="hero-stage-glow hero-stage-glow-left"></div>
               <div class="hero-stage-glow hero-stage-glow-right"></div>
               <div class="hero-stage-badge">Bloomfield bouquet spotlight</div>
-              <div class="hero-stage-copy-card hero-stage-copy-card-dribbble">
+              <div class="hero-stage-copy-card">
                 <p class="hero-showcase-label">Inspired by modern floral landing pages</p>
-                <strong>Cutout bouquet hero with a softer editorial frame</strong>
-                <span>The bouquet is now lifted out from the background so the hero can feel more designed and less like a flat photo block.</span>
+                <strong>Premium bouquets for birthdays, romance, and meaningful gifting</strong>
+                <span>We can replace this with a cutout bouquet once we isolate the flower from the background.</span>
               </div>
-              <div class="hero-stage-scene-lines hero-stage-scene-lines-top"></div>
-              <div class="hero-stage-scene-lines hero-stage-scene-lines-bottom"></div>
-              <div class="hero-stage-cutout-wrap">
-                <img src="/images/hero1-cutout.png" alt="Bloomfield Flowers bouquet cutout hero image">
-              </div>
-              <div class="hero-stage-base-card">
-                <span>Bloomfield Flowers</span>
-                <strong>Luxury bouquets for meaningful gifting</strong>
+              <div class="hero-stage-frame">
+                <img src="/images/hero1.jpeg" alt="Bloomfield Flowers signature bouquet hero image">
               </div>
             </div>
           </div>

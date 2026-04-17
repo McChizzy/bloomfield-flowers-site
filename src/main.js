@@ -96,6 +96,34 @@ const featuredCollections = [
   },
 ]
 
+const landingShowcaseSlides = [
+  {
+    image: '/images/hero1.jpeg',
+    title: 'Bloomfield Signature Hero',
+    caption: 'Our current hero bouquet, now part of the showcase deck.',
+  },
+  {
+    image: '/images/hero2.jpeg',
+    title: 'Bloomfield Hero Alt',
+    caption: 'A softer alternate hero moment for premium gifting.',
+  },
+  {
+    image: '/images/chrysanthemum bouquet.jpeg',
+    title: 'Birthday Blooms',
+    caption: 'Bright, joyful bouquets designed for birthdays and celebrations.',
+  },
+  {
+    image: '/images/large bouquet.jpeg',
+    title: 'Luxury Arrangements',
+    caption: 'Full, layered statements for grand gifting moments.',
+  },
+  {
+    image: '/images/IMG_6001.JPG.jpeg',
+    title: 'Just Because',
+    caption: 'Soft everyday florals for thoughtful surprise gifting.',
+  },
+]
+
 const heroHighlights = [
   'Same-day delivery for confirmed orders before 2pm',
   'Serving Abuja and Lagos, Nigeria',
@@ -137,7 +165,7 @@ const app = document.querySelector('#app')
 function getHeroIndex() {
   try {
     const value = Number(localStorage.getItem(heroStorageKey) || '0')
-    return Number.isFinite(value) ? Math.max(0, Math.min(heroGallery.length - 1, value)) : 0
+    return Number.isFinite(value) ? Math.max(0, Math.min(landingShowcaseSlides.length - 1, value)) : 0
   } catch {
     return 0
   }
@@ -271,12 +299,12 @@ function shell(content, route = '') {
 function homePage() {
   return shell(`
     <main>
-      <section class="hero-section hero-section-polished">
-        <div class="container hero-grid hero-grid-polished">
-          <div class="hero-copy-panel">
-            <p class="hero-mini-copy">Beautiful flowers for romance, birthdays, celebrations, and premium everyday gifting</p>
-            <h1>Luxury gifting, custom bouquets, and same-day delivery</h1>
-            <p class="hero-copy">Bloomfield Flowers helps you send elegant floral moments across Abuja and Lagos. Browse bouquet inspiration, connect with us on Instagram, and let us confirm availability before payment.</p>
+      <section class="hero-section hero-section-reimagined">
+        <div class="container hero-reimagined-shell">
+          <div class="hero-copy-panel hero-copy-panel-reimagined">
+            <p class="hero-mini-copy">Bloomfield Flowers, reimagined for romance, birthdays, and premium everyday gifting</p>
+            <h1>Floral gifting that feels styled, modern, and impossible to ignore</h1>
+            <p class="hero-copy">We can push the Bloomfield landing page into a more editorial direction with a cleaner focal bouquet, bold typography, and a stronger first impression. This first pass keeps the current Bloomfield palette and turns the hero into the centerpiece.</p>
             <div class="hero-actions">
               <a class="btn btn-primary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Order via Instagram DM</a>
               <a class="btn btn-secondary" href="#/shop">Browse Bouquets</a>
@@ -286,24 +314,48 @@ function homePage() {
               ${heroHighlights.map((item) => `<div class="hero-highlight-pill">${item}</div>`).join('')}
             </div>
           </div>
-          <div class="hero-card hero-card-polished hero-card-gallery-shell">
-            <div class="hero-slider-shell">
-              ${heroGallery.map((image, index) => `
-                <article class="hero-gallery-card hero-slide ${index === getHeroIndex() ? 'is-active' : ''} ${index === 0 ? 'hero-slide-centerpiece' : 'hero-slide-secondary'}" data-slide="${index}">
-                  <img src="${image}" alt="Bloomfield Flowers bouquet inspiration ${index + 1}">
-                  <div class="hero-showcase-overlay hero-showcase-overlay-soft">
-                    <p class="hero-showcase-label">Premium Bloomfield gifting</p>
-                    <strong>${index === 0 ? 'Centerpiece bouquets for Bloomfield moments' : 'Curated bouquets for meaningful moments'}</strong>
-                  </div>
-                </article>
-              `).join('')}
-              <div class="hero-slider-controls">
-                <button type="button" class="hero-slider-btn" data-hero-nav="prev" aria-label="Previous hero image">‹</button>
-                <div class="hero-slider-dots">
-                  ${heroGallery.map((_, index) => `<button type="button" class="hero-dot ${index === getHeroIndex() ? 'is-active' : ''}" data-hero-dot="${index}" aria-label="Go to slide ${index + 1}"></button>`).join('')}
-                </div>
-                <button type="button" class="hero-slider-btn" data-hero-nav="next" aria-label="Next hero image">›</button>
+          <div class="hero-stage-card">
+            <div class="hero-stage-art">
+              <div class="hero-stage-glow hero-stage-glow-left"></div>
+              <div class="hero-stage-glow hero-stage-glow-right"></div>
+              <div class="hero-stage-badge">Bloomfield bouquet spotlight</div>
+              <div class="hero-stage-copy-card">
+                <p class="hero-showcase-label">Inspired by modern floral landing pages</p>
+                <strong>Premium bouquets for birthdays, romance, and meaningful gifting</strong>
+                <span>We can replace this with a cutout bouquet once we isolate the flower from the background.</span>
               </div>
+              <div class="hero-stage-frame">
+                <img src="/images/hero1.jpeg" alt="Bloomfield Flowers signature bouquet hero image">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section container showcase-section section-tight-top">
+        <div class="section-heading section-heading-centered">
+          <p class="eyebrow">Bouquet showcase</p>
+          <h2>Slide through the Bloomfield gifting moods</h2>
+          <p>The old hero slider now sits below the landing hero, with the bouquet names used as captions for the collection-inspired frames.</p>
+        </div>
+        <div class="hero-card hero-card-polished hero-card-gallery-shell">
+          <div class="hero-slider-shell hero-slider-shell-below">
+            ${landingShowcaseSlides.map((slide, index) => `
+              <article class="hero-gallery-card hero-slide showcase-slide ${index === getHeroIndex() ? 'is-active' : ''}" data-slide="${index}">
+                <img src="${slide.image}" alt="${slide.title}">
+                <div class="hero-showcase-overlay hero-showcase-overlay-soft hero-showcase-overlay-captioned">
+                  <p class="hero-showcase-label">Bloomfield bouquet deck</p>
+                  <strong>${slide.title}</strong>
+                  <span>${slide.caption}</span>
+                </div>
+              </article>
+            `).join('')}
+            <div class="hero-slider-controls hero-slider-controls-below">
+              <button type="button" class="hero-slider-btn" data-hero-nav="prev" aria-label="Previous showcase image">‹</button>
+              <div class="hero-slider-dots">
+                ${landingShowcaseSlides.map((_, index) => `<button type="button" class="hero-dot ${index === getHeroIndex() ? 'is-active' : ''}" data-hero-dot="${index}" aria-label="Go to slide ${index + 1}"></button>`).join('')}
+              </div>
+              <button type="button" class="hero-slider-btn" data-hero-nav="next" aria-label="Next showcase image">›</button>
             </div>
           </div>
         </div>
@@ -658,7 +710,7 @@ function router() {
 }
 
 function changeHero(delta) {
-  const next = (getHeroIndex() + delta + heroGallery.length) % heroGallery.length
+  const next = (getHeroIndex() + delta + landingShowcaseSlides.length) % landingShowcaseSlides.length
   saveHeroIndex(next)
   renderApp()
 }

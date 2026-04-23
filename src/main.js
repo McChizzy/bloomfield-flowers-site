@@ -140,6 +140,35 @@ const heroHighlights = [
   'Connect with us on Instagram, with custom bouquet support',
 ]
 
+const heroExperiments = [
+  {
+    id: 'cutout',
+    label: 'Cutout-led hero',
+    badge: 'Most landing-page compatible',
+    frameClass: 'hero-stage-frame-cutout',
+    image: '/images/hero_cutout.PNG',
+    alt: 'Bloomfield Flowers bouquet cutout hero concept',
+    miniCopy: 'Bloomfield Flowers, reimagined for romance, birthdays, and premium everyday gifting',
+    title: 'Luxury flowers styled to feel like the gift already arrived',
+    body: 'A cutout-led hero gives us the cleanest premium landing page setup. It keeps the bouquet as the star, gives the headline room to breathe, and adapts better across desktop and mobile.',
+    noteTitle: 'Why this version works',
+    noteBody: 'Best for text readability, cleaner layering, and flexible responsive behavior. This is the stronger candidate for the final homepage hero.',
+  },
+  {
+    id: 'website',
+    label: 'Reference-style hero',
+    badge: 'Closest to the inspiration image',
+    frameClass: 'hero-stage-frame-website',
+    image: '/images/hero-website.PNG',
+    alt: 'Bloomfield Flowers website hero reference composition',
+    miniCopy: 'A full-scene hero inspired directly by the landing page mood you selected',
+    title: 'An editorial hero look with the full website-style composition',
+    body: 'This version leans harder into the reference image itself. It preserves more of the original mood and framing, which is useful if you want the homepage to feel almost identical to that inspiration.',
+    noteTitle: 'Where this version fits best',
+    noteBody: 'Strong as a visual direction test, but it leaves less freedom for overlay balance and responsive cropping compared with the cutout approach.',
+  },
+]
+
 const heroGallery = [
   '/images/hero1.jpeg',
   '/images/hero2.jpeg',
@@ -307,14 +336,16 @@ function shell(content, route = '') {
 }
 
 function homePage() {
+  const selectedHero = heroExperiments[0]
+
   return shell(`
     <main>
       <section class="hero-section hero-section-reimagined">
-        <div class="container hero-reimagined-shell">
+        <div class="container hero-reimagined-shell hero-reimagined-shell-experiment">
           <div class="hero-copy-panel hero-copy-panel-reimagined">
-            <p class="hero-mini-copy">Bloomfield Flowers, reimagined for romance, birthdays, and premium everyday gifting</p>
-            <h1>Floral gifting that feels styled, modern, and impossible to ignore</h1>
-            <p class="hero-copy">We can push the Bloomfield landing page into a more editorial direction with a cleaner focal bouquet, bold typography, and a stronger first impression. This first pass keeps the current Bloomfield palette and turns the hero into the centerpiece.</p>
+            <p class="hero-mini-copy">${selectedHero.miniCopy}</p>
+            <h1>${selectedHero.title}</h1>
+            <p class="hero-copy">${selectedHero.body}</p>
             <div class="hero-actions">
               <a class="btn btn-primary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Order via Instagram DM</a>
               <a class="btn btn-secondary" href="#/shop">Browse Bouquets</a>
@@ -324,21 +355,50 @@ function homePage() {
               ${heroHighlights.map((item) => `<div class="hero-highlight-pill">${item}</div>`).join('')}
             </div>
           </div>
-          <div class="hero-stage-card">
-            <div class="hero-stage-art">
+          <div class="hero-stage-card hero-stage-card-experiment">
+            <div class="hero-stage-art hero-stage-art-experiment">
               <div class="hero-stage-glow hero-stage-glow-left"></div>
               <div class="hero-stage-glow hero-stage-glow-right"></div>
-              <div class="hero-stage-badge">Bloomfield bouquet spotlight</div>
+              <div class="hero-stage-badge">${selectedHero.badge}</div>
               <div class="hero-stage-copy-card">
-                <p class="hero-showcase-label">Inspired by modern floral landing pages</p>
-                <strong>Premium bouquets for birthdays, romance, and meaningful gifting</strong>
-                <span>We can replace this with a cutout bouquet once we isolate the flower from the background.</span>
+                <p class="hero-showcase-label">Recommended homepage direction</p>
+                <strong>${selectedHero.noteTitle}</strong>
+                <span>${selectedHero.noteBody}</span>
               </div>
-              <div class="hero-stage-frame">
-                <img src="/images/hero1.jpeg" alt="Bloomfield Flowers signature bouquet hero image">
+              <div class="hero-stage-frame ${selectedHero.frameClass}">
+                <img src="${selectedHero.image}" alt="${selectedHero.alt}">
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section class="section container hero-experiments-section section-tight-top">
+        <div class="section-heading section-heading-centered">
+          <p class="eyebrow">Hero test</p>
+          <h2>Compare both landing page directions</h2>
+          <p>The cutout-led version is set as the main hero because it is more landing-page friendly. The reference-style version stays below so we can compare the mood and compatibility side by side.</p>
+        </div>
+        <div class="hero-experiments-grid">
+          ${heroExperiments.map((hero) => `
+            <article class="hero-experiment-card ${hero.id === 'cutout' ? 'is-recommended' : ''}">
+              <div class="hero-experiment-header">
+                <div>
+                  <p class="hero-experiment-kicker">${hero.id === 'cutout' ? 'Recommended winner' : 'Reference comparison'}</p>
+                  <h3>${hero.label}</h3>
+                </div>
+                <span class="hero-experiment-badge">${hero.badge}</span>
+              </div>
+              <div class="hero-experiment-preview ${hero.frameClass}">
+                <img src="${hero.image}" alt="${hero.alt}">
+              </div>
+              <p>${hero.body}</p>
+              <div class="hero-experiment-note">
+                <strong>${hero.noteTitle}</strong>
+                <span>${hero.noteBody}</span>
+              </div>
+            </article>
+          `).join('')}
         </div>
       </section>
 

@@ -1,7 +1,6 @@
 import './style.css'
 
 const primaryLogo = '/images/bff logo-p.jpeg'
-const animatedLogo = '/images/bff logo animated.gif'
 const instagramHandle = 'bloomfieldflowers_'
 const instagramUrl = 'https://www.instagram.com/bloomfieldflowers_/'
 const emailAddress = 'houseofbloomfield@gmail.com'
@@ -16,7 +15,7 @@ const products = [
     name: 'Barbie Deluxe (M)',
     category: 'Flowers',
     price: '₦250,000',
-    image: '/images/IMG_6407.png',
+    image: '/images/optimized/barbie-deluxe.jpg',
     short: 'A lush mixed bouquet made with roses, spray roses, lilies, and gypsos fillers.',
     description: 'Mixed bouquet (M) made with different types of flowers, including 20 roses, 3 spray roses, 6 lilies, and 2 gypsos fillers.',
     instagramPost: 'https://www.instagram.com/p/DWuVT6lDu8v/?img_index=1',
@@ -26,7 +25,7 @@ const products = [
     name: 'Pastel Cloud (S)',
     category: 'Flowers',
     price: '₦50,000 - ₦80,000',
-    image: '/images/IMG_7229.JPG',
+    image: '/images/optimized/pastel-cloud.jpg',
     short: 'A soft pastel mixed bouquet with lilac, white, and pink blooms.',
     description: 'Mixed bouquet (S) made with different colors of chrysanthemums, lilac, white, pink roses, and gypsos.',
     instagramPost: 'https://www.instagram.com/p/DV-wqrvDVVs/?img_index=1',
@@ -36,7 +35,7 @@ const products = [
     name: 'Century of Roses',
     category: 'Flowers',
     price: '₦700,000 - ₦800,000',
-    image: '/images/IMG_century.jpeg',
+    image: '/images/optimized/century-of-roses.jpg',
     short: 'A dramatic 100-rose arrangement for grand romantic and luxury gifting moments.',
     description: 'A premium rose statement piece featuring 100 roses in red, pink, white, yellow, or purple.',
     instagramPost: 'https://www.instagram.com/p/DV36cdujSiI/',
@@ -46,7 +45,7 @@ const products = [
     name: 'BFF Collection',
     category: 'Flowers',
     price: '₦390,000 - ₦840,000',
-    image: '/images/IMG_bff.jpeg',
+    image: '/images/optimized/bff-collection.jpg',
     short: 'A signature rose collection styled with gypsos lettering for standout gifting.',
     description: 'A premium collection of 50, 75, or 100 roses styled with custom gypsos letters.',
     instagramPost: 'https://www.instagram.com/p/DVi5Wt0l8my/?img_index=1',
@@ -56,7 +55,7 @@ const products = [
     name: 'The Radiant Garden',
     category: 'Flowers',
     price: '₦150,000 - ₦400,000',
-    image: '/images/IMG_7404.JPG',
+    image: '/images/optimized/radiant-garden.jpg',
     short: 'A full mixed bouquet with layered floral textures and a rich premium feel.',
     description: 'Mixed bouquet (L) made with chrysanthemums, lilies, roses, spray roses, and gypsos.',
     instagramPost: 'https://www.instagram.com/p/DW61kFWDT10/?img_index=1',
@@ -65,34 +64,34 @@ const products = [
 
 
 const reviewImages = [
-  '/images/Product review.jpeg',
-  '/images/IMG_6496.PNG',
-  '/images/IMG_6497.PNG',
-  '/images/IMG_6498.PNG',
-  '/images/IMG_6499.PNG',
-  '/images/IMG_6500.PNG',
+  '/images/optimized/review-1.jpg',
+  '/images/optimized/review-2.jpg',
+  '/images/optimized/review-3.jpg',
+  '/images/optimized/review-4.jpg',
+  '/images/optimized/review-5.jpg',
+  '/images/optimized/review-6.jpg',
 ]
 
 const featuredCollections = [
   {
     name: 'Romantic Bouquets',
-    image: '/images/pink bouquet.jpeg',
+    image: '/images/optimized/pink-bouquet.jpg',
   },
   {
     name: 'Birthday Blooms',
-    image: '/images/chrysanthemum bouquet.jpeg',
+    image: '/images/optimized/chrysanthemum-bouquet.jpg',
   },
   {
     name: 'Celebration Flowers',
-    image: '/images/IMG_6007.JPG.jpeg',
+    image: '/images/optimized/celebration-flowers.jpg',
   },
   {
     name: 'Luxury Arrangements',
-    image: '/images/large bouquet.jpeg',
+    image: '/images/optimized/luxury-arrangements.jpg',
   },
   {
     name: 'Just Because',
-    image: '/images/IMG_6001.JPG.jpeg',
+    image: '/images/optimized/just-because.jpg',
   },
 ]
 
@@ -103,78 +102,50 @@ const landingShowcaseSlides = [
     caption: 'Our current hero bouquet, now part of the showcase deck.',
   },
   {
-    image: '/images/hero2.jpeg',
+    image: '/images/optimized/hero2.jpg',
     title: 'Bloomfield Hero Alt',
     caption: 'A softer alternate hero moment for premium gifting.',
   },
   {
-    image: '/images/pink bouquet.jpeg',
+    image: '/images/optimized/pink-bouquet.jpg',
     title: 'Romantic Bouquets',
     caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
   },
   {
-    image: '/images/chrysanthemum bouquet.jpeg',
+    image: '/images/optimized/chrysanthemum-bouquet.jpg',
     title: 'Birthday Blooms',
     caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
   },
   {
-    image: '/images/IMG_6007.JPG.jpeg',
+    image: '/images/optimized/celebration-flowers.jpg',
     title: 'Celebration Flowers',
     caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
   },
   {
-    image: '/images/large bouquet.jpeg',
+    image: '/images/optimized/luxury-arrangements.jpg',
     title: 'Luxury Arrangements',
     caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
   },
   {
-    image: '/images/IMG_6001.JPG.jpeg',
+    image: '/images/optimized/just-because.jpg',
     title: 'Just Because',
     caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
   },
 ]
 
 const heroHighlights = [
-  'Same-day delivery for confirmed orders before 2pm',
-  'Serving Abuja and Lagos, Nigeria',
-  'Connect with us on Instagram, with custom bouquet support',
+  'Same-day delivery before 2pm',
+  'Abuja & Lagos delivery',
+  'Hand-tied premium bouquets',
 ]
 
-const heroExperiments = [
-  {
-    id: 'cutout',
-    label: 'Cutout-led hero',
-    badge: 'Most landing-page compatible',
-    frameClass: 'hero-stage-frame-cutout',
-    image: '/images/hero_cutout.PNG',
-    alt: 'Bloomfield Flowers bouquet cutout hero concept',
-    miniCopy: 'Bloomfield Flowers, reimagined for romance, birthdays, and premium everyday gifting',
-    title: 'Luxury flowers styled to feel like the gift already arrived',
-    body: 'A cutout-led hero gives us the cleanest premium landing page setup. It keeps the bouquet as the star, gives the headline room to breathe, and adapts better across desktop and mobile.',
-    noteTitle: 'Why this version works',
-    noteBody: 'Best for text readability, cleaner layering, and flexible responsive behavior. This is the stronger candidate for the final homepage hero.',
-  },
-  {
-    id: 'website',
-    label: 'Reference-style hero',
-    badge: 'Closest to the inspiration image',
-    frameClass: 'hero-stage-frame-website',
-    image: '/images/hero-website.PNG',
-    alt: 'Bloomfield Flowers website hero reference composition',
-    miniCopy: 'A full-scene hero inspired directly by the landing page mood you selected',
-    title: 'An editorial hero look with the full website-style composition',
-    body: 'This version leans harder into the reference image itself. It preserves more of the original mood and framing, which is useful if you want the homepage to feel almost identical to that inspiration.',
-    noteTitle: 'Where this version fits best',
-    noteBody: 'Strong as a visual direction test, but it leaves less freedom for overlay balance and responsive cropping compared with the cutout approach.',
-  },
-]
-
-const heroGallery = [
-  '/images/hero1.jpeg',
-  '/images/hero2.jpeg',
-  '/images/IMG_6007.JPG.jpeg',
-  '/images/pink bouquet.jpeg',
-]
+const heroScene = {
+  bouquetImage: '/images/optimized/hero-bouquet-source.png',
+  alt: 'Bloomfield Flowers signature bouquet hero',
+  eyebrow: 'Bloomfield Flowers',
+  title: 'Luxury bouquets for meaningful moments',
+  body: 'Elegant floral gifting in Abuja and Lagos for romance, birthdays, celebrations, and premium everyday surprises.',
+}
 
 const careMoments = [
   {
@@ -299,14 +270,18 @@ function shell(content, route = '') {
           <a class="brand" href="#/home">
             <span class="brand-logo-wrap">
               <img class="brand-logo-static" src="${primaryLogo}" alt="Bloomfield Flowers logo">
-              <img class="brand-logo-animated" src="${animatedLogo}" alt="Bloomfield Flowers animated logo">
             </span>
             <span>Bloomfield Flowers</span>
           </a>
-          <nav class="nav-links">
-            ${navItems.map(([key, label]) => `<a href="#/${key}" class="${route === key ? 'is-active' : ''}">${label}</a>`).join('')}
-            <a href="#/cart" class="cart-link ${route === 'cart' ? 'is-active-cart' : ''}"><span>Cart</span> <span class="cart-badge">${cartCount()}</span></a>
-          </nav>
+          <div class="nav-actions">
+            <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-label="Open navigation menu">
+              <span></span><span></span><span></span>
+            </button>
+            <nav class="nav-links" data-nav-panel aria-label="Primary navigation">
+              ${navItems.map(([key, label]) => `<a href="#/${key}" class="${route === key ? 'is-active' : ''}">${label}</a>`).join('')}
+              <a href="#/cart" class="cart-link ${route === 'cart' ? 'is-active-cart' : ''}"><span>Cart</span> <span class="cart-badge">${cartCount()}</span></a>
+            </nav>
+          </div>
         </div>
       </header>
       ${content}
@@ -336,83 +311,45 @@ function shell(content, route = '') {
 }
 
 function homePage() {
-  const selectedHero = heroExperiments[0]
-
   return shell(`
     <main>
       <section class="hero-section hero-section-reimagined">
-        <div class="container hero-reimagined-shell hero-reimagined-shell-experiment">
-          <div class="hero-copy-panel hero-copy-panel-reimagined">
-            <p class="hero-mini-copy">${selectedHero.miniCopy}</p>
-            <h1>${selectedHero.title}</h1>
-            <p class="hero-copy">${selectedHero.body}</p>
-            <div class="hero-actions">
-              <a class="btn btn-primary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Order via Instagram DM</a>
-              <a class="btn btn-secondary" href="#/shop">Browse Bouquets</a>
-              <a class="btn btn-secondary" href="#/custom-orders">Custom Bouquet</a>
+        <div class="container hero-reimagined-shell hero-reimagined-shell-final">
+          <div class="hero-copy-panel hero-copy-panel-reimagined hero-copy-panel-final">
+            <p class="hero-mini-copy">${heroScene.eyebrow}</p>
+            <h1>${heroScene.title}</h1>
+            <p class="hero-copy">${heroScene.body}</p>
+            <div class="hero-actions hero-actions-final">
+              <a class="btn btn-primary" href="#/shop">Shop Bouquets</a>
+              <a class="btn btn-secondary" href="#/custom-orders">Request Custom Order</a>
             </div>
-            <div class="hero-highlights">
-              ${heroHighlights.map((item) => `<div class="hero-highlight-pill">${item}</div>`).join('')}
+            <div class="hero-highlights hero-highlights-trust">
+              ${heroHighlights.map((item) => `<div class="hero-highlight-pill hero-highlight-pill-trust">${item}</div>`).join('')}
             </div>
           </div>
-          <div class="hero-stage-card hero-stage-card-experiment">
-            <div class="hero-stage-art hero-stage-art-experiment">
+          <div class="hero-stage-card hero-stage-card-final">
+            <div class="hero-stage-art hero-stage-art-final">
               <div class="hero-stage-glow hero-stage-glow-left"></div>
               <div class="hero-stage-glow hero-stage-glow-right"></div>
-              <div class="hero-stage-badge">${selectedHero.badge}</div>
-              <div class="hero-stage-copy-card">
-                <p class="hero-showcase-label">Recommended homepage direction</p>
-                <strong>${selectedHero.noteTitle}</strong>
-                <span>${selectedHero.noteBody}</span>
-              </div>
-              <div class="hero-stage-frame ${selectedHero.frameClass}">
-                <img src="${selectedHero.image}" alt="${selectedHero.alt}">
+              <div class="hero-stage-frame hero-stage-frame-final">
+                <img src="${heroScene.bouquetImage}" alt="${heroScene.alt}" loading="eager" fetchpriority="high" decoding="async">
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section class="section container hero-experiments-section section-tight-top">
-        <div class="section-heading section-heading-centered">
-          <p class="eyebrow">Hero test</p>
-          <h2>Compare both landing page directions</h2>
-          <p>The cutout-led version is set as the main hero because it is more landing-page friendly. The reference-style version stays below so we can compare the mood and compatibility side by side.</p>
-        </div>
-        <div class="hero-experiments-grid">
-          ${heroExperiments.map((hero) => `
-            <article class="hero-experiment-card ${hero.id === 'cutout' ? 'is-recommended' : ''}">
-              <div class="hero-experiment-header">
-                <div>
-                  <p class="hero-experiment-kicker">${hero.id === 'cutout' ? 'Recommended winner' : 'Reference comparison'}</p>
-                  <h3>${hero.label}</h3>
-                </div>
-                <span class="hero-experiment-badge">${hero.badge}</span>
-              </div>
-              <div class="hero-experiment-preview ${hero.frameClass}">
-                <img src="${hero.image}" alt="${hero.alt}">
-              </div>
-              <p>${hero.body}</p>
-              <div class="hero-experiment-note">
-                <strong>${hero.noteTitle}</strong>
-                <span>${hero.noteBody}</span>
-              </div>
-            </article>
-          `).join('')}
         </div>
       </section>
 
       <section class="section container showcase-section section-tight-top">
         <div class="section-heading section-heading-centered">
           <p class="eyebrow">Bouquet showcase</p>
-          <h2>Slide through the Bloomfield gifting moods</h2>
-          <p>The old hero slider now sits below the landing hero, with the bouquet names used as captions for the collection-inspired frames.</p>
+          <h2>Shop by gifting mood</h2>
+          <p>Explore Bloomfield favourites for romance, birthdays, celebrations, and thoughtful just-because moments.</p>
         </div>
         <div class="hero-card hero-card-polished hero-card-gallery-shell">
           <div class="hero-slider-shell hero-slider-shell-below">
             ${landingShowcaseSlides.map((slide, index) => `
               <article class="hero-gallery-card hero-slide showcase-slide ${index === getHeroIndex() ? 'is-active' : ''}" data-slide="${index}">
-                <img src="${slide.image}" alt="${slide.title}">
+                <img src="${slide.image}" alt="${slide.title}" ${index === getHeroIndex() ? 'loading="eager" fetchpriority="high"' : 'loading="lazy" decoding="async"'}>
                 <div class="hero-showcase-overlay hero-showcase-overlay-soft hero-showcase-overlay-captioned">
                   <p class="hero-showcase-label">Bloomfield bouquet deck</p>
                   <strong>${slide.title}</strong>
@@ -439,7 +376,7 @@ function homePage() {
         <div class="product-grid product-grid-featured">
           ${products.slice(0, 3).map((product) => `
             <article class="product-card">
-              <img src="${product.image}" alt="${product.name}">
+              <img src="${product.image}" alt="${product.name}" loading="lazy" decoding="async">
               <div class="product-body">
                 <p class="product-category">${product.category}</p>
                 <h3>${product.name}</h3>
@@ -460,7 +397,7 @@ function homePage() {
       <section class="section section-soft section-story-band">
         <div class="container two-col story-grid story-grid-polished">
           <div class="story-visual-card">
-            <img src="/images/IMG_6001.JPG.jpeg" alt="Bloomfield Flowers arrangement detail">
+            <img src="/images/optimized/just-because.jpg" alt="Bloomfield Flowers arrangement detail" loading="lazy" decoding="async">
           </div>
           <div>
             <p class="eyebrow">About Bloomfield Flowers</p>
@@ -477,7 +414,7 @@ function homePage() {
           <h2>Why Bloomfield Flowers</h2>
         </div>
         <div class="bullet-grid">
-          ${['Instagram-first ordering so customers can browse bouquet inspiration before messaging', 'Same-day delivery available for confirmed orders before 2pm', 'Serving Abuja and Lagos with premium gifting and celebration bouquets', 'Custom bouquet options for special requests and personal moments', 'Delivery is confirmed before payment so expectations are clear'].map((item) => `<div class="bullet-card">${item}</div>`).join('')}
+          ${['Premium bouquet styling with gift-ready presentation', 'Same-day delivery available for confirmed orders before 2pm', 'Serving Abuja and Lagos with elegant bouquets for gifting moments', 'Custom bouquet options for personal requests and special occasions', 'Clear delivery confirmation before payment so expectations stay aligned'].map((item) => `<div class="bullet-card">${item}</div>`).join('')}
         </div>
       </section>
 
@@ -490,7 +427,7 @@ function homePage() {
         <div class="review-grid">
           ${reviewImages.map((image, index) => `
             <article class="review-card">
-              <img src="${image}" alt="Bloomfield Flowers customer review ${index + 1}">
+              <img src="${image}" alt="Bloomfield Flowers customer review ${index + 1}" loading="lazy" decoding="async">
             </article>
           `).join('')}
         </div>
@@ -526,7 +463,7 @@ function shopPage() {
       <div class="product-grid">
         ${products.map((product) => `
           <article class="product-card">
-            <img src="${product.image}" alt="${product.name}">
+            <img src="${product.image}" alt="${product.name}" loading="lazy" decoding="async">
             <div class="product-body">
               <p class="product-category">${product.category}</p>
               <h3>${product.name}</h3>
@@ -626,7 +563,7 @@ function flowerCarePage() {
             </div>
           </div>
           <div class="flower-care-hero-card flower-care-hero-card-polished">
-            <img src="/images/IMG_6023.JPG.jpeg" alt="Bloomfield bouquet care inspiration">
+            <img src="/images/optimized/flower-care.jpg" alt="Bloomfield bouquet care inspiration" loading="lazy" decoding="async">
           </div>
         </div>
       </section>
@@ -708,37 +645,49 @@ function cartPage() {
           </div>
         `).join('') : '<div class="empty-state"><h3>Your cart is empty</h3><p>Add a bouquet to get started.</p><a class="btn btn-primary" href="#/shop">Continue Shopping</a></div>'}
       </div>
-      <aside class="summary-card">
+      <aside class="summary-card summary-card-emphasis">
         <h3>Order Summary</h3>
         <p>Items: ${cartCount()}</p>
-        <p class="summary-total">Total: ${naira.format(cartTotal())}</p>
-        <a class="btn btn-primary" href="#/checkout">Proceed to Checkout</a>
-        <a class="btn btn-secondary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Confirm Order in Instagram DM</a>
+        <p class="summary-total">Subtotal: ${naira.format(cartTotal())}</p>
+        <p class="summary-note">Delivery fee will be added based on the area selected in Abuja or Lagos during checkout.</p>
+        <div class="summary-actions">
+          <a class="btn btn-primary" href="#/checkout">Proceed to Checkout</a>
+          <a class="btn btn-secondary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Confirm Order in Instagram DM</a>
+        </div>
       </aside>
     </main>
   `, 'cart')
 }
 
 function checkoutPage() {
+  const items = cartDetailed()
   return shell(`
     <main class="section container split-page">
-      <form class="form-card">
+      <form class="form-card checkout-form-card">
         <p class="eyebrow">Checkout</p>
-        <h1>Simple checkout for version one</h1>
+        <h1>Delivery details before payment</h1>
+        <p class="form-intro">Complete the order details now so the payment step can be finalized cleanly once Squad is connected.</p>
         <label>Full name<input type="text" placeholder="Customer full name"></label>
         <label>Email<input type="email" placeholder="you@example.com"></label>
         <label>Phone<input type="tel" placeholder="Phone number"></label>
+        <label>Recipient name<input type="text" placeholder="Who is receiving the bouquet?"></label>
+        <label>Recipient phone<input type="tel" placeholder="Recipient phone number"></label>
         <label>Delivery address<input type="text" placeholder="Street address"></label>
-        <label>City<input type="text" placeholder="City"></label>
-        <label>Notes<textarea rows="4" placeholder="Delivery notes or order instructions"></textarea></label>
-        <a class="btn btn-primary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Send Order via Instagram DM</a>
-        <p class="form-note">Checkout remains a placeholder for now. We confirm delivery details before payment, and payment can be connected later.</p>
+        <label>City<select><option>Abuja</option><option>Lagos</option></select></label>
+        <label>Area / district<input type="text" placeholder="Area used to calculate delivery fee"></label>
+        <label>Card message<textarea rows="3" placeholder="Add a note for the recipient"></textarea></label>
+        <label>Delivery notes<textarea rows="4" placeholder="Gate code, preferred time, or order instructions"></textarea></label>
+        <div class="checkout-actions">
+          <a class="btn btn-primary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Send Order via Instagram DM</a>
+          <a class="btn btn-secondary" href="#/cart">Back to Cart</a>
+        </div>
+        <p class="form-note">Delivery fee will be based on area. Secure payment will be added here once Squad is connected and verified.</p>
       </form>
-      <aside class="summary-card">
+      <aside class="summary-card summary-card-emphasis">
         <h3>Order Summary</h3>
-        ${cartDetailed().length ? cartDetailed().map((item) => `<p>${item.product.name} × ${item.qty}</p>`).join('') : '<p>No items yet.</p>'}
-        <p class="summary-total">Total: ${naira.format(cartTotal())}</p>
-        <p>Instagram DM is the primary order path for now. Payment will be added later.</p>
+        ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${item.product.name} × ${item.qty}</span><strong>${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
+        <p class="summary-total">Subtotal: ${naira.format(cartTotal())}</p>
+        <p class="summary-note">Area-based delivery will be added after city and area are confirmed. Payment comes after that step.</p>
       </aside>
     </main>
   `, 'checkout')
@@ -786,10 +735,41 @@ function bindEvents() {
   document.querySelectorAll('[data-hero-dot]').forEach((button) => {
     button.addEventListener('click', () => goToHero(Number(button.dataset.heroDot)))
   })
+
+  const header = document.querySelector('.site-header')
+  const navToggle = document.querySelector('[data-nav-toggle]')
+  const navPanel = document.querySelector('[data-nav-panel]')
+
+  if (header && navToggle && navPanel) {
+    const closeNav = () => {
+      header.classList.remove('is-open')
+      navToggle.setAttribute('aria-expanded', 'false')
+    }
+
+    navToggle.addEventListener('click', () => {
+      const isOpen = header.classList.toggle('is-open')
+      navToggle.setAttribute('aria-expanded', String(isOpen))
+    })
+
+    navPanel.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', closeNav)
+    })
+
+    document.addEventListener('click', (event) => {
+      if (!header.classList.contains('is-open')) return
+      if (header.contains(event.target)) return
+      closeNav()
+    })
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeNav()
+    })
+  }
 }
 
 function renderApp() {
   app.innerHTML = router()
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
   bindEvents()
 }
 

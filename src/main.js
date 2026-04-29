@@ -140,7 +140,7 @@ const heroHighlights = [
 ]
 
 const heroScene = {
-  bouquetImage: '/images/optimized/hero-bouquet-source.png',
+  bouquetImage: '/images/optimized/hero-bouquet-softcut.png',
   alt: 'Bloomfield Flowers signature bouquet hero',
   eyebrow: 'Bloomfield Flowers',
   title: 'Luxury bouquets for meaningful moments',

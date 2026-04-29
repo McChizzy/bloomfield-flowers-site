@@ -373,7 +373,7 @@ p {
 
 .hero-stage-frame {
   position: absolute;
-  inset: 1.2rem -0.2rem 0 1.1rem;
+  inset: 1.6rem 0 0 2rem;
   border-radius: 0;
   overflow: visible;
   background: transparent;
@@ -384,9 +384,7 @@ p {
   height: 100%;
   object-fit: contain;
   object-position: center bottom;
-  image-rendering: auto;
-  mix-blend-mode: multiply;
-  filter: drop-shadow(0 24px 30px rgba(110, 53, 86, 0.08));
+  filter: drop-shadow(0 26px 34px rgba(110, 53, 86, 0.1));
 }
 
 .hero-stage-frame-final {
@@ -394,7 +392,7 @@ p {
 }
 
 .hero-stage-frame-final img {
-  transform: scale(1.06);
+  transform: scale(1.18);
 }
 
 .showcase-section {
@@ -441,7 +439,7 @@ p {
   }
 
   .hero-stage-frame {
-    inset: 2.2rem 0 0 0;
+    inset: 2.5rem 0 0 0;
   }
 }
 
@@ -452,11 +450,11 @@ p {
   }
 
   .hero-stage-frame {
-    inset: 1.5rem -0.1rem 0 -0.1rem;
+    inset: 2rem -0.2rem 0 -0.2rem;
   }
 
   .hero-stage-frame-final img {
-    transform: scale(1.01);
+    transform: scale(1.06);
   }
 
   .showcase-slide,

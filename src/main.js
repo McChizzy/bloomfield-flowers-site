@@ -1,4 +1,5 @@
 import './style.css'
+import { products, parsePriceValue } from './catalog.js'
 
 const primaryLogo = '/images/bff logo-p.jpeg'
 const instagramHandle = 'bloomfieldflowers_'
@@ -8,60 +9,6 @@ const phoneNumber = '+234 701 120 3325'
 const businessHours = 'Open 24 hours'
 const dmPrefill = encodeURIComponent('Hello Bloomfield Flowers. I would like to place an order. We will respond to process your order and confirm flower availability. Thanks for your patronage.')
 const customOrderPrefill = encodeURIComponent('Hello Bloomfield Flowers. I would like to request a custom bouquet. We will respond to process your order and confirm flower availability. Thanks for your patronage.')
-
-const products = [
-  {
-    id: 'barbie-deluxe-m',
-    name: 'Barbie Deluxe (M)',
-    category: 'Flowers',
-    price: '₦250,000',
-    image: '/images/optimized/barbie-deluxe.jpg',
-    short: 'A lush mixed bouquet made with roses, spray roses, lilies, and gypsos fillers.',
-    description: 'Mixed bouquet (M) made with different types of flowers, including 20 roses, 3 spray roses, 6 lilies, and 2 gypsos fillers.',
-    instagramPost: 'https://www.instagram.com/p/DWuVT6lDu8v/?img_index=1',
-  },
-  {
-    id: 'pastel-cloud-s',
-    name: 'Pastel Cloud (S)',
-    category: 'Flowers',
-    price: '₦50,000 - ₦80,000',
-    image: '/images/optimized/pastel-cloud.jpg',
-    short: 'A soft pastel mixed bouquet with lilac, white, and pink blooms.',
-    description: 'Mixed bouquet (S) made with different colors of chrysanthemums, lilac, white, pink roses, and gypsos.',
-    instagramPost: 'https://www.instagram.com/p/DV-wqrvDVVs/?img_index=1',
-  },
-  {
-    id: 'century-of-roses',
-    name: 'Century of Roses',
-    category: 'Flowers',
-    price: '₦700,000 - ₦800,000',
-    image: '/images/optimized/century-of-roses.jpg',
-    short: 'A dramatic 100-rose arrangement for grand romantic and luxury gifting moments.',
-    description: 'A premium rose statement piece featuring 100 roses in red, pink, white, yellow, or purple.',
-    instagramPost: 'https://www.instagram.com/p/DV36cdujSiI/',
-  },
-  {
-    id: 'bff-collection',
-    name: 'BFF Collection',
-    category: 'Flowers',
-    price: '₦390,000 - ₦840,000',
-    image: '/images/optimized/bff-collection.jpg',
-    short: 'A signature rose collection styled with gypsos lettering for standout gifting.',
-    description: 'A premium collection of 50, 75, or 100 roses styled with custom gypsos letters.',
-    instagramPost: 'https://www.instagram.com/p/DVi5Wt0l8my/?img_index=1',
-  },
-  {
-    id: 'the-radiant-garden',
-    name: 'The Radiant Garden',
-    category: 'Flowers',
-    price: '₦150,000 - ₦400,000',
-    image: '/images/optimized/radiant-garden.jpg',
-    short: 'A full mixed bouquet with layered floral textures and a rich premium feel.',
-    description: 'Mixed bouquet (L) made with chrysanthemums, lilies, roses, spray roses, and gypsos.',
-    instagramPost: 'https://www.instagram.com/p/DW61kFWDT10/?img_index=1',
-  },
-]
-
 
 const reviewImages = [
   '/images/optimized/review-1.jpg',
@@ -141,7 +88,7 @@ const heroHighlights = [
 
 const heroScene = {
   bouquetImage: '/images/optimized/hero-bouquet-softcut.png',
-  alt: 'Bloomfield Flowers signature bouquet hero',
+  alt: 'Bloomfield Flowers signature bouquet',
   eyebrow: 'Bloomfield Flowers',
   title: 'Luxury bouquets for meaningful moments',
   body: 'Elegant floral gifting in Abuja and Lagos for romance, birthdays, celebrations, and premium everyday surprises.',
@@ -170,6 +117,7 @@ const naira = new Intl.NumberFormat('en-NG', {
 
 const storageKey = 'bloomfield-cart'
 const heroStorageKey = 'bloomfield-hero-index'
+const checkoutDraftKey = 'bloomfield-checkout-draft'
 const app = document.querySelector('#app')
 
 function getHeroIndex() {
@@ -217,16 +165,43 @@ function updateQty(productId, delta) {
   renderApp()
 }
 
-function parsePriceValue(price) {
-  if (typeof price === 'number') return price
-  const digits = String(price).replace(/[^\d-]/g, '')
-  const first = digits.split('-')[0]
-  return Number(first || 0)
-}
-
 function formatPrice(price) {
   if (typeof price === 'number') return naira.format(price)
   return price
+}
+
+function getCheckoutDraft() {
+  try {
+    return JSON.parse(localStorage.getItem(checkoutDraftKey) || '{}')
+  } catch {
+    return {}
+  }
+}
+
+function saveCheckoutDraft(draft) {
+  localStorage.setItem(checkoutDraftKey, JSON.stringify(draft))
+}
+
+function getDeliveryFee() {
+  const fee = Number(getCheckoutDraft().deliveryFee || 0)
+  return Number.isFinite(fee) ? Math.max(0, fee) : 0
+}
+
+function checkoutGrandTotal() {
+  return cartTotal() + getDeliveryFee()
+}
+
+function getTransactionRefFromUrl() {
+  const params = new URLSearchParams(window.location.search)
+  return params.get('transaction_ref') || params.get('reference') || ''
+}
+
+function checkoutResultState() {
+  const hashRoute = location.hash.replace('#/', '')
+  if (hashRoute) return hashRoute
+  const path = window.location.pathname.replace(/^\/+|\/+$/g, '')
+  if (path === 'checkout-complete') return 'checkout-complete'
+  return 'home'
 }
 
 function cartDetailed() {
@@ -327,14 +302,8 @@ function homePage() {
               ${heroHighlights.map((item) => `<div class="hero-highlight-pill hero-highlight-pill-trust">${item}</div>`).join('')}
             </div>
           </div>
-          <div class="hero-stage-card hero-stage-card-final">
-            <div class="hero-stage-art hero-stage-art-final">
-              <div class="hero-stage-glow hero-stage-glow-left"></div>
-              <div class="hero-stage-glow hero-stage-glow-right"></div>
-              <div class="hero-stage-frame hero-stage-frame-final">
-                <img src="${heroScene.bouquetImage}" alt="${heroScene.alt}" loading="eager" fetchpriority="high" decoding="async">
-              </div>
-            </div>
+          <div class="hero-photo-wrap">
+            <img src="${heroScene.bouquetImage}" alt="${heroScene.alt}" loading="eager" fetchpriority="high" decoding="async">
           </div>
         </div>
       </section>
@@ -482,14 +451,41 @@ function shopPage() {
 
 function aboutPage() {
   return shell(`
-    <main class="section container stack-page">
-      <p class="eyebrow">About</p>
-      <h1>About Bloomfield Flowers</h1>
-      <p>Bloomfield Flowers is a Nigeria-based flower business dedicated to creating beautifully curated bouquets for meaningful moments across Abuja and Lagos. We believe flowers are more than gifts, they are expressions of love, care, celebration, and thoughtfulness.</p>
-      <p>Our goal is to make gifting feel elegant, easy, and memorable through floral arrangements that are carefully styled, beautifully presented, and easy to order through Instagram DM first.</p>
-      <div class="bullet-grid">
-        ${['Thoughtfully curated designs', 'Elegant presentation', 'Meaningful gifting', 'Warm customer experience', 'Beauty in every detail'].map((item) => `<div class="bullet-card">${item}</div>`).join('')}
-      </div>
+    <main>
+      <section class="section container two-col story-grid-polished">
+        <div class="story-visual-card">
+          <img src="/images/optimized/century-of-roses.jpg" alt="Bloomfield century of roses arrangement" loading="lazy" decoding="async">
+        </div>
+        <div class="about-copy">
+          <p class="eyebrow">About</p>
+          <h1>We make gifting feel like a moment</h1>
+          <p>Bloomfield Flowers is a Nigeria-based floral studio creating beautifully curated bouquets for meaningful moments across Abuja and Lagos. We believe flowers are more than gifts — they are expressions of love, care, celebration, and thoughtfulness.</p>
+          <p>Every arrangement is carefully styled, elegantly presented, and easy to order. We work closely with each customer to make sure the bouquet feels personal, gift-ready, and exactly right for the moment.</p>
+          <a class="btn btn-primary" href="#/shop">Shop Bouquets</a>
+        </div>
+      </section>
+      <section class="section section-soft">
+        <div class="container">
+          <div class="section-heading section-heading-centered">
+            <p class="eyebrow">What we stand for</p>
+            <h2>The Bloomfield difference</h2>
+          </div>
+          <div class="bullet-grid">
+            ${[
+              ['Thoughtfully curated', 'Every bouquet is selected and styled with care, not just assembled.'],
+              ['Elegant presentation', 'Gift-ready from the first look — packaging that matches the flowers.'],
+              ['Personal gifting', 'We treat every order like it matters, because to someone it does.'],
+              ['Warm experience', 'We confirm availability and delivery before you pay. No surprises.'],
+              ['Abuja & Lagos delivery', 'Same-day delivery for confirmed orders placed before 2pm.'],
+            ].map(([title, body]) => `
+              <div class="bullet-card about-value-card">
+                <h3>${title}</h3>
+                <p>${body}</p>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </section>
     </main>
   `, 'about')
 }
@@ -649,7 +645,7 @@ function cartPage() {
         <h3>Order Summary</h3>
         <p>Items: ${cartCount()}</p>
         <p class="summary-total">Subtotal: ${naira.format(cartTotal())}</p>
-        <p class="summary-note">Delivery fee will be added based on the area selected in Abuja or Lagos during checkout.</p>
+        <p class="summary-note">Delivery fee is confirmed at checkout based on your area.</p>
         <div class="summary-actions">
           <a class="btn btn-primary" href="#/checkout">Proceed to Checkout</a>
           <a class="btn btn-secondary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Confirm Order in Instagram DM</a>
@@ -661,40 +657,68 @@ function cartPage() {
 
 function checkoutPage() {
   const items = cartDetailed()
+  const draft = getCheckoutDraft()
+  const deliveryFee = getDeliveryFee()
   return shell(`
     <main class="section container split-page">
-      <form class="form-card checkout-form-card">
+      <form class="form-card checkout-form-card" data-checkout-form>
         <p class="eyebrow">Checkout</p>
-        <h1>Delivery details before payment</h1>
-        <p class="form-intro">Complete the order details now so the payment step can be finalized cleanly once Squad is connected.</p>
-        <label>Full name<input type="text" placeholder="Customer full name"></label>
-        <label>Email<input type="email" placeholder="you@example.com"></label>
-        <label>Phone<input type="tel" placeholder="Phone number"></label>
-        <label>Recipient name<input type="text" placeholder="Who is receiving the bouquet?"></label>
-        <label>Recipient phone<input type="tel" placeholder="Recipient phone number"></label>
-        <label>Delivery address<input type="text" placeholder="Street address"></label>
-        <label>City<select><option>Abuja</option><option>Lagos</option></select></label>
-        <label>Area / district<input type="text" placeholder="Area used to calculate delivery fee"></label>
-        <label>Card message<textarea rows="3" placeholder="Add a note for the recipient"></textarea></label>
-        <label>Delivery notes<textarea rows="4" placeholder="Gate code, preferred time, or order instructions"></textarea></label>
+        <h1>Secure checkout</h1>
+        <p class="form-intro">Complete your delivery details and we’ll take care of the rest.</p>
+        <label>Full name<input name="fullName" type="text" placeholder="Customer full name" value="${draft.fullName || ''}" required></label>
+        <label>Email<input name="email" type="email" placeholder="you@example.com" value="${draft.email || ''}" required></label>
+        <label>Phone<input name="phone" type="tel" placeholder="Phone number" value="${draft.phone || ''}" required></label>
+        <label>Recipient name<input name="recipientName" type="text" placeholder="Who is receiving the bouquet?" value="${draft.recipientName || ''}"></label>
+        <label>Recipient phone<input name="recipientPhone" type="tel" placeholder="Recipient phone number" value="${draft.recipientPhone || ''}"></label>
+        <label>Delivery address<input name="address" type="text" placeholder="Street address" value="${draft.address || ''}" required></label>
+        <label>City<select name="city" required><option ${draft.city === 'Abuja' ? 'selected' : ''}>Abuja</option><option ${draft.city === 'Lagos' ? 'selected' : ''}>Lagos</option></select></label>
+        <label>Area / district<input name="area" type="text" placeholder="Area used to calculate delivery fee" value="${draft.area || ''}" required></label>
+        <label>Delivery fee (₦)<input name="deliveryFee" type="number" min="0" step="100" placeholder="5000" value="${deliveryFee || ''}" required></label>
+        <label>Card message<textarea name="cardMessage" rows="3" placeholder="Add a note for the recipient">${draft.cardMessage || ''}</textarea></label>
+        <label>Delivery notes<textarea name="deliveryNotes" rows="4" placeholder="Gate code, preferred time, or order instructions">${draft.deliveryNotes || ''}</textarea></label>
+        <div class="form-status" data-checkout-status aria-live="polite"></div>
         <div class="checkout-actions">
-          <a class="btn btn-primary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Send Order via Instagram DM</a>
+          <button class="btn btn-primary" type="submit" data-checkout-submit>${items.length ? 'Pay with Squad' : 'Add items to continue'}</button>
           <a class="btn btn-secondary" href="#/cart">Back to Cart</a>
         </div>
-        <p class="form-note">Delivery fee will be based on area. Secure payment will be added here once Squad is connected and verified.</p>
+        <p class="form-note">Delivery fees vary by area and will be confirmed with you before payment is processed.</p>
       </form>
       <aside class="summary-card summary-card-emphasis">
         <h3>Order Summary</h3>
         ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${item.product.name} × ${item.qty}</span><strong>${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
         <p class="summary-total">Subtotal: ${naira.format(cartTotal())}</p>
-        <p class="summary-note">Area-based delivery will be added after city and area are confirmed. Payment comes after that step.</p>
+        <p>Delivery: ${naira.format(deliveryFee)}</p>
+        <p class="summary-total">Total: ${naira.format(checkoutGrandTotal())}</p>
+        <p class="summary-note">You'll be redirected to a secure payment page. Once complete, you'll be brought back here to confirm your order.</p>
       </aside>
     </main>
   `, 'checkout')
 }
 
-function router() {
-  const route = location.hash.replace('#/', '') || 'home'
+function checkoutCompletePage() {
+  const transactionRef = getTransactionRefFromUrl()
+  return shell(`
+    <main class="section container split-page">
+      <section class="form-card checkout-form-card">
+        <p class="eyebrow">Payment status</p>
+        <h1>Checking your Squad payment</h1>
+        <p class="form-intro">${transactionRef ? `Transaction reference: <strong>${transactionRef}</strong>` : 'No transaction reference was found in the return URL.'}</p>
+        <div class="form-status form-status-persistent" data-payment-status aria-live="polite">${transactionRef ? 'Verifying payment status…' : 'We could not verify the payment because the transaction reference is missing.'}</div>
+        <div class="checkout-actions">
+          <a class="btn btn-primary" href="#/shop">Continue shopping</a>
+          <a class="btn btn-secondary" href="#/checkout">Back to checkout</a>
+        </div>
+      </section>
+      <aside class="summary-card summary-card-emphasis">
+        <h3>What happens next</h3>
+        <p>If payment is successful, we can use this page plus the webhook to confirm paid orders safely.</p>
+        <p class="summary-note">Webhook validation is wired separately so the redirect page is not the only source of truth.</p>
+      </aside>
+    </main>
+  `, 'checkout')
+}
+
+function router(route = checkoutResultState()) {
   switch (route) {
     case 'shop': return shopPage()
     case 'about': return aboutPage()
@@ -704,19 +728,129 @@ function router() {
     case 'contact': return contactPage()
     case 'cart': return cartPage()
     case 'checkout': return checkoutPage()
+    case 'checkout-complete': return checkoutCompletePage()
     default: return homePage()
   }
+}
+
+async function handleCheckoutSubmit(event) {
+  event.preventDefault()
+  const form = event.currentTarget
+  const status = form.querySelector('[data-checkout-status]')
+  const submit = form.querySelector('[data-checkout-submit]')
+  const formData = new FormData(form)
+  const draft = Object.fromEntries(formData.entries())
+  saveCheckoutDraft(draft)
+
+  if (!cartCount()) {
+    status.textContent = 'Your cart is empty. Add bouquets before checkout.'
+    status.className = 'form-status form-status-error'
+    return
+  }
+
+  const payload = {
+    customer: {
+      fullName: draft.fullName,
+      email: draft.email,
+      phone: draft.phone,
+      recipientName: draft.recipientName,
+      recipientPhone: draft.recipientPhone,
+    },
+    delivery: {
+      city: draft.city,
+      area: draft.area,
+      address: draft.address,
+      deliveryFee: Number(draft.deliveryFee || 0),
+      cardMessage: draft.cardMessage,
+      deliveryNotes: draft.deliveryNotes,
+    },
+    items: getCart(),
+  }
+
+  submit.disabled = true
+  status.textContent = 'Opening secure Squad checkout…'
+  status.className = 'form-status form-status-working'
+
+  try {
+    const response = await fetch('/api/checkout/initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const contentType = response.headers.get('content-type') || ''
+    const raw = await response.text()
+    let result = {}
+
+    if (contentType.includes('application/json')) {
+      result = raw ? JSON.parse(raw) : {}
+    } else if (!response.ok || raw.startsWith('<!doctype html>') || raw.includes('export default async function handler')) {
+      throw new Error('Squad checkout needs the Vercel server runtime. For local testing, run this site with `npx vercel dev` instead of plain `npm run dev`.')
+    }
+
+    if (!response.ok || !result.checkoutUrl) {
+      throw new Error(result.error || 'Unable to start Squad checkout.')
+    }
+
+    status.textContent = 'Redirecting to Squad…'
+    window.location.href = result.checkoutUrl
+  } catch (error) {
+    submit.disabled = false
+    status.textContent = error.message || 'Unable to start checkout.'
+    status.className = 'form-status form-status-error'
+  }
+}
+
+async function verifyReturnedPayment() {
+  const target = document.querySelector('[data-payment-status]')
+  const transactionRef = getTransactionRefFromUrl()
+  if (!target || !transactionRef) return
+
+  target.textContent = 'Verifying payment status…'
+  target.className = 'form-status form-status-persistent form-status-working'
+
+  try {
+    const response = await fetch(`/api/checkout/verify?transaction_ref=${encodeURIComponent(transactionRef)}`)
+    const result = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Verification failed.')
+    }
+
+    const paymentState = String(result.transaction_status || 'Pending')
+    const messageMap = {
+      Success: `Payment confirmed. ${result.transaction_ref || transactionRef} is marked ${paymentState}.`,
+      Pending: `Payment is still pending for ${result.transaction_ref || transactionRef}.`,
+      Failed: `Payment failed for ${result.transaction_ref || transactionRef}.`,
+      Abandoned: `Payment was abandoned for ${result.transaction_ref || transactionRef}.`,
+    }
+
+    target.textContent = messageMap[paymentState] || `Payment status: ${paymentState}`
+    target.className = `form-status form-status-persistent ${paymentState === 'Success' ? 'form-status-success' : paymentState === 'Pending' ? 'form-status-working' : 'form-status-error'}`
+    if (paymentState === 'Success') saveCart([])
+  } catch (error) {
+    target.textContent = error.message || 'Unable to verify payment status.'
+    target.className = 'form-status form-status-persistent form-status-error'
+  }
+}
+
+function updateSliderDOM(index) {
+  document.querySelectorAll('.showcase-slide').forEach((slide, i) => {
+    slide.classList.toggle('is-active', i === index)
+  })
+  document.querySelectorAll('.hero-dot').forEach((dot, i) => {
+    dot.classList.toggle('is-active', i === index)
+  })
 }
 
 function changeHero(delta) {
   const next = (getHeroIndex() + delta + landingShowcaseSlides.length) % landingShowcaseSlides.length
   saveHeroIndex(next)
-  renderApp()
+  updateSliderDOM(next)
 }
 
 function goToHero(index) {
   saveHeroIndex(index)
-  renderApp()
+  updateSliderDOM(index)
 }
 
 function bindEvents() {
@@ -735,6 +869,19 @@ function bindEvents() {
   document.querySelectorAll('[data-hero-dot]').forEach((button) => {
     button.addEventListener('click', () => goToHero(Number(button.dataset.heroDot)))
   })
+
+  const checkoutForm = document.querySelector('[data-checkout-form]')
+  if (checkoutForm) {
+    checkoutForm.addEventListener('submit', handleCheckoutSubmit)
+    checkoutForm.querySelectorAll('input, select, textarea').forEach((field) => {
+      field.addEventListener('input', () => {
+        saveCheckoutDraft({
+          ...getCheckoutDraft(),
+          [field.name]: field.value,
+        })
+      })
+    })
+  }
 
   const header = document.querySelector('.site-header')
   const navToggle = document.querySelector('[data-nav-toggle]')
@@ -767,10 +914,25 @@ function bindEvents() {
   }
 }
 
+let lastRenderedRoute = ''
+
 function renderApp() {
-  app.innerHTML = router()
-  window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  const route = checkoutResultState()
+  const shouldResetScroll = route !== lastRenderedRoute
+  const currentScrollX = window.scrollX
+  const currentScrollY = window.scrollY
+
+  app.innerHTML = router(route)
+
+  if (shouldResetScroll) {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  } else {
+    window.scrollTo({ top: currentScrollY, left: currentScrollX, behavior: 'auto' })
+  }
+
   bindEvents()
+  verifyReturnedPayment()
+  lastRenderedRoute = route
 }
 
 window.addEventListener('hashchange', renderApp)

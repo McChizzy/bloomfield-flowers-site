@@ -370,7 +370,7 @@ function homePage() {
           </div>
           <div>
             <p class="eyebrow">About Bloomfield Flowers</p>
-            <h2>Thoughtfully curated bouquets for life’s most meaningful moments</h2>
+            <h2>Thoughtfully curated bouquets for life's most meaningful moments</h2>
             <p>At Bloomfield Flowers, we create arrangements that feel elegant, expressive, and gift-worthy. We serve Abuja and Lagos with premium gifting, custom bouquets, romance flowers, birthday blooms, and same-day delivery for confirmed orders placed before 2pm.</p>
             <a class="text-link" href="#/about">Learn more about Bloomfield Flowers</a>
           </div>
@@ -396,7 +396,7 @@ function homePage() {
         <div class="review-grid">
           ${reviewImages.map((image, index) => `
             <article class="review-card">
-              <img src="${image}" alt="Bloomfield Flowers customer review ${index + 1}" loading="lazy" decoding="async">
+              <img src="${image}" alt="Bloomfield Flowers customer review ${index + 1}" ${index < 3 ? 'loading="eager"' : 'loading="lazy"'} decoding="async">
             </article>
           `).join('')}
         </div>
@@ -406,7 +406,7 @@ function homePage() {
         <div>
           <p class="eyebrow">Custom bouquets</p>
           <h2>Need something personal and beautifully styled?</h2>
-          <p>Create a bouquet that feels uniquely made for your moment. Tell us your style, color palette, and occasion, and we’ll craft something beautiful for you, then confirm flower availability before payment.</p>
+          <p>Create a bouquet that feels uniquely made for your moment. Tell us your style, color palette, and occasion, and we'll craft something beautiful for you, then confirm flower availability before payment.</p>
         </div>
         <div class="cta-actions-stack">
           <a class="btn btn-primary" href="#/custom-orders">Request a Custom Bouquet</a>
@@ -497,22 +497,25 @@ function customOrdersPage() {
         <p class="eyebrow">Custom Orders</p>
         <h1>Custom Bouquet Orders</h1>
         <p>Looking for something more personal? We create custom bouquets tailored to your occasion, style, and budget.</p>
-        <p>Tell us what you’re celebrating, the color palette you prefer, and the mood you want the arrangement to capture. We’ll build something beautifully curated for your moment.</p>
+        <p>Tell us what you're celebrating, the color palette you prefer, and the mood you want the arrangement to capture. We'll build something beautifully curated for your moment.</p>
         <div class="contact-list">
           <p><strong>Instagram DM:</strong> <a href="${instagramUrl}" target="_blank" rel="noreferrer">@${instagramHandle}</a></p>
-          <p><strong>Secondary phone:</strong> ${phoneNumber}</p>
+          <p><strong>Phone:</strong> ${phoneNumber}</p>
           <p><strong>Delivery:</strong> Abuja and Lagos, same day for confirmed orders before 2pm</p>
         </div>
       </div>
-      <form class="form-card">
-        <label>Name<input type="text" placeholder="Your name"></label>
-        <label>Email<input type="email" placeholder="you@example.com"></label>
-        <label>Phone<input type="tel" placeholder="Phone number"></label>
-        <label>Occasion<select><option>Birthday</option><option>Anniversary</option><option>Romantic</option><option>Celebration</option><option>Other</option></select></label>
-        <label>Preferred colors<input type="text" placeholder="Pink, white, purple"></label>
-        <label>Budget<input type="number" placeholder="20000"></label>
-        <label>Additional notes<textarea rows="5" placeholder="Tell us more about your vision"></textarea></label>
-        <a class="btn btn-primary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Send Custom Order via Instagram DM</a>
+      <form class="form-card" data-contact-form data-form-type="custom-order">
+        <div class="form-status" data-contact-status aria-live="polite"></div>
+        <label>Name<input name="name" type="text" placeholder="Your name" required></label>
+        <label>Email<input name="email" type="email" placeholder="you@example.com"></label>
+        <label>Phone<input name="phone" type="tel" placeholder="Phone number"></label>
+        <label>Instagram handle <span class="form-label-hint">(optional — so we can reach you)</span><input name="instagram" type="text" placeholder="@yourhandle"></label>
+        <label>Occasion<select name="occasion"><option>Birthday</option><option>Anniversary</option><option>Romantic</option><option>Celebration</option><option>Other</option></select></label>
+        <label>Preferred colors<input name="colors" type="text" placeholder="Pink, white, purple"></label>
+        <label>Budget<input name="budget" type="text" placeholder="e.g. ₦50,000"></label>
+        <label>Tell us your vision<textarea name="message" rows="5" placeholder="Occasion, mood, color palette, anything that helps us create something perfect" required></textarea></label>
+        <button class="btn btn-primary" type="submit" data-contact-submit>Send Custom Order Request</button>
+        <p class="form-note">We'll confirm flower availability and get back to you soon.</p>
         <p class="form-note">We will respond to process your order and confirm flower availability. Thanks for your patronage.</p>
       </form>
     </main>
@@ -600,7 +603,7 @@ function contactPage() {
       <div>
         <p class="eyebrow">Contact</p>
         <h1>Contact Bloomfield Flowers</h1>
-        <p>We’d love to help you find the perfect bouquet for your moment. Reach out for questions, custom orders, or delivery inquiries.</p>
+        <p>We'd love to help you find the perfect bouquet for your moment. Reach out for questions, custom orders, or delivery inquiries.</p>
         <div class="contact-list">
           <p><strong>Email:</strong> <a href="mailto:${emailAddress}">${emailAddress}</a></p>
           <p><strong>Instagram:</strong> <a href="${instagramUrl}" target="_blank" rel="noreferrer">@${instagramHandle}</a></p>
@@ -608,11 +611,14 @@ function contactPage() {
           <p><strong>Business Hours:</strong> ${businessHours}</p>
         </div>
       </div>
-      <form class="form-card">
-        <label>Name<input type="text" placeholder="Your name"></label>
-        <label>Email<input type="email" placeholder="you@example.com"></label>
-        <label>Message<textarea rows="6" placeholder="How can we help?"></textarea></label>
-        <a class="btn btn-primary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Send Instagram DM</a>
+      <form class="form-card" data-contact-form>
+        <div class="form-status" data-contact-status aria-live="polite"></div>
+        <label>Name<input name="name" type="text" placeholder="Your name" required></label>
+        <label>Email<input name="email" type="email" placeholder="you@example.com"></label>
+        <label>Instagram handle <span class="form-label-hint">(optional — so we can reach you)</span><input name="instagram" type="text" placeholder="@yourhandle"></label>
+        <label>Message<textarea name="message" rows="6" placeholder="How can we help?" required></textarea></label>
+        <button class="btn btn-primary" type="submit" data-contact-submit>Send Message</button>
+        <p class="form-note">We'll respond as soon as possible, usually within a few hours.</p>
       </form>
     </main>
   `, 'contact')
@@ -664,7 +670,7 @@ function checkoutPage() {
       <form class="form-card checkout-form-card" data-checkout-form>
         <p class="eyebrow">Checkout</p>
         <h1>Secure checkout</h1>
-        <p class="form-intro">Complete your delivery details and we’ll take care of the rest.</p>
+        <p class="form-intro">Complete your delivery details and we'll take care of the rest.</p>
         <label>Full name<input name="fullName" type="text" placeholder="Customer full name" value="${draft.fullName || ''}" required></label>
         <label>Email<input name="email" type="email" placeholder="you@example.com" value="${draft.email || ''}" required></label>
         <label>Phone<input name="phone" type="tel" placeholder="Phone number" value="${draft.phone || ''}" required></label>
@@ -842,6 +848,55 @@ function updateSliderDOM(index) {
   })
 }
 
+async function handleContactSubmit(event) {
+  event.preventDefault()
+  const form = event.currentTarget
+  const status = form.querySelector('[data-contact-status]')
+  const submit = form.querySelector('[data-contact-submit]')
+  const formType = form.dataset.formType || 'contact'
+  const data = Object.fromEntries(new FormData(form).entries())
+  data.formType = formType
+
+  submit.disabled = true
+  status.className = 'form-status form-status-working'
+  status.textContent = 'Sending your message…'
+
+  try {
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    const result = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(result.error || 'Something went wrong.')
+
+    const igUrl = `${instagramUrl}?hl=en`
+    const msgText = data.message || ''
+    status.className = 'form-status form-status-success contact-success-state'
+    status.innerHTML = `
+      <p><strong>Message received!</strong> We'll be in touch soon.</p>
+      <p>You can also follow up with us directly on Instagram. Copy your message below and paste it into our DM.</p>
+      <textarea class="contact-copy-box" readonly rows="4">${msgText.replace(/</g, '&lt;')}</textarea>
+      <div class="contact-success-actions">
+        <button class="btn btn-secondary" data-copy-msg>Copy message</button>
+        <a class="btn btn-primary" href="${igUrl}" target="_blank" rel="noreferrer">Open Instagram DM</a>
+      </div>
+    `
+    form.querySelectorAll('input, textarea, select, button[type=submit]').forEach((el) => { el.disabled = true })
+
+    status.querySelector('[data-copy-msg]')?.addEventListener('click', () => {
+      navigator.clipboard?.writeText(msgText).then(() => {
+        const btn = status.querySelector('[data-copy-msg]')
+        if (btn) { btn.textContent = 'Copied!'; setTimeout(() => { btn.textContent = 'Copy message' }, 2000) }
+      })
+    })
+  } catch (err) {
+    status.className = 'form-status form-status-error'
+    status.textContent = err.message || 'Unable to send. Please try again or reach out on Instagram.'
+    submit.disabled = false
+  }
+}
+
 function changeHero(delta) {
   const next = (getHeroIndex() + delta + landingShowcaseSlides.length) % landingShowcaseSlides.length
   saveHeroIndex(next)
@@ -868,6 +923,10 @@ function bindEvents() {
 
   document.querySelectorAll('[data-hero-dot]').forEach((button) => {
     button.addEventListener('click', () => goToHero(Number(button.dataset.heroDot)))
+  })
+
+  document.querySelectorAll('[data-contact-form]').forEach((form) => {
+    form.addEventListener('submit', handleContactSubmit)
   })
 
   const checkoutForm = document.querySelector('[data-checkout-form]')

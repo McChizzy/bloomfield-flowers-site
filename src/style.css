@@ -860,6 +860,35 @@ p {
   color: #22613f;
 }
 
+.form-label-hint {
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.contact-success-state {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.contact-copy-box {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.75rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: rgba(255,255,255,0.7);
+  resize: none;
+}
+
+.contact-success-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .contact-list {
   display: grid;
   gap: 0.35rem;

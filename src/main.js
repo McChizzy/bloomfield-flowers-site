@@ -1,5 +1,6 @@
 import './style.css'
 import { products, parsePriceValue } from './catalog.js'
+import { lookupDeliveryFee } from './delivery-zones.js'
 
 const primaryLogo = '/images/bff logo-p.jpeg'
 const instagramHandle = 'bloomfieldflowers_'
@@ -17,6 +18,15 @@ const reviewImages = [
   '/images/optimized/review-4.jpg',
   '/images/optimized/review-5.jpg',
   '/images/optimized/review-6.jpg',
+]
+
+const reviewCaptions = [
+  { location: 'Abuja', occasion: 'Anniversary' },
+  { location: 'Lagos, Lekki', occasion: 'Birthday Surprise' },
+  { location: 'Abuja, Maitama', occasion: 'Romantic Gesture' },
+  { location: 'Lagos, VI', occasion: 'Birthday Gift' },
+  { location: 'Abuja', occasion: 'Celebration' },
+  { location: 'Lagos', occasion: 'Just Because' },
 ]
 
 const featuredCollections = [
@@ -183,8 +193,23 @@ function saveCheckoutDraft(draft) {
 }
 
 function getDeliveryFee() {
-  const fee = Number(getCheckoutDraft().deliveryFee || 0)
-  return Number.isFinite(fee) ? Math.max(0, fee) : 0
+  const draft = getCheckoutDraft()
+  const { fee } = lookupDeliveryFee(draft.city || 'Abuja', draft.area || '')
+  return fee ?? 0
+}
+
+function renderDeliveryFeeContent(city, area) {
+  if (!area || !area.trim()) {
+    return `<p class="delivery-fee-note">Enter your area above to see the estimated delivery fee.</p>`
+  }
+  const { fee, exact } = lookupDeliveryFee(city || 'Abuja', area)
+  if (!fee) {
+    return `<p class="delivery-fee-note">We'll confirm your delivery fee after you place your order.</p>`
+  }
+  return `
+    <div class="delivery-fee-amount">${naira.format(fee)}</div>
+    <p class="delivery-fee-note">${exact ? 'Estimated fee for your area.' : 'Estimated fee — exact amount may vary by location.'}</p>
+  `
 }
 
 function checkoutGrandTotal() {
@@ -394,11 +419,18 @@ function homePage() {
           <p>Real feedback and happy reactions from people who have received Bloomfield bouquets.</p>
         </div>
         <div class="review-grid">
-          ${reviewImages.map((image, index) => `
+          ${reviewImages.map((image, index) => {
+            const caption = reviewCaptions[index]
+            return `
             <article class="review-card">
               <img src="${image}" alt="Bloomfield Flowers customer review ${index + 1}" ${index < 3 ? 'loading="eager"' : 'loading="lazy"'} decoding="async">
+              ${caption ? `
+              <div class="review-caption">
+                <span class="review-location">${caption.location}</span>
+                <span class="review-occasion">${caption.occasion}</span>
+              </div>` : ''}
             </article>
-          `).join('')}
+          `}).join('')}
         </div>
       </section>
 
@@ -439,7 +471,10 @@ function shopPage() {
               <p>${product.short}</p>
               <div class="product-meta">
                 <strong>${formatPrice(product.price)}</strong>
-                <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
+                <div class="product-actions">
+                  <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
+                  <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Order</a>
+                </div>
               </div>
             </div>
           </article>
@@ -651,11 +686,11 @@ function cartPage() {
         <h3>Order Summary</h3>
         <p>Items: ${cartCount()}</p>
         <p class="summary-total">Subtotal: ${naira.format(cartTotal())}</p>
-        <p class="summary-note">Delivery fee is confirmed at checkout based on your area.</p>
+        <p class="summary-note">Delivery fee is calculated at checkout based on your area.</p>
         <div class="summary-actions">
           <a class="btn btn-primary" href="#/checkout">Proceed to Checkout</a>
-          <a class="btn btn-secondary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Confirm Order in Instagram DM</a>
         </div>
+        <p class="form-note cart-dm-note">Have a question before ordering? <a href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Message us on Instagram</a></p>
       </aside>
     </main>
   `, 'cart')
@@ -678,24 +713,31 @@ function checkoutPage() {
         <label>Recipient phone<input name="recipientPhone" type="tel" placeholder="Recipient phone number" value="${draft.recipientPhone || ''}"></label>
         <label>Delivery address<input name="address" type="text" placeholder="Street address" value="${draft.address || ''}" required></label>
         <label>City<select name="city" required><option ${draft.city === 'Abuja' ? 'selected' : ''}>Abuja</option><option ${draft.city === 'Lagos' ? 'selected' : ''}>Lagos</option></select></label>
-        <label>Area / district<input name="area" type="text" placeholder="Area used to calculate delivery fee" value="${draft.area || ''}" required></label>
-        <label>Delivery fee (₦)<input name="deliveryFee" type="number" min="0" step="100" placeholder="5000" value="${deliveryFee || ''}" required></label>
+        <label>Area / district<input name="area" type="text" placeholder="e.g. Maitama, Lekki Phase 1, Victoria Island" value="${draft.area || ''}" required></label>
+        <div class="delivery-fee-display" data-delivery-fee-display>
+          ${renderDeliveryFeeContent(draft.city, draft.area)}
+        </div>
         <label>Card message<textarea name="cardMessage" rows="3" placeholder="Add a note for the recipient">${draft.cardMessage || ''}</textarea></label>
         <label>Delivery notes<textarea name="deliveryNotes" rows="4" placeholder="Gate code, preferred time, or order instructions">${draft.deliveryNotes || ''}</textarea></label>
         <div class="form-status" data-checkout-status aria-live="polite"></div>
         <div class="checkout-actions">
-          <button class="btn btn-primary" type="submit" data-checkout-submit>${items.length ? 'Pay with Squad' : 'Add items to continue'}</button>
+          <button class="btn btn-primary btn-pay" type="submit" data-checkout-submit>${items.length ? 'Pay Securely' : 'Add items to continue'}</button>
           <a class="btn btn-secondary" href="#/cart">Back to Cart</a>
         </div>
-        <p class="form-note">Delivery fees vary by area and will be confirmed with you before payment is processed.</p>
+        <div class="payment-methods-strip">
+          <span class="payment-method-badge">Card</span>
+          <span class="payment-method-badge">Bank Transfer</span>
+          <span class="payment-method-badge">USSD</span>
+          <span class="payment-method-badge">Transfer</span>
+        </div>
       </form>
       <aside class="summary-card summary-card-emphasis">
         <h3>Order Summary</h3>
         ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${item.product.name} × ${item.qty}</span><strong>${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
         <p class="summary-total">Subtotal: ${naira.format(cartTotal())}</p>
-        <p>Delivery: ${naira.format(deliveryFee)}</p>
-        <p class="summary-total">Total: ${naira.format(checkoutGrandTotal())}</p>
-        <p class="summary-note">You'll be redirected to a secure payment page. Once complete, you'll be brought back here to confirm your order.</p>
+        <p>Delivery: <span data-checkout-delivery>${naira.format(deliveryFee)}</span></p>
+        <p class="summary-total">Total: <span data-checkout-total>${naira.format(checkoutGrandTotal())}</span></p>
+        <p class="summary-note">You'll be redirected to a secure payment page. Once payment is confirmed, we'll contact you to arrange delivery.</p>
       </aside>
     </main>
   `, 'checkout')
@@ -704,21 +746,27 @@ function checkoutPage() {
 function checkoutCompletePage() {
   const transactionRef = getTransactionRefFromUrl()
   return shell(`
-    <main class="section container split-page">
+    <main class="section container split-page checkout-complete-layout">
       <section class="form-card checkout-form-card">
-        <p class="eyebrow">Payment status</p>
-        <h1>Checking your Squad payment</h1>
-        <p class="form-intro">${transactionRef ? `Transaction reference: <strong>${transactionRef}</strong>` : 'No transaction reference was found in the return URL.'}</p>
-        <div class="form-status form-status-persistent" data-payment-status aria-live="polite">${transactionRef ? 'Verifying payment status…' : 'We could not verify the payment because the transaction reference is missing.'}</div>
+        <p class="eyebrow">Order status</p>
+        <h1 data-payment-title>${transactionRef ? 'Verifying your payment…' : 'Payment reference missing'}</h1>
+        <div class="form-status form-status-persistent ${transactionRef ? 'form-status-working' : 'form-status-error'}" data-payment-status aria-live="polite">
+          ${transactionRef ? 'Checking your payment status…' : 'We could not verify the payment — no transaction reference was found in the return URL. Please contact us on Instagram if you completed a payment.'}
+        </div>
+        ${transactionRef ? `<p class="form-note">Reference: <strong>${transactionRef}</strong></p>` : ''}
         <div class="checkout-actions">
-          <a class="btn btn-primary" href="#/shop">Continue shopping</a>
-          <a class="btn btn-secondary" href="#/checkout">Back to checkout</a>
+          <a class="btn btn-primary" href="#/shop">Continue Shopping</a>
+          <a class="btn btn-secondary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Contact us on Instagram</a>
         </div>
       </section>
-      <aside class="summary-card summary-card-emphasis">
+      <aside class="summary-card summary-card-emphasis checkout-complete-next-steps">
         <h3>What happens next</h3>
-        <p>If payment is successful, we can use this page plus the webhook to confirm paid orders safely.</p>
-        <p class="summary-note">Webhook validation is wired separately so the redirect page is not the only source of truth.</p>
+        <div class="checkout-next-steps-grid">
+          <div class="bullet-card checkout-next-step"><p>We'll review your order and confirm flower availability for your bouquet.</p></div>
+          <div class="bullet-card checkout-next-step"><p>We'll reach out to you to confirm your delivery time and address details.</p></div>
+          <div class="bullet-card checkout-next-step"><p>Your bouquet will be beautifully prepared and delivered with care.</p></div>
+        </div>
+        <p class="summary-note checkout-complete-contact-note">Questions about your order? <a href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Message us on Instagram</a> — we typically respond within a few hours.</p>
       </aside>
     </main>
   `, 'checkout')
@@ -766,7 +814,6 @@ async function handleCheckoutSubmit(event) {
       city: draft.city,
       area: draft.area,
       address: draft.address,
-      deliveryFee: Number(draft.deliveryFee || 0),
       cardMessage: draft.cardMessage,
       deliveryNotes: draft.deliveryNotes,
     },
@@ -774,7 +821,7 @@ async function handleCheckoutSubmit(event) {
   }
 
   submit.disabled = true
-  status.textContent = 'Opening secure Squad checkout…'
+  status.textContent = 'Opening secure checkout…'
   status.className = 'form-status form-status-working'
 
   try {
@@ -790,14 +837,14 @@ async function handleCheckoutSubmit(event) {
     if (contentType.includes('application/json')) {
       result = raw ? JSON.parse(raw) : {}
     } else if (!response.ok || raw.startsWith('<!doctype html>') || raw.includes('export default async function handler')) {
-      throw new Error('Squad checkout needs the Vercel server runtime. For local testing, run this site with `npx vercel dev` instead of plain `npm run dev`.')
+      throw new Error('Checkout requires the Vercel server runtime. For local testing, run this site with `npx vercel dev` instead of plain `npm run dev`.')
     }
 
     if (!response.ok || !result.checkoutUrl) {
-      throw new Error(result.error || 'Unable to start Squad checkout.')
+      throw new Error(result.error || 'Unable to start checkout. Please try again.')
     }
 
-    status.textContent = 'Redirecting to Squad…'
+    status.textContent = 'Redirecting to payment page…'
     window.location.href = result.checkoutUrl
   } catch (error) {
     submit.disabled = false
@@ -808,11 +855,9 @@ async function handleCheckoutSubmit(event) {
 
 async function verifyReturnedPayment() {
   const target = document.querySelector('[data-payment-status]')
+  const titleEl = document.querySelector('[data-payment-title]')
   const transactionRef = getTransactionRefFromUrl()
   if (!target || !transactionRef) return
-
-  target.textContent = 'Verifying payment status…'
-  target.className = 'form-status form-status-persistent form-status-working'
 
   try {
     const response = await fetch(`/api/checkout/verify?transaction_ref=${encodeURIComponent(transactionRef)}`)
@@ -823,18 +868,40 @@ async function verifyReturnedPayment() {
     }
 
     const paymentState = String(result.transaction_status || 'Pending')
-    const messageMap = {
-      Success: `Payment confirmed. ${result.transaction_ref || transactionRef} is marked ${paymentState}.`,
-      Pending: `Payment is still pending for ${result.transaction_ref || transactionRef}.`,
-      Failed: `Payment failed for ${result.transaction_ref || transactionRef}.`,
-      Abandoned: `Payment was abandoned for ${result.transaction_ref || transactionRef}.`,
+    const ref = result.transaction_ref || transactionRef
+
+    const states = {
+      Success: {
+        title: 'Payment confirmed',
+        message: `Your order has been received (ref: ${ref}). We'll be in touch shortly to confirm your delivery details.`,
+        className: 'form-status form-status-persistent form-status-success',
+      },
+      Pending: {
+        title: 'Payment is being processed',
+        message: `Your payment is still being processed (ref: ${ref}). We'll confirm once it clears — this usually takes a few minutes.`,
+        className: 'form-status form-status-persistent form-status-working',
+      },
+      Failed: {
+        title: 'Payment unsuccessful',
+        message: 'Your payment was not completed. Please return to checkout and try again, or contact us on Instagram if you need help.',
+        className: 'form-status form-status-persistent form-status-error',
+      },
+      Abandoned: {
+        title: 'Payment not completed',
+        message: 'It looks like the payment was not completed. Your cart is still saved — return to checkout when ready.',
+        className: 'form-status form-status-persistent form-status-error',
+      },
     }
 
-    target.textContent = messageMap[paymentState] || `Payment status: ${paymentState}`
-    target.className = `form-status form-status-persistent ${paymentState === 'Success' ? 'form-status-success' : paymentState === 'Pending' ? 'form-status-working' : 'form-status-error'}`
+    const state = states[paymentState] || states.Pending
+    if (titleEl) titleEl.textContent = state.title
+    target.textContent = state.message
+    target.className = state.className
+
     if (paymentState === 'Success') saveCart([])
   } catch (error) {
-    target.textContent = error.message || 'Unable to verify payment status.'
+    if (titleEl) titleEl.textContent = 'Unable to verify payment'
+    target.textContent = error.message || 'Unable to verify payment status. Please contact us on Instagram with your reference number.'
     target.className = 'form-status form-status-persistent form-status-error'
   }
 }
@@ -932,12 +999,28 @@ function bindEvents() {
   const checkoutForm = document.querySelector('[data-checkout-form]')
   if (checkoutForm) {
     checkoutForm.addEventListener('submit', handleCheckoutSubmit)
+    let feeUpdateTimeout
     checkoutForm.querySelectorAll('input, select, textarea').forEach((field) => {
       field.addEventListener('input', () => {
-        saveCheckoutDraft({
+        const newDraft = {
           ...getCheckoutDraft(),
           [field.name]: field.value,
-        })
+        }
+        saveCheckoutDraft(newDraft)
+
+        if (field.name === 'city' || field.name === 'area') {
+          clearTimeout(feeUpdateTimeout)
+          feeUpdateTimeout = setTimeout(() => {
+            const feeDisplay = document.querySelector('[data-delivery-fee-display]')
+            if (feeDisplay) feeDisplay.innerHTML = renderDeliveryFeeContent(newDraft.city, newDraft.area)
+            const { fee } = lookupDeliveryFee(newDraft.city || 'Abuja', newDraft.area || '')
+            const effectiveFee = fee ?? 0
+            const deliveryEl = document.querySelector('[data-checkout-delivery]')
+            const totalEl = document.querySelector('[data-checkout-total]')
+            if (deliveryEl) deliveryEl.textContent = naira.format(effectiveFee)
+            if (totalEl) totalEl.textContent = naira.format(cartTotal() + effectiveFee)
+          }, 350)
+        }
       })
     })
   }

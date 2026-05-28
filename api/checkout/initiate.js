@@ -1,4 +1,5 @@
 import { buildSiteUrl, generateTransactionRef, getEnv, json, readJson, squadRequest, summarizeOrder } from '../_lib/squad.js'
+import { lookupDeliveryFee } from '../../src/delivery-zones.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -14,7 +15,8 @@ export default async function handler(req, res) {
   }
 
   const { customer = {}, delivery = {}, items = [] } = payload || {}
-  const order = summarizeOrder(items, delivery.deliveryFee)
+  const { fee: zoneDeliveryFee } = lookupDeliveryFee(delivery.city, delivery.area)
+  const order = summarizeOrder(items, zoneDeliveryFee ?? 0)
 
   if (!customer.email || !customer.fullName || !customer.phone) {
     return json(res, 400, { error: 'Name, email, and phone are required.' })

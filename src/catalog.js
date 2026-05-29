@@ -1,9 +1,9 @@
 export const products = [
   {
     id: 'barbie-deluxe-m',
-    name: 'Barbie Deluxe (M)',
+    name: 'The Seraphina',
     category: 'Flowers',
-    price: '₦250,000',
+    price: '₦55,000 - ₦80,000',
     image: '/images/optimized/barbie-deluxe.jpg',
     short: 'A lush mixed bouquet made with roses, spray roses, lilies, and gypsos fillers.',
     description: 'Mixed bouquet (M) made with different types of flowers, including 20 roses, 3 spray roses, 6 lilies, and 2 gypsos fillers.',
@@ -11,9 +11,9 @@ export const products = [
   },
   {
     id: 'pastel-cloud-s',
-    name: 'Pastel Cloud (S)',
+    name: 'Barbie Deluxe',
     category: 'Flowers',
-    price: '₦50,000 - ₦80,000',
+    price: '₦250,000',
     image: '/images/optimized/pastel-cloud.jpg',
     short: 'A soft pastel mixed bouquet with lilac, white, and pink blooms.',
     description: 'Mixed bouquet (S) made with different colors of chrysanthemums, lilac, white, pink roses, and gypsos.',

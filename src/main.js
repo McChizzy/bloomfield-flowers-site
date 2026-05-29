@@ -155,7 +155,23 @@ function saveCart(cart) {
   localStorage.setItem(storageKey, JSON.stringify(cart))
 }
 
+function showCartToast(productName) {
+  const prev = document.getElementById('cart-toast')
+  if (prev) prev.remove()
+  const toast = document.createElement('div')
+  toast.id = 'cart-toast'
+  toast.className = 'cart-toast'
+  toast.innerHTML = `<span class="cart-toast-check">✓</span> <strong>${productName}</strong> added to cart`
+  document.body.appendChild(toast)
+  requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('cart-toast--visible')))
+  setTimeout(() => {
+    toast.classList.remove('cart-toast--visible')
+    toast.addEventListener('transitionend', () => toast.remove(), { once: true })
+  }, 2800)
+}
+
 function addToCart(productId) {
+  const product = products.find((p) => p.id === productId)
   const cart = getCart()
   const existing = cart.find((item) => item.id === productId)
   if (existing) {
@@ -165,6 +181,7 @@ function addToCart(productId) {
   }
   saveCart(cart)
   renderApp()
+  showCartToast(product?.name || 'Item')
 }
 
 function updateQty(productId, delta) {

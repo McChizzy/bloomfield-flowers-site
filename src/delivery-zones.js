@@ -43,15 +43,16 @@ const LAGOS_ZONES = [
   {
     fee: 6000,
     areas: [
-      'ajah', 'sangotedo', 'abraham adesanya', 'badore', 'lakowe', 'ogombo',
-      'shapati', 'awoyaya', 'abijo', 'ibeju', 'lekki phase 2', 'lekki 2',
+      'lekki phase 2', 'lekki 2',
       'surulere', 'yaba', 'ikeja', 'maryland', 'gra ikeja', 'opebi', 'oregun',
       'alausa', 'agidingbi', 'allen', 'ogba', 'ojodu', 'aguda', 'lawanson',
     ],
   },
   {
-    fee: 7500,
+    fee: 8000,
     areas: [
+      'ajah', 'sangotedo', 'abraham adesanya', 'badore', 'lakowe', 'ogombo',
+      'shapati', 'awoyaya', 'abijo', 'ibeju',
       'magodo', 'ketu', 'ojota', 'mile 12', 'gbagada', 'anthony village', 'anthony',
       'mushin', 'oshodi', 'isolo', 'cele', 'alapere', 'ifako', 'palmgrove',
       'onipanu', 'fadeyi', 'ladipo', 'ilupeju', 'berger', 'ojodu berger', 'idi araba',

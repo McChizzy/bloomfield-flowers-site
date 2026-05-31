@@ -30,7 +30,7 @@ export function readJson(req) {
 export function getEnv(name) {
   const value = process.env[name]
   if (!value) {
-    throw new Error(`Missing environment variable: ${name}`)
+    throw new Error('Payment system configuration error. Please contact us directly to complete your order.')
   }
   return value
 }

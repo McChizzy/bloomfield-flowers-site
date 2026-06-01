@@ -746,6 +746,35 @@ p {
   border: 1px solid var(--line);
   background: #fff;
   box-shadow: var(--shadow);
+  position: relative;
+}
+
+.review-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2.5rem 1rem 0.9rem;
+  background: linear-gradient(transparent, rgba(61, 47, 53, 0.78));
+  border-radius: 0 0 24px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.review-location {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.review-occasion {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.73rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-align: right;
 }
 
 .review-card img {
@@ -1275,4 +1304,120 @@ p {
     flex-direction: column;
     align-items: stretch;
   }
+}
+
+/* Delivery fee auto-display */
+.delivery-fee-display {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(247, 239, 238, 0.55);
+  min-height: 3.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+}
+
+.delivery-fee-amount {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  font-family: 'Playfair Display', serif;
+}
+
+.delivery-fee-note {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* Payment methods trust strip */
+.payment-methods-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+  margin-top: 0.1rem;
+}
+
+.payment-method-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+
+/* Cart DM note */
+.cart-dm-note {
+  color: var(--muted);
+  margin: 0;
+  padding-top: 0.25rem;
+}
+
+.cart-dm-note a {
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+/* Checkout complete */
+.checkout-complete-layout {
+  align-items: start;
+}
+
+.checkout-complete-next-steps {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.checkout-next-steps-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.checkout-next-step p {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.checkout-complete-contact-note {
+  font-size: 0.88rem;
+}
+
+.checkout-complete-contact-note a {
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+/* Cart toast notification */
+.cart-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: #1c1c1e;
+  color: #fff;
+  padding: 13px 22px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+}
+.cart-toast--visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.cart-toast-check {
+  color: #6ecf6e;
+  margin-right: 7px;
+  font-weight: 700;
 }

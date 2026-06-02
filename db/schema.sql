@@ -1,0 +1,76 @@
+-- Bloomfield Flowers — order database schema
+-- Run this in your Supabase SQL editor (https://app.supabase.com → SQL Editor)
+
+create table if not exists orders (
+  id               uuid primary key default gen_random_uuid(),
+  transaction_ref  text unique not null,
+  status           text not null default 'initiated',
+
+  -- customer
+  customer_name    text,
+  customer_email   text,
+  customer_phone   text,
+  recipient_name   text,
+  recipient_phone  text,
+
+  -- delivery
+  delivery_city    text,
+  delivery_area    text,
+  delivery_address text,
+  delivery_date    text,
+  delivery_time    text,
+  card_message     text,
+  delivery_notes   text,
+
+  -- financials (amounts in Naira)
+  subtotal         integer,
+  delivery_fee     integer,
+  total            integer,
+
+  -- line items snapshot
+  items            jsonb,
+
+  created_at       timestamptz default now(),
+  updated_at       timestamptz default now()
+);
+
+-- Speed up webhook lookups by transaction_ref
+create index if not exists orders_transaction_ref_idx on orders(transaction_ref);
+
+-- Keep updated_at current on every update
+create or replace function update_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists orders_updated_at on orders;
+create trigger orders_updated_at
+  before update on orders
+  for each row execute function update_updated_at();
+
+-- Optional: view of confirmed orders for quick admin lookup
+create or replace view confirmed_orders as
+  select
+    id,
+    transaction_ref,
+    customer_name,
+    customer_email,
+    customer_phone,
+    delivery_city,
+    delivery_area,
+    delivery_address,
+    delivery_date,
+    delivery_time,
+    card_message,
+    delivery_notes,
+    subtotal,
+    delivery_fee,
+    total,
+    items,
+    created_at
+  from orders
+  where status = 'success'
+  order by created_at desc;

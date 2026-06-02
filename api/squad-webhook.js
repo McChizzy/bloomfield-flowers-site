@@ -1,4 +1,5 @@
 import { getEnv, json, verifyWebhookSignature } from './_lib/squad.js'
+import { getSupabase } from './_lib/supabase.js'
 
 function esc(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
@@ -130,6 +131,17 @@ export default async function handler(req, res) {
 
     if (status === 'Success') {
       sendOrderEmail(event).catch((err) => console.error('Order email failed:', err))
+
+      const ref = event?.Body?.transaction_ref || event?.TransactionRef
+      if (ref) {
+        const supabase = getSupabase()
+        if (supabase) {
+          supabase.from('orders').update({ status: 'success' })
+            .eq('transaction_ref', ref)
+            .then(({ error }) => { if (error) console.error('Supabase update failed:', error.message) })
+            .catch((err) => console.error('Supabase update error:', err))
+        }
+      }
     }
 
     return json(res, 200, { received: true })

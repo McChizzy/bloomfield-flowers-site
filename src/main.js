@@ -9,9 +9,12 @@ const emailAddress = 'houseofbloomfield@gmail.com'
 const phoneNumber = '+234 701 120 3325'
 const whatsappUrl = 'https://wa.me/2347011203325'
 const businessHours = 'Open 24 hours'
-// Delivery time slots — 1hr after opening, 1hr before closing. Confirm exact hours.
-const DELIVERY_SLOT_START = 9   // 9 AM
-const DELIVERY_SLOT_END = 19    // 7 PM
+// Business hours: Mon–Sat 9am–7pm, Sun 12pm–5pm
+// Delivery slots: 1hr after opening, 1hr before closing
+const WEEKDAY_SLOT_START = 10  // 10 AM
+const WEEKDAY_SLOT_END = 18    // 6 PM
+const SUNDAY_SLOT_START = 13   // 1 PM
+const SUNDAY_SLOT_END = 16     // 4 PM
 const dmPrefill = encodeURIComponent('Hello Bloomfield Flowers. I would like to place an order. We will respond to process your order and confirm flower availability. Thanks for your patronage.')
 const customOrderPrefill = encodeURIComponent('Hello Bloomfield Flowers. I would like to request a custom bouquet. We will respond to process your order and confirm flower availability. Thanks for your patronage.')
 
@@ -19,10 +22,18 @@ function esc(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 }
 
+function deliverySlotRange(dateStr) {
+  const day = dateStr ? new Date(dateStr + 'T12:00:00').getDay() : new Date().getDay()
+  return day === 0
+    ? { start: SUNDAY_SLOT_START, end: SUNDAY_SLOT_END }
+    : { start: WEEKDAY_SLOT_START, end: WEEKDAY_SLOT_END }
+}
+
 function deliveryMinDate() {
   const now = new Date()
   const d = new Date(now)
-  if (now.getHours() >= 12) d.setDate(d.getDate() + 1)
+  const { end } = deliverySlotRange(d.toISOString().split('T')[0])
+  if (now.getHours() >= end) d.setDate(d.getDate() + 1)
   return d.toISOString().split('T')[0]
 }
 
@@ -32,9 +43,10 @@ function deliveryMaxDate() {
   return d.toISOString().split('T')[0]
 }
 
-function deliveryTimeOptions(selected = '') {
+function deliveryTimeOptions(selected = '', dateStr = '') {
+  const { start, end } = deliverySlotRange(dateStr)
   const opts = []
-  for (let h = DELIVERY_SLOT_START; h <= DELIVERY_SLOT_END; h++) {
+  for (let h = start; h <= end; h++) {
     const label = h < 12 ? `${h}:00 AM` : h === 12 ? '12:00 PM' : `${h - 12}:00 PM`
     const val = `${String(h).padStart(2, '0')}:00`
     opts.push(`<option value="${val}"${selected === val ? ' selected' : ''}>${label}</option>`)
@@ -348,6 +360,10 @@ function shell(content, route = '') {
             <p><a href="mailto:${emailAddress}">${emailAddress}</a></p>
             <p>${phoneNumber} · <a href="${whatsappUrl}" target="_blank" rel="noreferrer">WhatsApp</a></p>
           </div>
+        </div>
+        <div class="footer-legal">
+          <p>&copy; ${new Date().getFullYear()} Bloomfield Flowers. All rights reserved.</p>
+          <p><a href="#/terms">Terms &amp; Conditions</a> · <a href="#/privacy">Privacy Policy</a></p>
         </div>
       </footer>
     </div>
@@ -763,7 +779,7 @@ function checkoutPage() {
           ${renderDeliveryFeeContent(draft.city, draft.area)}
         </div>
         <label>Preferred delivery date<input name="deliveryDate" type="date" min="${deliveryMinDate()}" max="${deliveryMaxDate()}" value="${esc(draft.deliveryDate || '')}" required></label>
-        <label>Preferred delivery time<select name="deliveryTime" required><option value="" disabled${!draft.deliveryTime ? ' selected' : ''}>Select a time</option>${deliveryTimeOptions(draft.deliveryTime || '')}</select></label>
+        <label>Preferred delivery time<select name="deliveryTime" data-delivery-time-select required><option value="" disabled${!draft.deliveryTime ? ' selected' : ''}>Select a time</option>${deliveryTimeOptions(draft.deliveryTime || '', draft.deliveryDate || '')}</select></label>
         <label>Card message<textarea name="cardMessage" rows="3" placeholder="Add a note for the recipient" maxlength="500">${esc(draft.cardMessage || '')}</textarea></label>
         <label>Delivery notes<textarea name="deliveryNotes" rows="4" placeholder="Gate code or order instructions" maxlength="500">${esc(draft.deliveryNotes || '')}</textarea></label>
         <div class="form-status" data-checkout-status aria-live="polite"></div>
@@ -819,6 +835,133 @@ function checkoutCompletePage() {
   `, 'checkout')
 }
 
+function termsPage() {
+  return shell(`
+    <main class="section container stack-page legal-page">
+      <p class="eyebrow">Legal</p>
+      <h1>Terms &amp; Conditions</h1>
+      <p class="legal-intro">Please read these terms carefully before placing an order with Bloomfield Flowers. By completing a purchase you confirm that you have read, understood, and agreed to the following.</p>
+
+      <h2>1. About Bloomfield Flowers</h2>
+      <p>Bloomfield Flowers is a luxury floral gifting brand based in Nigeria, serving Abuja and Lagos. We create bespoke bouquets and floral arrangements for romance, birthdays, anniversaries, and celebrations.</p>
+
+      <h2>2. Orders</h2>
+      <p>All orders are subject to flower availability. Placing an order and completing payment does not constitute a guaranteed acceptance until we have confirmed availability with you. We will contact you via WhatsApp or Instagram within a reasonable time after your order is placed to confirm details.</p>
+      <p>We reserve the right to cancel any order and issue a full refund if we are unable to fulfil it due to stock unavailability or circumstances beyond our control.</p>
+
+      <h2>3. Pricing</h2>
+      <p>All prices are displayed in Nigerian Naira (₦) and are inclusive of applicable taxes. Delivery fees are calculated at checkout based on your delivery location. Prices may vary by city — Lagos and Abuja pricing may differ for the same arrangement.</p>
+      <p>We reserve the right to update prices at any time. The price displayed at the time of checkout is the price you will be charged.</p>
+
+      <h2>4. Payment</h2>
+      <p>Payment is processed securely via Squad (a PCI-compliant payment platform). We accept card payments, bank transfers, and USSD. Payment must be completed in full before your order is prepared.</p>
+
+      <h2>5. Delivery</h2>
+      <p><strong>Delivery method:</strong> We use third-party dispatch riders (including but not limited to Bolt and Uber) for deliveries across Abuja and Lagos. Delivery is kerbside — our rider will bring your order to the front of the delivery address. We are unable to enter gated communities, office blocks, or residential buildings without prior arrangement.</p>
+      <p><strong>Kerbside delivery:</strong> The recipient or a designated person must be available at the kerbside to receive the order at the agreed time. Bloomfield Flowers is not responsible for delays arising from the recipient being unavailable.</p>
+      <p><strong>Delivery window:</strong> Deliveries are made Monday–Saturday between 10am and 6pm, and on Sundays between 1pm and 4pm. Same-day delivery is available for orders confirmed before 2pm (subject to availability). Delivery times are estimates and may be affected by traffic or unforeseen circumstances.</p>
+      <p><strong>Customer responsibility:</strong> It is your responsibility to ensure that the recipient's address, phone number, and availability are correct. Bloomfield Flowers is not liable for failed deliveries caused by incorrect information provided by the customer.</p>
+
+      <h2>6. Redelivery</h2>
+      <p>If a delivery attempt fails because the recipient is unavailable or the address provided is incorrect, a redelivery fee will apply. The redelivery fee will be communicated to you before a second attempt is made.</p>
+
+      <h2>7. Refunds &amp; Cancellations</h2>
+      <p>Due to the perishable nature of fresh flowers, <strong>we do not offer refunds once an order has been prepared</strong>. If you need to cancel, please contact us via WhatsApp or Instagram as soon as possible. Cancellations received before bouquet preparation has begun may be eligible for a full refund at our discretion.</p>
+      <p>If your flowers arrive in a condition that does not meet a reasonable standard of quality, please photograph them and contact us within 2 hours of delivery. We will review each case individually and, where appropriate, offer a replacement or store credit.</p>
+
+      <h2>8. Substitutions</h2>
+      <p>We source the freshest seasonal flowers available. In rare cases where a specific flower in an arrangement is unavailable, we reserve the right to substitute it with a bloom of equal or greater value that maintains the overall aesthetic and spirit of the arrangement. We will make reasonable efforts to notify you before making significant substitutions.</p>
+
+      <h2>9. Force Majeure</h2>
+      <p>Bloomfield Flowers is not liable for failure to perform obligations where such failure results from circumstances beyond our reasonable control, including but not limited to natural disasters, strikes, severe weather, supply disruptions, or government restrictions.</p>
+
+      <h2>10. Photography &amp; Social Media</h2>
+      <p>We may photograph or video our arrangements before or during delivery for use on our social media channels (Instagram, etc.). By placing an order, you consent to this use unless you specifically request otherwise in your order notes. We will never share photographs that include individuals without their explicit consent.</p>
+
+      <h2>11. Intellectual Property</h2>
+      <p>All content on the Bloomfield Flowers website — including images, text, designs, and branding — is the intellectual property of Bloomfield Flowers. You may not reproduce, distribute, or use our content without prior written permission.</p>
+
+      <h2>12. Data &amp; Privacy</h2>
+      <p>We collect and use personal data (name, email, phone, delivery address) solely for the purpose of fulfilling your order and communicating with you about it. We comply with the Nigeria Data Protection Regulation (NDPR). Please see our <a href="#/privacy">Privacy Policy</a> for full details.</p>
+
+      <h2>13. Governing Law</h2>
+      <p>These terms are governed by the laws of the Federal Republic of Nigeria. Any disputes shall be subject to the exclusive jurisdiction of Nigerian courts.</p>
+
+      <h2>14. Contact Us</h2>
+      <p>If you have any questions about these terms, please contact us:</p>
+      <ul>
+        <li>Instagram: <a href="${instagramUrl}" target="_blank" rel="noreferrer">@bloomfieldflowers_</a></li>
+        <li>Email: <a href="mailto:${emailAddress}">${emailAddress}</a></li>
+        <li>WhatsApp: <a href="${whatsappUrl}" target="_blank" rel="noreferrer">${phoneNumber}</a></li>
+      </ul>
+
+      <p class="legal-updated">Last updated: June 2025</p>
+    </main>
+  `, 'terms')
+}
+
+function privacyPage() {
+  return shell(`
+    <main class="section container stack-page legal-page">
+      <p class="eyebrow">Legal</p>
+      <h1>Privacy Policy</h1>
+      <p class="legal-intro">Bloomfield Flowers is committed to protecting your personal data and respecting your privacy. This policy explains what data we collect, how we use it, and your rights under the Nigeria Data Protection Regulation (NDPR).</p>
+
+      <h2>1. Data We Collect</h2>
+      <p>When you place an order or contact us, we may collect:</p>
+      <ul>
+        <li>Your name and the recipient's name</li>
+        <li>Email address and phone number</li>
+        <li>Delivery address</li>
+        <li>Order details (items, quantities, amounts)</li>
+        <li>Any messages or notes included with your order</li>
+      </ul>
+
+      <h2>2. How We Use Your Data</h2>
+      <p>We use your personal data to:</p>
+      <ul>
+        <li>Process and fulfil your order</li>
+        <li>Contact you about delivery arrangements</li>
+        <li>Respond to enquiries</li>
+        <li>Comply with legal obligations</li>
+      </ul>
+      <p>We do not sell, rent, or share your data with third parties for marketing purposes.</p>
+
+      <h2>3. Data Storage</h2>
+      <p>Order data is stored securely in our database. Payment processing is handled by Squad, a PCI-compliant payment platform — we do not store card details. We retain order records for a period necessary to fulfil our legal and operational obligations.</p>
+
+      <h2>4. Your Rights</h2>
+      <p>Under the NDPR, you have the right to:</p>
+      <ul>
+        <li>Access the personal data we hold about you</li>
+        <li>Request correction of inaccurate data</li>
+        <li>Request deletion of your data (subject to legal retention requirements)</li>
+        <li>Withdraw consent where processing is consent-based</li>
+      </ul>
+      <p>To exercise any of these rights, contact us via the details below.</p>
+
+      <h2>5. Cookies</h2>
+      <p>Our website uses browser localStorage to remember your cart and checkout form state. We do not use third-party tracking cookies or advertising cookies. Google Fonts are loaded via Google's CDN, which may involve minimal data processing by Google in accordance with their privacy policy.</p>
+
+      <h2>6. Third-Party Services</h2>
+      <ul>
+        <li><strong>Squad</strong> — payment processing (their privacy policy applies to payment data)</li>
+        <li><strong>Vercel</strong> — website hosting and serverless functions</li>
+        <li><strong>Supabase</strong> — secure database for order records</li>
+      </ul>
+
+      <h2>7. Contact</h2>
+      <p>For any privacy-related enquiries:</p>
+      <ul>
+        <li>Email: <a href="mailto:${emailAddress}">${emailAddress}</a></li>
+        <li>WhatsApp: <a href="${whatsappUrl}" target="_blank" rel="noreferrer">${phoneNumber}</a></li>
+      </ul>
+
+      <p class="legal-updated">Last updated: June 2025</p>
+    </main>
+  `, 'privacy')
+}
+
 function router(route = checkoutResultState()) {
   switch (route) {
     case 'shop': return shopPage()
@@ -830,6 +973,8 @@ function router(route = checkoutResultState()) {
     case 'cart': return cartPage()
     case 'checkout': return checkoutPage()
     case 'checkout-complete': return checkoutCompletePage()
+    case 'terms': return termsPage()
+    case 'privacy': return privacyPage()
     default: return homePage()
   }
 }
@@ -1083,6 +1228,19 @@ function bindEvents() {
             if (deliveryEl) deliveryEl.textContent = naira.format(effectiveFee)
             if (totalEl) totalEl.textContent = naira.format(cartTotal() + effectiveFee)
           }, 350)
+        }
+
+        if (field.name === 'deliveryDate') {
+          const timeSelect = checkoutForm.querySelector('[data-delivery-time-select]')
+          if (timeSelect) {
+            const currentTime = timeSelect.value
+            timeSelect.innerHTML = `<option value="" disabled>Select a time</option>${deliveryTimeOptions(currentTime, field.value)}`
+            if (currentTime && !timeSelect.querySelector(`option[value="${currentTime}"]`)) {
+              timeSelect.value = ''
+            } else if (currentTime) {
+              timeSelect.value = currentTime
+            }
+          }
         }
       })
     })

@@ -1426,3 +1426,76 @@ p {
   margin-right: 7px;
   font-weight: 700;
 }
+
+/* Legal pages (T&C, Privacy Policy) */
+.legal-page h2 {
+  font-size: 1.15rem;
+  font-family: var(--font-body);
+  font-weight: 600;
+  color: var(--primary-dark);
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.legal-page h1 {
+  margin-bottom: 0.5rem;
+}
+
+.legal-intro {
+  font-size: 1rem;
+  color: #555;
+  max-width: 680px;
+  margin-bottom: 1.5rem;
+}
+
+.legal-page p,
+.legal-page ul,
+.legal-page li {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #444;
+}
+
+.legal-page ul {
+  padding-left: 1.25rem;
+  margin: 0.5rem 0;
+}
+
+.legal-page li {
+  margin-bottom: 0.35rem;
+}
+
+.legal-page a {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.legal-updated {
+  font-size: 0.82rem;
+  color: #999;
+  margin-top: 3rem;
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+}
+
+/* Footer legal bar */
+.footer-legal {
+  border-top: 1px solid rgba(255,255,255,0.12);
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  align-items: center;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.footer-legal p {
+  margin: 0;
+}
+
+.footer-legal a {
+  color: inherit;
+  text-decoration: underline;
+}

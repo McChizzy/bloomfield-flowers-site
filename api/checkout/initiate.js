@@ -1,5 +1,6 @@
 import { buildSiteUrl, generateTransactionRef, getEnv, json, readJson, squadRequest, summarizeOrder } from '../_lib/squad.js'
 import { lookupDeliveryFee } from '../../src/delivery-zones.js'
+import { getSupabase } from '../_lib/supabase.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -76,9 +77,37 @@ export default async function handler(req, res) {
       })
     }
 
+    const confirmedRef = squad.data?.data?.transaction_ref || transactionRef
+
+    const supabase = getSupabase()
+    if (supabase) {
+      supabase.from('orders').upsert({
+        transaction_ref: confirmedRef,
+        status: 'initiated',
+        customer_name: customer.fullName,
+        customer_email: customer.email,
+        customer_phone: customer.phone,
+        recipient_name: customer.recipientName || null,
+        recipient_phone: customer.recipientPhone || null,
+        delivery_city: delivery.city,
+        delivery_area: delivery.area,
+        delivery_address: delivery.address,
+        delivery_date: delivery.deliveryDate || null,
+        delivery_time: delivery.deliveryTime || null,
+        card_message: delivery.cardMessage || null,
+        delivery_notes: delivery.deliveryNotes || null,
+        subtotal: order.subtotal,
+        delivery_fee: order.deliveryFee,
+        total: order.total,
+        items: order.lineItems,
+      }, { onConflict: 'transaction_ref' })
+        .then(({ error }) => { if (error) console.error('Supabase insert failed:', error.message) })
+        .catch((err) => console.error('Supabase insert error:', err))
+    }
+
     return json(res, 200, {
       checkoutUrl: squad.data?.data?.checkout_url,
-      transactionRef: squad.data?.data?.transaction_ref || transactionRef,
+      transactionRef: confirmedRef,
       amount: order.total,
       subtotal: order.subtotal,
       deliveryFee: order.deliveryFee,

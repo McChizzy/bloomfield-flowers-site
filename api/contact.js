@@ -3,6 +3,10 @@ import { readJson, json } from './_lib/squad.js'
 const AGENTMAIL_INBOX = 'odinson@agentmail.to'
 const AGENTMAIL_API = 'https://api.agentmail.to/v0'
 
+function esc(str) {
+  return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+}
+
 async function sendEmail({ to, subject, text, html }) {
   const key = process.env.AGENTMAIL_API_KEY
   if (!key) throw new Error('Missing AGENTMAIL_API_KEY')
@@ -42,6 +46,15 @@ export default async function handler(req, res) {
     return json(res, 400, { error: 'Name and message are required.' })
   }
 
+  if (
+    name.length > 200 || message.length > 4000 ||
+    (email && email.length > 200) || (instagram && instagram.length > 100) ||
+    (phone && phone.length > 30) || (occasion && occasion.length > 200) ||
+    (colors && colors.length > 200) || (budget && budget.length > 100)
+  ) {
+    return json(res, 400, { error: 'One or more fields exceed the maximum allowed length.' })
+  }
+
   const igHandle = instagram?.trim() ? `@${instagram.trim().replace(/^@/, '')}` : 'Not provided'
 
   const isCustomOrder = formType === 'custom-order'
@@ -71,18 +84,18 @@ ${message.trim()}
   const html = `
 <p><strong>New ${isCustomOrder ? 'custom order request' : 'contact message'}</strong> from the Bloomfield Flowers website.</p>
 <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px">
-  <tr><td style="padding:4px 12px 4px 0;color:#888">Name</td><td>${name.trim()}</td></tr>
-  <tr><td style="padding:4px 12px 4px 0;color:#888">Email</td><td>${email?.trim() || '—'}</td></tr>
-  <tr><td style="padding:4px 12px 4px 0;color:#888">Instagram</td><td>${igHandle}</td></tr>
+  <tr><td style="padding:4px 12px 4px 0;color:#888">Name</td><td>${esc(name.trim())}</td></tr>
+  <tr><td style="padding:4px 12px 4px 0;color:#888">Email</td><td>${esc(email?.trim() || '—')}</td></tr>
+  <tr><td style="padding:4px 12px 4px 0;color:#888">Instagram</td><td>${esc(igHandle)}</td></tr>
   ${isCustomOrder ? `
-  <tr><td style="padding:4px 12px 4px 0;color:#888">Phone</td><td>${phone || '—'}</td></tr>
-  <tr><td style="padding:4px 12px 4px 0;color:#888">Occasion</td><td>${occasion || '—'}</td></tr>
-  <tr><td style="padding:4px 12px 4px 0;color:#888">Colors</td><td>${colors || '—'}</td></tr>
-  <tr><td style="padding:4px 12px 4px 0;color:#888">Budget</td><td>${budget || '—'}</td></tr>
+  <tr><td style="padding:4px 12px 4px 0;color:#888">Phone</td><td>${esc(phone || '—')}</td></tr>
+  <tr><td style="padding:4px 12px 4px 0;color:#888">Occasion</td><td>${esc(occasion || '—')}</td></tr>
+  <tr><td style="padding:4px 12px 4px 0;color:#888">Colors</td><td>${esc(colors || '—')}</td></tr>
+  <tr><td style="padding:4px 12px 4px 0;color:#888">Budget</td><td>${esc(budget || '—')}</td></tr>
   ` : ''}
 </table>
 <p style="margin-top:16px"><strong>Message:</strong></p>
-<p style="background:#f9f0f4;padding:12px 16px;border-radius:8px;white-space:pre-wrap">${message.trim()}</p>
+<p style="background:#f9f0f4;padding:12px 16px;border-radius:8px;white-space:pre-wrap">${esc(message.trim())}</p>
 `
 
   try {

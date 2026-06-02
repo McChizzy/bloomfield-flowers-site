@@ -46,16 +46,16 @@ export function buildSiteUrl(req) {
 }
 
 export function generateTransactionRef() {
-  return `BFF-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
+  return `BFF-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`
 }
 
-export function getCartSnapshot(items = []) {
+export function getCartSnapshot(items = [], city = '') {
   return items
     .map((item) => {
       const product = products.find((entry) => entry.id === item.id)
       if (!product) return null
       const qty = Math.max(1, Number(item.qty || 0))
-      const unitAmount = parsePriceValue(product.price)
+      const unitAmount = parsePriceValue(product.price, city)
       return {
         id: product.id,
         name: product.name,
@@ -67,9 +67,9 @@ export function getCartSnapshot(items = []) {
     .filter(Boolean)
 }
 
-export function summarizeOrder(items = [], deliveryFee = 0) {
+export function summarizeOrder(items = [], deliveryFee = 0, city = '') {
   const normalizedDeliveryFee = Math.max(0, Number(deliveryFee || 0))
-  const lineItems = getCartSnapshot(items)
+  const lineItems = getCartSnapshot(items, city)
   const subtotal = lineItems.reduce((sum, item) => sum + item.subtotal, 0)
   const total = subtotal + normalizedDeliveryFee
   return {

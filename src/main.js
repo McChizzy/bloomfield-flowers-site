@@ -7,9 +7,40 @@ const instagramHandle = 'bloomfieldflowers_'
 const instagramUrl = 'https://www.instagram.com/bloomfieldflowers_/'
 const emailAddress = 'houseofbloomfield@gmail.com'
 const phoneNumber = '+234 701 120 3325'
+const whatsappUrl = 'https://wa.me/2347011203325'
 const businessHours = 'Open 24 hours'
+// Delivery time slots — 1hr after opening, 1hr before closing. Confirm exact hours.
+const DELIVERY_SLOT_START = 9   // 9 AM
+const DELIVERY_SLOT_END = 19    // 7 PM
 const dmPrefill = encodeURIComponent('Hello Bloomfield Flowers. I would like to place an order. We will respond to process your order and confirm flower availability. Thanks for your patronage.')
 const customOrderPrefill = encodeURIComponent('Hello Bloomfield Flowers. I would like to request a custom bouquet. We will respond to process your order and confirm flower availability. Thanks for your patronage.')
+
+function esc(str) {
+  return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+}
+
+function deliveryMinDate() {
+  const now = new Date()
+  const d = new Date(now)
+  if (now.getHours() >= 12) d.setDate(d.getDate() + 1)
+  return d.toISOString().split('T')[0]
+}
+
+function deliveryMaxDate() {
+  const d = new Date()
+  d.setDate(d.getDate() + 30)
+  return d.toISOString().split('T')[0]
+}
+
+function deliveryTimeOptions(selected = '') {
+  const opts = []
+  for (let h = DELIVERY_SLOT_START; h <= DELIVERY_SLOT_END; h++) {
+    const label = h < 12 ? `${h}:00 AM` : h === 12 ? '12:00 PM' : `${h - 12}:00 PM`
+    const val = `${String(h).padStart(2, '0')}:00`
+    opts.push(`<option value="${val}"${selected === val ? ' selected' : ''}>${label}</option>`)
+  }
+  return opts.join('')
+}
 
 const reviewImages = [
   '/images/optimized/review-1.jpg',
@@ -152,7 +183,7 @@ function getCart() {
 }
 
 function saveCart(cart) {
-  localStorage.setItem(storageKey, JSON.stringify(cart))
+  try { localStorage.setItem(storageKey, JSON.stringify(cart)) } catch { /* storage unavailable */ }
 }
 
 function showCartToast(productName) {
@@ -206,7 +237,7 @@ function getCheckoutDraft() {
 }
 
 function saveCheckoutDraft(draft) {
-  localStorage.setItem(checkoutDraftKey, JSON.stringify(draft))
+  try { localStorage.setItem(checkoutDraftKey, JSON.stringify(draft)) } catch { /* storage unavailable */ }
 }
 
 function getDeliveryFee() {
@@ -229,8 +260,8 @@ function renderDeliveryFeeContent(city, area) {
   `
 }
 
-function checkoutGrandTotal() {
-  return cartTotal() + getDeliveryFee()
+function checkoutGrandTotal(city = '') {
+  return cartTotal(city) + getDeliveryFee()
 }
 
 function getTransactionRefFromUrl() {
@@ -246,17 +277,13 @@ function checkoutResultState() {
   return 'home'
 }
 
-function cartDetailed() {
+function cartDetailed(city = '') {
   return getCart()
     .map((item) => {
       const product = products.find((p) => p.id === item.id)
       if (!product) return null
-      const basePrice = parsePriceValue(product.price)
-      return {
-        ...item,
-        product,
-        subtotal: basePrice * item.qty,
-      }
+      const basePrice = parsePriceValue(product.price, city)
+      return { ...item, product, subtotal: basePrice * item.qty }
     })
     .filter(Boolean)
 }
@@ -265,8 +292,8 @@ function cartCount() {
   return getCart().reduce((sum, item) => sum + item.qty, 0)
 }
 
-function cartTotal() {
-  return cartDetailed().reduce((sum, item) => sum + item.subtotal, 0)
+function cartTotal(city = '') {
+  return cartDetailed(city).reduce((sum, item) => sum + item.subtotal, 0)
 }
 
 function shell(content, route = '') {
@@ -319,7 +346,7 @@ function shell(content, route = '') {
             <h4>Order & contact</h4>
             <p><a href="${instagramUrl}" target="_blank" rel="noreferrer">Connect with us on Instagram</a></p>
             <p><a href="mailto:${emailAddress}">${emailAddress}</a></p>
-            <p>${phoneNumber}</p>
+            <p>${phoneNumber} · <a href="${whatsappUrl}" target="_blank" rel="noreferrer">WhatsApp</a></p>
           </div>
         </div>
       </footer>
@@ -659,7 +686,7 @@ function contactPage() {
         <div class="contact-list">
           <p><strong>Email:</strong> <a href="mailto:${emailAddress}">${emailAddress}</a></p>
           <p><strong>Instagram:</strong> <a href="${instagramUrl}" target="_blank" rel="noreferrer">@${instagramHandle}</a></p>
-          <p><strong>Phone:</strong> ${phoneNumber}</p>
+          <p><strong>Phone / WhatsApp:</strong> <a href="${whatsappUrl}" target="_blank" rel="noreferrer">${phoneNumber}</a></p>
           <p><strong>Business Hours:</strong> ${businessHours}</p>
         </div>
       </div>
@@ -714,8 +741,9 @@ function cartPage() {
 }
 
 function checkoutPage() {
-  const items = cartDetailed()
   const draft = getCheckoutDraft()
+  const city = draft.city || 'Abuja'
+  const items = cartDetailed(city)
   const deliveryFee = getDeliveryFee()
   return shell(`
     <main class="section container split-page">
@@ -723,19 +751,21 @@ function checkoutPage() {
         <p class="eyebrow">Checkout</p>
         <h1>Secure checkout</h1>
         <p class="form-intro">Complete your delivery details and we'll take care of the rest.</p>
-        <label>Full name<input name="fullName" type="text" placeholder="Customer full name" value="${draft.fullName || ''}" required></label>
-        <label>Email<input name="email" type="email" placeholder="you@example.com" value="${draft.email || ''}" required></label>
-        <label>Phone<input name="phone" type="tel" placeholder="Phone number" value="${draft.phone || ''}" required></label>
-        <label>Recipient name<input name="recipientName" type="text" placeholder="Who is receiving the bouquet?" value="${draft.recipientName || ''}"></label>
-        <label>Recipient phone<input name="recipientPhone" type="tel" placeholder="Recipient phone number" value="${draft.recipientPhone || ''}"></label>
-        <label>Delivery address<input name="address" type="text" placeholder="Street address" value="${draft.address || ''}" required></label>
-        <label>City<select name="city" required><option ${draft.city === 'Abuja' ? 'selected' : ''}>Abuja</option><option ${draft.city === 'Lagos' ? 'selected' : ''}>Lagos</option></select></label>
-        <label>Area / district<input name="area" type="text" placeholder="e.g. Maitama, Lekki Phase 1, Victoria Island" value="${draft.area || ''}" required></label>
+        <label>Full name<input name="fullName" type="text" placeholder="Customer full name" value="${esc(draft.fullName || '')}" required></label>
+        <label>Email<input name="email" type="email" placeholder="you@example.com" value="${esc(draft.email || '')}" required></label>
+        <label>Phone<input name="phone" type="tel" placeholder="Phone number" value="${esc(draft.phone || '')}" required></label>
+        <label>Recipient name<input name="recipientName" type="text" placeholder="Who is receiving the bouquet?" value="${esc(draft.recipientName || '')}"></label>
+        <label>Recipient phone<input name="recipientPhone" type="tel" placeholder="Recipient phone number" value="${esc(draft.recipientPhone || '')}"></label>
+        <label>Delivery address<input name="address" type="text" placeholder="Street address" value="${esc(draft.address || '')}" required></label>
+        <label>City<select name="city" required><option value="Abuja"${city === 'Abuja' ? ' selected' : ''}>Abuja</option><option value="Lagos"${city === 'Lagos' ? ' selected' : ''}>Lagos</option></select></label>
+        <label>Area / district<input name="area" type="text" placeholder="e.g. Maitama, Lekki Phase 1, Victoria Island" value="${esc(draft.area || '')}" required></label>
         <div class="delivery-fee-display" data-delivery-fee-display>
           ${renderDeliveryFeeContent(draft.city, draft.area)}
         </div>
-        <label>Card message<textarea name="cardMessage" rows="3" placeholder="Add a note for the recipient">${draft.cardMessage || ''}</textarea></label>
-        <label>Delivery notes<textarea name="deliveryNotes" rows="4" placeholder="Gate code, preferred time, or order instructions">${draft.deliveryNotes || ''}</textarea></label>
+        <label>Preferred delivery date<input name="deliveryDate" type="date" min="${deliveryMinDate()}" max="${deliveryMaxDate()}" value="${esc(draft.deliveryDate || '')}" required></label>
+        <label>Preferred delivery time<select name="deliveryTime" required><option value="" disabled${!draft.deliveryTime ? ' selected' : ''}>Select a time</option>${deliveryTimeOptions(draft.deliveryTime || '')}</select></label>
+        <label>Card message<textarea name="cardMessage" rows="3" placeholder="Add a note for the recipient" maxlength="500">${esc(draft.cardMessage || '')}</textarea></label>
+        <label>Delivery notes<textarea name="deliveryNotes" rows="4" placeholder="Gate code or order instructions" maxlength="500">${esc(draft.deliveryNotes || '')}</textarea></label>
         <div class="form-status" data-checkout-status aria-live="polite"></div>
         <div class="checkout-actions">
           <button class="btn btn-primary btn-pay" type="submit" data-checkout-submit>${items.length ? 'Pay Securely' : 'Add items to continue'}</button>
@@ -750,10 +780,10 @@ function checkoutPage() {
       </form>
       <aside class="summary-card summary-card-emphasis">
         <h3>Order Summary</h3>
-        ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${item.product.name} × ${item.qty}</span><strong>${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
-        <p class="summary-total">Subtotal: ${naira.format(cartTotal())}</p>
+        ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${esc(item.product.name)} × ${item.qty}</span><strong>${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
+        <p class="summary-total">Subtotal: ${naira.format(cartTotal(city))}</p>
         <p>Delivery: <span data-checkout-delivery>${naira.format(deliveryFee)}</span></p>
-        <p class="summary-total">Total: <span data-checkout-total>${naira.format(checkoutGrandTotal())}</span></p>
+        <p class="summary-total">Total: <span data-checkout-total>${naira.format(checkoutGrandTotal(city))}</span></p>
         <p class="summary-note">You'll be redirected to a secure payment page. Once payment is confirmed, we'll contact you to arrange delivery.</p>
       </aside>
     </main>
@@ -770,7 +800,7 @@ function checkoutCompletePage() {
         <div class="form-status form-status-persistent ${transactionRef ? 'form-status-working' : 'form-status-error'}" data-payment-status aria-live="polite">
           ${transactionRef ? 'Checking your payment status…' : 'We could not verify the payment — no transaction reference was found in the return URL. Please contact us on Instagram if you completed a payment.'}
         </div>
-        ${transactionRef ? `<p class="form-note">Reference: <strong>${transactionRef}</strong></p>` : ''}
+        ${transactionRef ? `<p class="form-note">Reference: <strong>${esc(transactionRef)}</strong></p>` : ''}
         <div class="checkout-actions">
           <a class="btn btn-primary" href="#/shop">Continue Shopping</a>
           <a class="btn btn-secondary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Contact us on Instagram</a>
@@ -813,6 +843,8 @@ async function handleCheckoutSubmit(event) {
   const draft = Object.fromEntries(formData.entries())
   saveCheckoutDraft(draft)
 
+  if (submit.disabled) return
+
   if (!cartCount()) {
     status.textContent = 'Your cart is empty. Add bouquets before checkout.'
     status.className = 'form-status form-status-error'
@@ -831,6 +863,8 @@ async function handleCheckoutSubmit(event) {
       city: draft.city,
       area: draft.area,
       address: draft.address,
+      deliveryDate: draft.deliveryDate,
+      deliveryTime: draft.deliveryTime,
       cardMessage: draft.cardMessage,
       deliveryNotes: draft.deliveryNotes,
     },
@@ -865,16 +899,21 @@ async function handleCheckoutSubmit(event) {
     window.location.href = result.checkoutUrl
   } catch (error) {
     submit.disabled = false
-    status.textContent = error.message || 'Unable to start checkout.'
+    const msg = String(error.message || '')
+    const isNetwork = msg.toLowerCase().includes('fetch') || msg.toLowerCase().includes('network') || msg.toLowerCase().includes('failed to fetch')
+    status.textContent = isNetwork
+      ? 'Network error — please check your connection and try again.'
+      : msg || 'Unable to start checkout. Please try again.'
     status.className = 'form-status form-status-error'
   }
 }
 
-async function verifyReturnedPayment() {
+async function verifyReturnedPayment(retryCount = 0) {
   const target = document.querySelector('[data-payment-status]')
   const titleEl = document.querySelector('[data-payment-title]')
   const transactionRef = getTransactionRefFromUrl()
   if (!target || !transactionRef) return
+  if (target.classList.contains('form-status-success') || target.classList.contains('form-status-error')) return
 
   try {
     const response = await fetch(`/api/checkout/verify?transaction_ref=${encodeURIComponent(transactionRef)}`)
@@ -915,13 +954,15 @@ async function verifyReturnedPayment() {
     target.textContent = state.message
     target.className = state.className
 
-    if (paymentState === 'Success' || paymentState === 'Pending') {
+    if (paymentState === 'Success') {
       saveCart([])
       localStorage.removeItem('bloomfield-checkout-draft')
+    } else if (paymentState === 'Pending' && retryCount < 4) {
+      setTimeout(() => verifyReturnedPayment(retryCount + 1), 5000)
     }
   } catch (error) {
     if (titleEl) titleEl.textContent = 'Unable to verify payment'
-    target.textContent = error.message || 'Unable to verify payment status. Please contact us on Instagram with your reference number.'
+    target.textContent = 'Unable to verify payment status. Please contact us on Instagram or WhatsApp with your reference number.'
     target.className = 'form-status form-status-persistent form-status-error'
   }
 }
@@ -963,12 +1004,14 @@ async function handleContactSubmit(event) {
     status.innerHTML = `
       <p><strong>Message received!</strong> We'll be in touch soon.</p>
       <p>You can also follow up with us directly on Instagram. Copy your message below and paste it into our DM.</p>
-      <textarea class="contact-copy-box" readonly rows="4">${msgText.replace(/</g, '&lt;')}</textarea>
+      <textarea class="contact-copy-box" readonly rows="4" data-msg-display></textarea>
       <div class="contact-success-actions">
         <button class="btn btn-secondary" data-copy-msg>Copy message</button>
         <a class="btn btn-primary" href="${igUrl}" target="_blank" rel="noreferrer">Open Instagram DM</a>
       </div>
     `
+    const msgDisplay = status.querySelector('[data-msg-display]')
+    if (msgDisplay) msgDisplay.value = msgText
     form.querySelectorAll('input, textarea, select, button[type=submit]').forEach((el) => { el.disabled = true })
 
     status.querySelector('[data-copy-msg]')?.addEventListener('click', () => {
@@ -1079,22 +1122,27 @@ function bindEvents() {
 let lastRenderedRoute = ''
 
 function renderApp() {
-  const route = checkoutResultState()
-  const shouldResetScroll = route !== lastRenderedRoute
-  const currentScrollX = window.scrollX
-  const currentScrollY = window.scrollY
+  try {
+    const route = checkoutResultState()
+    const shouldResetScroll = route !== lastRenderedRoute
+    const currentScrollX = window.scrollX
+    const currentScrollY = window.scrollY
 
-  app.innerHTML = router(route)
+    app.innerHTML = router(route)
 
-  if (shouldResetScroll) {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-  } else {
-    window.scrollTo({ top: currentScrollY, left: currentScrollX, behavior: 'auto' })
+    if (shouldResetScroll) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+    } else {
+      window.scrollTo({ top: currentScrollY, left: currentScrollX, behavior: 'auto' })
+    }
+
+    bindEvents()
+    if (route === 'checkout-complete') verifyReturnedPayment()
+    lastRenderedRoute = route
+  } catch (err) {
+    console.error('Render error:', err)
+    if (app) app.innerHTML = '<div style="padding:3rem;text-align:center"><p>Something went wrong loading this page. <a href="/">Reload</a> or <a href="https://www.instagram.com/bloomfieldflowers_/" target="_blank">contact us on Instagram</a>.</p></div>'
   }
-
-  bindEvents()
-  verifyReturnedPayment()
-  lastRenderedRoute = route
 }
 
 window.addEventListener('hashchange', renderApp)

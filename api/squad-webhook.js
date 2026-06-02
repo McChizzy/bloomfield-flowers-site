@@ -1,5 +1,9 @@
 import { getEnv, json, verifyWebhookSignature } from './_lib/squad.js'
 
+function esc(str) {
+  return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+}
+
 const AGENTMAIL_INBOX = 'odinson@agentmail.to'
 const AGENTMAIL_API = 'https://api.agentmail.to/v0'
 
@@ -54,20 +58,20 @@ Total: ₦${Number(order.total || 0).toLocaleString()}
 </table>
 <h3 style="font-family:sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:16px 0 6px">Customer</h3>
 <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px;margin-bottom:16px">
-  <tr><td style="padding:3px 14px 3px 0;color:#888">Name</td><td>${customer.fullName || '—'}</td></tr>
-  <tr><td style="padding:3px 14px 3px 0;color:#888">Email</td><td>${customer.email || body.email || '—'}</td></tr>
-  <tr><td style="padding:3px 14px 3px 0;color:#888">Phone</td><td>${customer.phone || '—'}</td></tr>
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Name</td><td>${esc(customer.fullName || '—')}</td></tr>
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Email</td><td>${esc(customer.email || body.email || '—')}</td></tr>
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Phone</td><td>${esc(customer.phone || '—')}</td></tr>
 </table>
 <h3 style="font-family:sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:16px 0 6px">Delivery</h3>
 <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px;margin-bottom:16px">
-  <tr><td style="padding:3px 14px 3px 0;color:#888">City</td><td>${delivery.city || '—'}</td></tr>
-  <tr><td style="padding:3px 14px 3px 0;color:#888">Area</td><td>${delivery.area || '—'}</td></tr>
-  <tr><td style="padding:3px 14px 3px 0;color:#888">Address</td><td>${delivery.address || '—'}</td></tr>
-  ${delivery.notes ? `<tr><td style="padding:3px 14px 3px 0;color:#888">Notes</td><td>${delivery.notes}</td></tr>` : ''}
+  <tr><td style="padding:3px 14px 3px 0;color:#888">City</td><td>${esc(delivery.city || '—')}</td></tr>
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Area</td><td>${esc(delivery.area || '—')}</td></tr>
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Address</td><td>${esc(delivery.address || '—')}</td></tr>
+  ${delivery.notes ? `<tr><td style="padding:3px 14px 3px 0;color:#888">Notes</td><td>${esc(delivery.notes)}</td></tr>` : ''}
 </table>
 <h3 style="font-family:sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:16px 0 6px">Order</h3>
 <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px">
-  ${(order.items || []).map((item) => `<tr><td style="padding:3px 14px 3px 0">${item.name} × ${item.qty}</td><td>₦${Number(item.unitPrice || 0).toLocaleString()}</td></tr>`).join('')}
+  ${(order.items || []).map((item) => `<tr><td style="padding:3px 14px 3px 0">${esc(item.name)} × ${Number(item.qty)}</td><td>₦${Number(item.unitPrice || 0).toLocaleString()}</td></tr>`).join('')}
   <tr><td colspan="2" style="padding-top:8px;border-top:1px solid #eee"></td></tr>
   <tr><td style="padding:3px 14px 3px 0;color:#888">Subtotal</td><td>₦${Number(order.subtotal || 0).toLocaleString()}</td></tr>
   <tr><td style="padding:3px 14px 3px 0;color:#888">Delivery</td><td>₦${Number(order.deliveryFee || 0).toLocaleString()}</td></tr>

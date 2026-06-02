@@ -15,8 +15,15 @@ export default async function handler(req, res) {
   }
 
   const { customer = {}, delivery = {}, items = [] } = payload || {}
+
+  // Validate field lengths to prevent oversized payloads
+  const fields = { fullName: customer.fullName, email: customer.email, phone: customer.phone, address: delivery.address, area: delivery.area, cardMessage: delivery.cardMessage, deliveryNotes: delivery.deliveryNotes }
+  for (const [key, val] of Object.entries(fields)) {
+    if (val && String(val).length > 500) return json(res, 400, { error: `Field '${key}' is too long.` })
+  }
+
   const { fee: zoneDeliveryFee } = lookupDeliveryFee(delivery.city, delivery.area)
-  const order = summarizeOrder(items, zoneDeliveryFee ?? 0)
+  const order = summarizeOrder(items, zoneDeliveryFee ?? 0, delivery.city)
 
   if (!customer.email || !customer.fullName || !customer.phone) {
     return json(res, 400, { error: 'Name, email, and phone are required.' })

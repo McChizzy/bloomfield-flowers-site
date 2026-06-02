@@ -51,9 +51,12 @@ export const products = [
   },
 ]
 
-export function parsePriceValue(price) {
+export function parsePriceValue(price, city = '') {
   if (typeof price === 'number') return price
-  const digits = String(price).replace(/[^\d-]/g, '')
-  const first = digits.split('-')[0]
-  return Number(first || 0)
+  const cleaned = String(price).replace(/[^\d]/g, ' ').trim()
+  const parts = cleaned.split(/\s+/).map(Number).filter((n) => Number.isFinite(n) && n > 0)
+  if (parts.length === 0) return 0
+  if (parts.length === 1) return parts[0]
+  // Lagos = lower price, Abuja = higher price
+  return city === 'Abuja' ? Math.max(...parts) : Math.min(...parts)
 }

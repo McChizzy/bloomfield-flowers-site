@@ -915,7 +915,10 @@ async function verifyReturnedPayment() {
     target.textContent = state.message
     target.className = state.className
 
-    if (paymentState === 'Success') saveCart([])
+    if (paymentState === 'Success' || paymentState === 'Pending') {
+      saveCart([])
+      localStorage.removeItem('bloomfield-checkout-draft')
+    }
   } catch (error) {
     if (titleEl) titleEl.textContent = 'Unable to verify payment'
     target.textContent = error.message || 'Unable to verify payment status. Please contact us on Instagram with your reference number.'

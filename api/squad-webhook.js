@@ -1,5 +1,92 @@
 import { getEnv, json, verifyWebhookSignature } from './_lib/squad.js'
 
+const AGENTMAIL_INBOX = 'odinson@agentmail.to'
+const AGENTMAIL_API = 'https://api.agentmail.to/v0'
+
+async function sendOrderEmail(event) {
+  const key = process.env.AGENTMAIL_API_KEY
+  if (!key) return
+
+  const body = event?.Body || {}
+  const meta = body.meta_data || body.metadata || {}
+  const customer = meta.customer || {}
+  const delivery = meta.delivery || {}
+  const order = meta.order || {}
+  const ref = body.transaction_ref || event?.TransactionRef || '—'
+  const amountKobo = body.amount || 0
+  const amountNaira = (amountKobo / 100).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
+
+  const items = (order.items || [])
+    .map((item) => `  • ${item.name} × ${item.qty} — ₦${Number(item.unitPrice || 0).toLocaleString()}`)
+    .join('\n')
+
+  const text = `
+New paid order on Bloomfield Flowers!
+
+Reference: ${ref}
+Amount: ${amountNaira}
+Payment channel: ${body.transaction_type || '—'}
+
+CUSTOMER
+Name: ${customer.fullName || '—'}
+Email: ${customer.email || body.email || '—'}
+Phone: ${customer.phone || '—'}
+
+DELIVERY
+City: ${delivery.city || '—'}
+Area: ${delivery.area || '—'}
+Address: ${delivery.address || '—'}
+${delivery.notes ? `Notes: ${delivery.notes}` : ''}
+
+ORDER
+${items || '  (details not captured)'}
+Subtotal: ₦${Number(order.subtotal || 0).toLocaleString()}
+Delivery fee: ₦${Number(order.deliveryFee || 0).toLocaleString()}
+Total: ₦${Number(order.total || 0).toLocaleString()}
+`.trim()
+
+  const html = `
+<h2 style="color:#7a2e5a;font-family:serif">New paid order — Bloomfield Flowers</h2>
+<table style="border-collapse:collapse;font-family:sans-serif;font-size:14px;margin-bottom:16px">
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Reference</td><td><strong>${ref}</strong></td></tr>
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Amount</td><td><strong>${amountNaira}</strong></td></tr>
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Channel</td><td>${body.transaction_type || '—'}</td></tr>
+</table>
+<h3 style="font-family:sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:16px 0 6px">Customer</h3>
+<table style="border-collapse:collapse;font-family:sans-serif;font-size:14px;margin-bottom:16px">
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Name</td><td>${customer.fullName || '—'}</td></tr>
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Email</td><td>${customer.email || body.email || '—'}</td></tr>
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Phone</td><td>${customer.phone || '—'}</td></tr>
+</table>
+<h3 style="font-family:sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:16px 0 6px">Delivery</h3>
+<table style="border-collapse:collapse;font-family:sans-serif;font-size:14px;margin-bottom:16px">
+  <tr><td style="padding:3px 14px 3px 0;color:#888">City</td><td>${delivery.city || '—'}</td></tr>
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Area</td><td>${delivery.area || '—'}</td></tr>
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Address</td><td>${delivery.address || '—'}</td></tr>
+  ${delivery.notes ? `<tr><td style="padding:3px 14px 3px 0;color:#888">Notes</td><td>${delivery.notes}</td></tr>` : ''}
+</table>
+<h3 style="font-family:sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:16px 0 6px">Order</h3>
+<table style="border-collapse:collapse;font-family:sans-serif;font-size:14px">
+  ${(order.items || []).map((item) => `<tr><td style="padding:3px 14px 3px 0">${item.name} × ${item.qty}</td><td>₦${Number(item.unitPrice || 0).toLocaleString()}</td></tr>`).join('')}
+  <tr><td colspan="2" style="padding-top:8px;border-top:1px solid #eee"></td></tr>
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Subtotal</td><td>₦${Number(order.subtotal || 0).toLocaleString()}</td></tr>
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Delivery</td><td>₦${Number(order.deliveryFee || 0).toLocaleString()}</td></tr>
+  <tr><td style="padding:3px 14px 3px 0;font-weight:700">Total</td><td style="font-weight:700">₦${Number(order.total || 0).toLocaleString()}</td></tr>
+</table>
+`
+
+  await fetch(`${AGENTMAIL_API}/inboxes/${AGENTMAIL_INBOX}/messages`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      to: ['ikechex@gmail.com'],
+      subject: `New order ${ref} — Bloomfield Flowers`,
+      text,
+      html,
+    }),
+  })
+}
+
 export const config = {
   api: {
     bodyParser: false,
@@ -14,9 +101,7 @@ export default async function handler(req, res) {
 
   let rawBody = ''
   await new Promise((resolve, reject) => {
-    req.on('data', (chunk) => {
-      rawBody += chunk
-    })
+    req.on('data', (chunk) => { rawBody += chunk })
     req.on('end', resolve)
     req.on('error', reject)
   }).catch(() => null)
@@ -30,13 +115,18 @@ export default async function handler(req, res) {
     }
 
     const event = rawBody ? JSON.parse(rawBody) : {}
+    const status = event?.Body?.transaction_status
 
     console.log('Squad webhook received', {
       event: event?.Event,
       reference: event?.TransactionRef || event?.Body?.transaction_ref,
-      status: event?.Body?.transaction_status,
+      status,
       type: event?.Body?.transaction_type,
     })
+
+    if (status === 'Success') {
+      sendOrderEmail(event).catch((err) => console.error('Order email failed:', err))
+    }
 
     return json(res, 200, { received: true })
   } catch (error) {

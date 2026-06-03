@@ -53,7 +53,8 @@ export const products = [
 
 export function parsePriceValue(price, city = '') {
   if (typeof price === 'number') return price
-  const cleaned = String(price).replace(/[^\d]/g, ' ').trim()
+  // Remove thousands-separator commas before stripping non-digits, so "390,000" → 390000 not 390
+  const cleaned = String(price).replace(/,/g, '').replace(/[^\d]/g, ' ').trim()
   const parts = cleaned.split(/\s+/).map(Number).filter((n) => Number.isFinite(n) && n > 0)
   if (parts.length === 0) return 0
   if (parts.length === 1) return parts[0]

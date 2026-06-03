@@ -803,22 +803,20 @@ p {
 
 .product-meta {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.75rem;
   margin-top: 1rem;
 }
 
 .product-actions {
-  display: inline-flex;
-  flex-wrap: wrap;
+  display: flex;
   gap: 0.65rem;
-  justify-content: end;
-  flex-shrink: 0;
 }
 
 .product-actions .btn {
+  flex: 1;
   white-space: nowrap;
+  min-width: 0;
 }
 
 .stack-page {
@@ -1305,10 +1303,6 @@ p {
     width: 100%;
   }
 
-  .product-meta {
-    flex-direction: column;
-    align-items: stretch;
-  }
 }
 
 /* Delivery fee auto-display */
@@ -1498,4 +1492,32 @@ p {
 .footer-legal a {
   color: inherit;
   text-decoration: underline;
+}
+
+/* Cart city selector */
+.cart-city-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  background: rgba(143, 76, 115, 0.07);
+  border-radius: 12px;
+  margin-bottom: 0.5rem;
+}
+
+.cart-city-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.cart-city-select {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.88rem;
+  color: var(--primary-dark);
+  background: #fff;
+  cursor: pointer;
 }

@@ -1,30 +1,8 @@
 import { readJson, json } from './_lib/squad.js'
-
-const AGENTMAIL_INBOX = 'odinson@agentmail.to'
-const AGENTMAIL_API = 'https://api.agentmail.to/v0'
+import { sendMail } from './_lib/mailer.js'
 
 function esc(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
-}
-
-async function sendEmail({ to, subject, text, html }) {
-  const key = process.env.AGENTMAIL_API_KEY
-  if (!key) throw new Error('Missing AGENTMAIL_API_KEY')
-
-  const res = await fetch(`${AGENTMAIL_API}/inboxes/${AGENTMAIL_INBOX}/messages`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${key}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ to: [to], subject, text, html }),
-  })
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.message || `AgentMail error ${res.status}`)
-  }
-  return res.json()
 }
 
 export default async function handler(req, res) {
@@ -99,10 +77,10 @@ ${message.trim()}
 `
 
   try {
-    await sendEmail({ to: 'ikechex@gmail.com', subject, text, html })
+    await sendMail({ to: 'ikechex@gmail.com', subject, text, html })
     return json(res, 200, { ok: true })
   } catch (err) {
-    console.error('AgentMail error:', err)
+    console.error('Mail error:', err)
     return json(res, 500, { error: 'Failed to send message. Please try again or contact us directly on Instagram.' })
   }
 }

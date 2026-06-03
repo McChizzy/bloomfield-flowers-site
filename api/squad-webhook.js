@@ -1,16 +1,12 @@
 import { getEnv, json, verifyWebhookSignature } from './_lib/squad.js'
 import { getSupabase } from './_lib/supabase.js'
+import { sendMail } from './_lib/mailer.js'
 
 function esc(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 }
 
-const AGENTMAIL_INBOX = 'odinson@agentmail.to'
-const AGENTMAIL_API = 'https://api.agentmail.to/v0'
-
 async function sendOrderEmail(event) {
-  const key = process.env.AGENTMAIL_API_KEY
-  if (!key) return
 
   const body = event?.Body || {}
   const meta = body.meta_data || body.metadata || {}
@@ -80,16 +76,7 @@ Total: ₦${Number(order.total || 0).toLocaleString()}
 </table>
 `
 
-  await fetch(`${AGENTMAIL_API}/inboxes/${AGENTMAIL_INBOX}/messages`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      to: ['ikechex@gmail.com'],
-      subject: `New order ${ref} — Bloomfield Flowers`,
-      text,
-      html,
-    }),
-  })
+  await sendMail({ to: 'ikechex@gmail.com', subject: `New order ${ref} — Bloomfield Flowers`, text, html })
 }
 
 export const config = {

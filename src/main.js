@@ -171,6 +171,7 @@ const naira = new Intl.NumberFormat('en-NG', {
 const storageKey = 'bloomfield-cart'
 const heroStorageKey = 'bloomfield-hero-index'
 const checkoutDraftKey = 'bloomfield-checkout-draft'
+const cartCityKey = 'bloomfield-cart-city'
 const app = document.querySelector('#app')
 
 function getHeroIndex() {
@@ -196,6 +197,13 @@ function getCart() {
 
 function saveCart(cart) {
   try { localStorage.setItem(storageKey, JSON.stringify(cart)) } catch { /* storage unavailable */ }
+}
+
+function getCartCity() {
+  try { return localStorage.getItem(cartCityKey) || 'Lagos' } catch { return 'Lagos' }
+}
+function saveCartCity(city) {
+  try { localStorage.setItem(cartCityKey, city) } catch { }
 }
 
 function showCartToast(productName) {
@@ -720,7 +728,8 @@ function contactPage() {
 }
 
 function cartPage() {
-  const items = cartDetailed()
+  const city = getCartCity()
+  const items = cartDetailed(city)
   return shell(`
     <main class="section container split-page cart-layout">
       <div>
@@ -738,14 +747,21 @@ function cartPage() {
               <span>${item.qty}</span>
               <button type="button" data-qty="plus" data-id="${item.id}">+</button>
             </div>
-            <strong>${naira.format(item.subtotal)}</strong>
+            <strong data-cart-item-total="${item.id}">${naira.format(item.subtotal)}</strong>
           </div>
         `).join('') : '<div class="empty-state"><h3>Your cart is empty</h3><p>Add a bouquet to get started.</p><a class="btn btn-primary" href="#/shop">Continue Shopping</a></div>'}
       </div>
       <aside class="summary-card summary-card-emphasis">
         <h3>Order Summary</h3>
+        <div class="cart-city-row">
+          <label class="cart-city-label" for="cart-city-select">Delivery city</label>
+          <select id="cart-city-select" data-cart-city class="cart-city-select">
+            <option value="Lagos"${city === 'Lagos' ? ' selected' : ''}>Lagos</option>
+            <option value="Abuja"${city === 'Abuja' ? ' selected' : ''}>Abuja</option>
+          </select>
+        </div>
         <p>Items: ${cartCount()}</p>
-        <p class="summary-total">Subtotal: ${naira.format(cartTotal())}</p>
+        <p class="summary-total" data-cart-subtotal>Subtotal: ${naira.format(cartTotal(city))}</p>
         <p class="summary-note">Delivery fee is calculated at checkout based on your area.</p>
         <div class="summary-actions">
           <a class="btn btn-primary" href="#/checkout">Proceed to Checkout</a>
@@ -758,7 +774,7 @@ function cartPage() {
 
 function checkoutPage() {
   const draft = getCheckoutDraft()
-  const city = draft.city || 'Abuja'
+  const city = draft.city || getCartCity() || 'Lagos'
   const items = cartDetailed(city)
   const deliveryFee = getDeliveryFee()
   return shell(`
@@ -944,11 +960,7 @@ function privacyPage() {
       <p>Our website uses browser localStorage to remember your cart and checkout form state. We do not use third-party tracking cookies or advertising cookies. Google Fonts are loaded via Google's CDN, which may involve minimal data processing by Google in accordance with their privacy policy.</p>
 
       <h2>6. Third-Party Services</h2>
-      <ul>
-        <li><strong>Squad</strong> — payment processing (their privacy policy applies to payment data)</li>
-        <li><strong>Vercel</strong> — website hosting and serverless functions</li>
-        <li><strong>Supabase</strong> — secure database for order records</li>
-      </ul>
+      <p>We use third-party services for payment processing, website hosting, and secure data storage. Each of these services has its own privacy policy and processes only the data necessary to perform its function. We do not grant these services access to your data for any purpose other than fulfilling your order.</p>
 
       <h2>7. Contact</h2>
       <p>For any privacy-related enquiries:</p>
@@ -1203,6 +1215,21 @@ function bindEvents() {
   document.querySelectorAll('[data-contact-form]').forEach((form) => {
     form.addEventListener('submit', handleContactSubmit)
   })
+
+  const cartCitySelect = document.querySelector('[data-cart-city]')
+  if (cartCitySelect) {
+    cartCitySelect.addEventListener('change', () => {
+      const newCity = cartCitySelect.value
+      saveCartCity(newCity)
+      const updatedItems = cartDetailed(newCity)
+      updatedItems.forEach((item) => {
+        const el = document.querySelector(`[data-cart-item-total="${item.id}"]`)
+        if (el) el.textContent = naira.format(item.subtotal)
+      })
+      const subtotalEl = document.querySelector('[data-cart-subtotal]')
+      if (subtotalEl) subtotalEl.textContent = `Subtotal: ${naira.format(cartTotal(newCity))}`
+    })
+  }
 
   const checkoutForm = document.querySelector('[data-checkout-form]')
   if (checkoutForm) {

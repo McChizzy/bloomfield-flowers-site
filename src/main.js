@@ -343,7 +343,7 @@ function shell(content, route = '') {
             </button>
             <nav class="nav-links" data-nav-panel aria-label="Primary navigation">
               ${navItems.map(([key, label]) => `<a href="#/${key}" class="${route === key ? 'is-active' : ''}">${label}</a>`).join('')}
-              <a href="#/cart" class="cart-link ${route === 'cart' ? 'is-active-cart' : ''}"><span>Cart</span> <span class="cart-badge">${cartCount()}</span></a>
+              <a href="#/cart" class="cart-link ${route === 'cart' ? 'is-active-cart' : ''}"><span>Cart</span> <span class="cart-badge">${route === 'checkout-complete' ? '' : cartCount()}</span></a>
             </nav>
           </div>
         </div>
@@ -827,28 +827,30 @@ function checkoutCompletePage() {
   return shell(`
     <main class="section container split-page checkout-complete-layout">
       <section class="form-card checkout-form-card">
-        <p class="eyebrow">Order status</p>
-        <h1 data-payment-title>${transactionRef ? 'Verifying your payment…' : 'Payment reference missing'}</h1>
+        <p class="eyebrow">Order received</p>
+        <h1 data-payment-title>${transactionRef ? 'Thank you for your order!' : 'Payment reference missing'}</h1>
         <div class="form-status form-status-persistent ${transactionRef ? 'form-status-working' : 'form-status-error'}" data-payment-status aria-live="polite">
-          ${transactionRef ? 'Checking your payment status…' : 'We could not verify the payment — no transaction reference was found in the return URL. Please contact us on Instagram if you completed a payment.'}
+          ${transactionRef
+            ? 'We\'re confirming your payment — this only takes a moment. Please don\'t close this page.'
+            : 'We could not verify the payment — no transaction reference was found. Please contact us on Instagram or WhatsApp if you completed a payment.'}
         </div>
         ${transactionRef ? `<p class="form-note">Reference: <strong>${esc(transactionRef)}</strong></p>` : ''}
         <div class="checkout-actions">
           <a class="btn btn-primary" href="#/shop">Continue Shopping</a>
-          <a class="btn btn-secondary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Contact us on Instagram</a>
+          <a class="btn btn-secondary" href="${whatsappUrl}" target="_blank" rel="noreferrer">WhatsApp us</a>
         </div>
       </section>
       <aside class="summary-card summary-card-emphasis checkout-complete-next-steps">
         <h3>What happens next</h3>
         <div class="checkout-next-steps-grid">
-          <div class="bullet-card checkout-next-step"><p>We'll review your order and confirm flower availability for your bouquet.</p></div>
-          <div class="bullet-card checkout-next-step"><p>We'll reach out to you to confirm your delivery time and address details.</p></div>
-          <div class="bullet-card checkout-next-step"><p>Your bouquet will be beautifully prepared and delivered with care.</p></div>
+          <div class="bullet-card checkout-next-step"><p>We'll confirm your order and check flower availability for your bouquet.</p></div>
+          <div class="bullet-card checkout-next-step"><p>We'll contact you on WhatsApp or Instagram to confirm your delivery window.</p></div>
+          <div class="bullet-card checkout-next-step"><p>Your bouquet is beautifully prepared and delivered with care on the agreed day.</p></div>
         </div>
-        <p class="summary-note checkout-complete-contact-note">Questions about your order? <a href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Message us on Instagram</a> — we typically respond within a few hours.</p>
+        <p class="summary-note checkout-complete-contact-note">Questions? <a href="${whatsappUrl}" target="_blank" rel="noreferrer">WhatsApp us</a> or <a href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">message us on Instagram</a> — we respond quickly.</p>
       </aside>
     </main>
-  `, 'checkout')
+  `, 'checkout-complete')
 }
 
 function termsPage() {
@@ -1083,39 +1085,39 @@ async function verifyReturnedPayment(retryCount = 0) {
     const paymentState = String(result.transaction_status || 'Pending')
     const ref = result.transaction_ref || transactionRef
 
-    const states = {
-      Success: {
-        title: 'Payment confirmed',
-        message: `Your order has been received (ref: ${ref}). We'll be in touch shortly to confirm your delivery details.`,
-        className: 'form-status form-status-persistent form-status-success',
-      },
-      Pending: {
-        title: 'Payment is being processed',
-        message: `Your payment is still being processed (ref: ${ref}). We'll confirm once it clears — this usually takes a few minutes.`,
-        className: 'form-status form-status-persistent form-status-working',
-      },
-      Failed: {
-        title: 'Payment unsuccessful',
-        message: 'Your payment was not completed. Please return to checkout and try again, or contact us on Instagram if you need help.',
-        className: 'form-status form-status-persistent form-status-error',
-      },
-      Abandoned: {
-        title: 'Payment not completed',
-        message: 'It looks like the payment was not completed. Your cart is still saved — return to checkout when ready.',
-        className: 'form-status form-status-persistent form-status-error',
-      },
-    }
-
-    const state = states[paymentState] || states.Pending
-    if (titleEl) titleEl.textContent = state.title
-    target.textContent = state.message
-    target.className = state.className
-
     if (paymentState === 'Success') {
+      if (titleEl) titleEl.textContent = 'Order confirmed!'
+      target.textContent = `Payment received (ref: ${ref}). We'll reach out on WhatsApp or Instagram shortly to confirm your delivery. Thank you for choosing Bloomfield Flowers!`
+      target.className = 'form-status form-status-persistent form-status-success'
       saveCart([])
       localStorage.removeItem('bloomfield-checkout-draft')
-    } else if (paymentState === 'Pending' && retryCount < 4) {
-      setTimeout(() => verifyReturnedPayment(retryCount + 1), 5000)
+      const badge = document.querySelector('.cart-badge')
+      if (badge) badge.textContent = ''
+    } else if (paymentState === 'Pending') {
+      if (retryCount < 4) {
+        if (titleEl) titleEl.textContent = 'Confirming your payment…'
+        target.textContent = `Almost there — your payment is being confirmed (ref: ${ref}). Hang tight, this usually takes a few seconds.`
+        target.className = 'form-status form-status-persistent form-status-working'
+        setTimeout(() => verifyReturnedPayment(retryCount + 1), 5000)
+      } else {
+        // After all retries still pending — Squad's webhook will confirm async. Clear cart.
+        if (titleEl) titleEl.textContent = 'Order received!'
+        target.textContent = `Your order has been placed (ref: ${ref}). Payment confirmation may take a few more minutes — we'll contact you on WhatsApp or Instagram once it clears. If you have any questions, message us directly.`
+        target.className = 'form-status form-status-persistent form-status-success'
+        saveCart([])
+        localStorage.removeItem('bloomfield-checkout-draft')
+        const badge = document.querySelector('.cart-badge')
+        if (badge) badge.textContent = ''
+      }
+    } else if (paymentState === 'Failed') {
+      if (titleEl) titleEl.textContent = 'Payment unsuccessful'
+      target.textContent = 'Your payment was not completed. Your cart is saved — please return to checkout and try again, or contact us on Instagram or WhatsApp if you need help.'
+      target.className = 'form-status form-status-persistent form-status-error'
+    } else {
+      // Abandoned or unknown
+      if (titleEl) titleEl.textContent = 'Payment not completed'
+      target.textContent = 'It looks like the payment was not completed. No worries — your cart is still saved when you\'re ready.'
+      target.className = 'form-status form-status-persistent form-status-error'
     }
   } catch (error) {
     if (titleEl) titleEl.textContent = 'Unable to verify payment'

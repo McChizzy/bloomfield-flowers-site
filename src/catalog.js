@@ -7,7 +7,7 @@ export const products = [
     image: '/images/optimized/barbie-deluxe.jpg',
     short: 'A lush mixed bouquet made with roses, spray roses, lilies, and gypsos fillers.',
     description: 'Mixed bouquet (M) made with different types of flowers, including 20 roses, 3 spray roses, 6 lilies, and 2 gypsos fillers.',
-    instagramPost: 'https://www.instagram.com/p/DWuVT6lDu8v/?img_index=1',
+    instagramPost: 'https://www.instagram.com/p/DV-wqrvDVVs/?img_index=1',
   },
   {
     id: 'pastel-cloud-s',
@@ -17,7 +17,7 @@ export const products = [
     image: '/images/optimized/pastel-cloud.jpg',
     short: 'A soft pastel mixed bouquet with lilac, white, and pink blooms.',
     description: 'Mixed bouquet (S) made with different colors of chrysanthemums, lilac, white, pink roses, and gypsos.',
-    instagramPost: 'https://www.instagram.com/p/DV-wqrvDVVs/?img_index=1',
+    instagramPost: 'https://www.instagram.com/p/DWuVT6lDu8v/?img_index=1',
   },
   {
     id: 'century-of-roses',

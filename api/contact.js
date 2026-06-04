@@ -77,7 +77,7 @@ ${message.trim()}
 `
 
   try {
-    await sendMail({ to: 'ikechex@gmail.com', subject, text, html })
+    await sendMail({ to: 'houseofbloomfield@gmail.com', subject, text, html })
     return json(res, 200, { ok: true })
   } catch (err) {
     console.error('Mail error:', err)

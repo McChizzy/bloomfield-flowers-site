@@ -76,7 +76,7 @@ Total: ₦${Number(order.total || 0).toLocaleString()}
 </table>
 `
 
-  await sendMail({ to: 'ikechex@gmail.com', subject: `New order ${ref} — Bloomfield Flowers`, text, html })
+  await sendMail({ to: 'houseofbloomfield@gmail.com', subject: `New order ${ref} — Bloomfield Flowers`, text, html })
 }
 
 export const config = {

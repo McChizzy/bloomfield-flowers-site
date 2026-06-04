@@ -1,5 +1,6 @@
 import { readJson, json } from './_lib/squad.js'
 import { sendMail } from './_lib/mailer.js'
+import { getSupabase } from './_lib/supabase.js'
 
 function esc(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
@@ -75,6 +76,24 @@ ${message.trim()}
 <p style="margin-top:16px"><strong>Message:</strong></p>
 <p style="background:#f9f0f4;padding:12px 16px;border-radius:8px;white-space:pre-wrap">${esc(message.trim())}</p>
 `
+
+  // Save to Supabase (fire-and-forget — don't fail the request if DB is unavailable)
+  const supabase = getSupabase()
+  if (supabase) {
+    supabase.from('inquiries').insert({
+      form_type: formType || 'contact',
+      name: name.trim(),
+      email: email?.trim() || null,
+      phone: phone?.trim() || null,
+      instagram: instagram?.trim() || null,
+      occasion: occasion?.trim() || null,
+      colors: colors?.trim() || null,
+      budget: budget?.trim() || null,
+      message: message.trim(),
+    })
+      .then(({ error }) => { if (error) console.error('Supabase inquiry insert failed:', error.message) })
+      .catch((err) => console.error('Supabase inquiry error:', err))
+  }
 
   try {
     await sendMail({ to: 'houseofbloomfield@gmail.com', subject, text, html })

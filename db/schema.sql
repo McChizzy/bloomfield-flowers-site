@@ -74,3 +74,21 @@ create or replace view confirmed_orders as
   from orders
   where status = 'success'
   order by created_at desc;
+
+-- Custom order & contact form inquiries
+create table if not exists inquiries (
+  id         uuid primary key default gen_random_uuid(),
+  form_type  text not null default 'contact',
+  name       text,
+  email      text,
+  phone      text,
+  instagram  text,
+  occasion   text,
+  colors     text,
+  budget     text,
+  message    text,
+  created_at timestamptz default now()
+);
+
+create index if not exists inquiries_form_type_idx on inquiries(form_type);
+create index if not exists inquiries_created_at_idx on inquiries(created_at desc);

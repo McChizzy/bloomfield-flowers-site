@@ -1034,6 +1034,15 @@ async function handleCheckoutSubmit(event) {
   status.textContent = 'Opening secure checkout…'
   status.className = 'form-status form-status-working'
 
+  // Reuse an existing checkout session if it was created in the last 25 minutes
+  const existingDraft = getCheckoutDraft()
+  const pending = existingDraft._pendingCheckout
+  if (pending?.url && pending?.ts && (Date.now() - pending.ts) < 25 * 60 * 1000) {
+    status.textContent = 'Redirecting to payment page…'
+    window.location.href = pending.url
+    return
+  }
+
   try {
     const response = await fetch('/api/checkout/initiate', {
       method: 'POST',
@@ -1054,6 +1063,8 @@ async function handleCheckoutSubmit(event) {
       throw new Error(result.error || 'Unable to start checkout. Please try again.')
     }
 
+    // Store the checkout URL so re-clicks reuse it instead of creating a new transaction
+    saveCheckoutDraft({ ...getCheckoutDraft(), _pendingCheckout: { url: result.checkoutUrl, ref: result.transactionRef, ts: Date.now() } })
     status.textContent = 'Redirecting to payment page…'
     window.location.href = result.checkoutUrl
   } catch (error) {
@@ -1093,6 +1104,9 @@ async function verifyReturnedPayment(retryCount = 0) {
       localStorage.removeItem('bloomfield-checkout-draft')
       const badge = document.querySelector('.cart-badge')
       if (badge) badge.textContent = ''
+    } else if (paymentState === 'Failed' || paymentState === 'Abandoned') {
+      // Clear the pending checkout so the next attempt creates a fresh transaction
+      const d = getCheckoutDraft(); delete d._pendingCheckout; saveCheckoutDraft(d)
     } else if (paymentState === 'Pending') {
       if (retryCount < 4) {
         if (titleEl) titleEl.textContent = 'Confirming your payment…'

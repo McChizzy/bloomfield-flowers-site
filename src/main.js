@@ -1034,10 +1034,10 @@ async function handleCheckoutSubmit(event) {
   status.textContent = 'Opening secure checkout…'
   status.className = 'form-status form-status-working'
 
-  // Reuse an existing checkout session if it was created in the last 25 minutes
+  // Reuse an existing checkout session if it was created in the last 5 minutes
   const existingDraft = getCheckoutDraft()
   const pending = existingDraft._pendingCheckout
-  if (pending?.url && pending?.ts && (Date.now() - pending.ts) < 25 * 60 * 1000) {
+  if (pending?.url && pending?.ts && (Date.now() - pending.ts) < 5 * 60 * 1000) {
     status.textContent = 'Redirecting to payment page…'
     window.location.href = pending.url
     return
@@ -1104,9 +1104,16 @@ async function verifyReturnedPayment(retryCount = 0) {
       localStorage.removeItem('bloomfield-checkout-draft')
       const badge = document.querySelector('.cart-badge')
       if (badge) badge.textContent = ''
-    } else if (paymentState === 'Failed' || paymentState === 'Abandoned') {
-      // Clear the pending checkout so the next attempt creates a fresh transaction
+    } else if (paymentState === 'Failed') {
       const d = getCheckoutDraft(); delete d._pendingCheckout; saveCheckoutDraft(d)
+      if (titleEl) titleEl.textContent = 'Payment unsuccessful'
+      target.textContent = 'Your payment was not completed. Your cart is saved — please return to checkout and try again, or contact us on Instagram or WhatsApp if you need help.'
+      target.className = 'form-status form-status-persistent form-status-error'
+    } else if (paymentState === 'Abandoned') {
+      const d = getCheckoutDraft(); delete d._pendingCheckout; saveCheckoutDraft(d)
+      if (titleEl) titleEl.textContent = 'Payment not completed'
+      target.textContent = "It looks like the payment was not completed. No worries — your cart is still saved when you're ready."
+      target.className = 'form-status form-status-persistent form-status-error'
     } else if (paymentState === 'Pending') {
       if (retryCount < 4) {
         if (titleEl) titleEl.textContent = 'Confirming your payment…'
@@ -1123,17 +1130,15 @@ async function verifyReturnedPayment(retryCount = 0) {
         const badge = document.querySelector('.cart-badge')
         if (badge) badge.textContent = ''
       }
-    } else if (paymentState === 'Failed') {
-      if (titleEl) titleEl.textContent = 'Payment unsuccessful'
-      target.textContent = 'Your payment was not completed. Your cart is saved — please return to checkout and try again, or contact us on Instagram or WhatsApp if you need help.'
-      target.className = 'form-status form-status-persistent form-status-error'
     } else {
-      // Abandoned or unknown
+      // Unknown status — clear pending and show generic error
+      const d = getCheckoutDraft(); delete d._pendingCheckout; saveCheckoutDraft(d)
       if (titleEl) titleEl.textContent = 'Payment not completed'
-      target.textContent = 'It looks like the payment was not completed. No worries — your cart is still saved when you\'re ready.'
+      target.textContent = "It looks like the payment was not completed. No worries — your cart is still saved when you're ready."
       target.className = 'form-status form-status-persistent form-status-error'
     }
   } catch (error) {
+    const d = getCheckoutDraft(); delete d._pendingCheckout; saveCheckoutDraft(d)
     if (titleEl) titleEl.textContent = 'Unable to verify payment'
     target.textContent = 'Unable to verify payment status. Please contact us on Instagram or WhatsApp with your reference number.'
     target.className = 'form-status form-status-persistent form-status-error'
@@ -1186,6 +1191,7 @@ async function handleContactSubmit(event) {
     const msgDisplay = status.querySelector('[data-msg-display]')
     if (msgDisplay) msgDisplay.value = msgText
     form.querySelectorAll('input, textarea, select, button[type=submit]').forEach((el) => { el.disabled = true })
+    status.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
 
     status.querySelector('[data-copy-msg]')?.addEventListener('click', () => {
       navigator.clipboard?.writeText(msgText).then(() => {
@@ -1196,6 +1202,7 @@ async function handleContactSubmit(event) {
   } catch (err) {
     status.className = 'form-status form-status-error'
     status.textContent = err.message || 'Unable to send. Please try again or reach out on Instagram.'
+    status.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     submit.disabled = false
   }
 }

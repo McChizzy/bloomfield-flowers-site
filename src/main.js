@@ -98,38 +98,38 @@ const featuredCollections = [
 const landingShowcaseSlides = [
   {
     image: '/images/hero1.jpeg',
-    title: 'Bloomfield Signature Hero',
+    title: 'Signature Collection',
     caption: 'Statement bouquets crafted for the moments that matter most.',
   },
   {
     image: '/images/optimized/hero2.jpg',
-    title: 'Bloomfield Hero Alt',
+    title: 'Premium Gifting',
     caption: 'Because some feelings are best expressed in flowers.',
   },
   {
     image: '/images/optimized/pink-bouquet.jpg',
     title: 'Romantic Bouquets',
-    caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
+    caption: 'Soft pinks and blush tones for the most romantic moments.',
   },
   {
     image: '/images/optimized/chrysanthemum-bouquet.jpg',
     title: 'Birthday Blooms',
-    caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
+    caption: 'Make their birthday unforgettable with a bouquet they\'ll always remember.',
   },
   {
     image: '/images/optimized/celebration-flowers.jpg',
     title: 'Celebration Flowers',
-    caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
+    caption: 'Every milestone deserves a bouquet as special as the moment.',
   },
   {
     image: '/images/optimized/luxury-arrangements.jpg',
     title: 'Luxury Arrangements',
-    caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
+    caption: 'Premium blooms, artfully arranged for those who appreciate the finest things.',
   },
   {
     image: '/images/optimized/just-because.jpg',
     title: 'Just Because',
-    caption: 'Elegant gifting with Instagram-first ordering, premium presentation, and soft luxury styling.',
+    caption: 'Sometimes you don\'t need a reason — just the right flowers.',
   },
 ]
 

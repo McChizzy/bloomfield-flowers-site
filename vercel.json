@@ -2,6 +2,11 @@
   "buildCommand": "vite build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/birthday-flowers-lagos", "destination": "/birthday-flowers-lagos.html" },
+    { "source": "/anniversary-flowers-lagos", "destination": "/anniversary-flowers-lagos.html" },
+    { "source": "/graduation-flowers-lagos", "destination": "/graduation-flowers-lagos.html" },
+    { "source": "/flower-delivery-lagos", "destination": "/flower-delivery-lagos.html" },
+    { "source": "/flower-delivery-abuja", "destination": "/flower-delivery-abuja.html" },
     {
       "source": "/(.*)",
       "destination": "/index.html"

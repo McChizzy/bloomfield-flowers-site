@@ -37,14 +37,16 @@ export default async function handler(req, res) {
     const data = squad.data?.data || {}
     const txStatus = String(data.transaction_status || '').toLowerCase()
 
-    // On confirmed success: update Supabase + send backup email (fire-and-forget)
     if (txStatus === 'success') {
       const supabase = getSupabase()
       if (supabase) {
-        supabase.from('orders').update({ status: 'success' })
-          .eq('transaction_ref', transactionRef)
-          .then(({ error }) => { if (error) console.error('Supabase verify update failed:', error.message) })
-          .catch((err) => console.error('Supabase verify update error:', err))
+        try {
+          const { error } = await supabase.from('orders').update({ status: 'success' })
+            .eq('transaction_ref', transactionRef)
+          if (error) console.error('Supabase verify update failed:', error.message)
+        } catch (err) {
+          console.error('Supabase verify update error:', err.message)
+        }
       }
 
       const amountNaira = data.amount
@@ -52,8 +54,11 @@ export default async function handler(req, res) {
         : '—'
       const subject = `Payment confirmed — ${transactionRef}`
       const text = `Payment confirmed for order ${transactionRef}.\n\nAmount: ${amountNaira}\nEmail: ${data.email || '—'}\nChannel: ${data.transaction_type || '—'}\n\nCheck the orders table in Supabase for full delivery details.`
-      sendMail({ to: 'houseofbloomfield@gmail.com', subject, text, html: `<p>${text.replace(/\n/g, '<br>')}</p>` })
-        .catch((err) => console.error('Verify confirmation email failed:', err))
+      try {
+        await sendMail({ to: 'houseofbloomfield@gmail.com', subject, text, html: `<p>${text.replace(/\n/g, '<br>')}</p>` })
+      } catch (err) {
+        console.error('Verify confirmation email failed:', err.message)
+      }
     }
 
     return json(res, 200, data)

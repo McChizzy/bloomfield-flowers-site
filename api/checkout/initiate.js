@@ -86,28 +86,31 @@ export default async function handler(req, res) {
 
     const supabase = getSupabase()
     if (supabase) {
-      supabase.from('orders').upsert({
-        transaction_ref: confirmedRef,
-        status: 'initiated',
-        customer_name: customer.fullName,
-        customer_email: customer.email,
-        customer_phone: customer.phone,
-        recipient_name: customer.recipientName || null,
-        recipient_phone: customer.recipientPhone || null,
-        delivery_city: delivery.city,
-        delivery_area: isPickup ? 'pickup' : delivery.area,
-        delivery_address: isPickup ? 'PICKUP' : delivery.address,
-        delivery_date: delivery.deliveryDate || null,
-        delivery_time: delivery.deliveryTime || null,
-        card_message: delivery.cardMessage || null,
-        delivery_notes: delivery.deliveryNotes || null,
-        subtotal: order.subtotal,
-        delivery_fee: order.deliveryFee,
-        total: order.total,
-        items: order.lineItems,
-      }, { onConflict: 'transaction_ref' })
-        .then(({ error }) => { if (error) console.error('Supabase insert failed:', error.message) })
-        .catch((err) => console.error('Supabase insert error:', err))
+      try {
+        const { error } = await supabase.from('orders').upsert({
+          transaction_ref: confirmedRef,
+          status: 'initiated',
+          customer_name: customer.fullName,
+          customer_email: customer.email,
+          customer_phone: customer.phone,
+          recipient_name: customer.recipientName || null,
+          recipient_phone: customer.recipientPhone || null,
+          delivery_city: delivery.city,
+          delivery_area: isPickup ? 'pickup' : delivery.area,
+          delivery_address: isPickup ? 'PICKUP' : delivery.address,
+          delivery_date: delivery.deliveryDate || null,
+          delivery_time: delivery.deliveryTime || null,
+          card_message: delivery.cardMessage || null,
+          delivery_notes: delivery.deliveryNotes || null,
+          subtotal: order.subtotal,
+          delivery_fee: order.deliveryFee,
+          total: order.total,
+          items: order.lineItems,
+        }, { onConflict: 'transaction_ref' })
+        if (error) console.error('Supabase insert failed:', error.message)
+      } catch (err) {
+        console.error('Supabase insert error:', err.message)
+      }
     }
 
     return json(res, 200, {

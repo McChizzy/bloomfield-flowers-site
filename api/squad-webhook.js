@@ -117,16 +117,23 @@ export default async function handler(req, res) {
     })
 
     if (status === 'Success') {
-      sendOrderEmail(event).catch((err) => console.error('Order email failed:', err))
+      try {
+        await sendOrderEmail(event)
+      } catch (err) {
+        console.error('Order email failed:', err.message)
+      }
 
       const ref = event?.Body?.transaction_ref || event?.TransactionRef
       if (ref) {
         const supabase = getSupabase()
         if (supabase) {
-          supabase.from('orders').update({ status: 'success' })
-            .eq('transaction_ref', ref)
-            .then(({ error }) => { if (error) console.error('Supabase update failed:', error.message) })
-            .catch((err) => console.error('Supabase update error:', err))
+          try {
+            const { error } = await supabase.from('orders').update({ status: 'success' })
+              .eq('transaction_ref', ref)
+            if (error) console.error('Supabase update failed:', error.message)
+          } catch (err) {
+            console.error('Supabase update error:', err.message)
+          }
         }
       }
     }

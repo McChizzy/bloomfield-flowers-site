@@ -43,8 +43,8 @@
     .site-nav { background: #fff; border-bottom: 1px solid var(--line); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 64px; }
     .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 700; color: var(--primary); letter-spacing: .04em; }
     .nav-links { display: flex; gap: 24px; align-items: center; }
-    .nav-links a { font-size: .9rem; font-weight: 500; color: var(--muted); }
-    .nav-links a:hover { color: var(--primary); }
+    .nav-links a:not(.btn) { font-size: .9rem; font-weight: 500; color: var(--muted); }
+    .nav-links a:not(.btn):hover { color: var(--primary); }
     .btn { display: inline-block; padding: 11px 26px; border-radius: 50px; font-weight: 600; font-size: .9rem; cursor: pointer; transition: opacity .15s; }
     .btn:hover { opacity: .88; }
     .btn-primary { background: var(--primary); color: #fff; }
@@ -82,7 +82,7 @@
     .btn-white { background: #fff; color: var(--primary-dark); }
     .site-footer { background: #fff; border-top: 1px solid var(--line); padding: 32px 24px; text-align: center; font-size: .85rem; color: var(--muted); }
     .site-footer a { color: var(--primary); }
-    @media (max-width: 600px) { .nav-links { display: none; } .page-hero { padding: 48px 20px 44px; } }
+    @media (max-width: 600px) { .nav-links a:not(.btn) { display: none; } .page-hero { padding: 48px 20px 44px; } }
   </style>
 </head>
 <body>

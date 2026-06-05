@@ -369,6 +369,10 @@ function shell(content, route = '') {
             <p>${phoneNumber} · <a href="${whatsappUrl}" target="_blank" rel="noreferrer">WhatsApp</a></p>
           </div>
         </div>
+        <div class="footer-seo-links">
+          <p>Flower delivery: <a href="/flower-delivery-lagos">Lagos</a> · <a href="/flower-delivery-abuja">Abuja</a></p>
+          <p>Shop by occasion: <a href="/birthday-flowers-lagos">Birthdays</a> · <a href="/anniversary-flowers-lagos">Anniversaries</a> · <a href="/graduation-flowers-lagos">Graduations</a></p>
+        </div>
         <div class="footer-legal">
           <p>&copy; ${new Date().getFullYear()} Bloomfield Flowers. All rights reserved.</p>
           <p><a href="#/terms">Terms &amp; Conditions</a> · <a href="#/privacy">Privacy Policy</a></p>

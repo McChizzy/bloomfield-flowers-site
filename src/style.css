@@ -1473,6 +1473,26 @@ p {
 }
 
 /* Footer legal bar */
+.footer-seo-links {
+  border-top: 1px solid rgba(255,255,255,0.12);
+  padding-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 2rem;
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.footer-seo-links p {
+  margin: 0;
+}
+
+.footer-seo-links a {
+  color: inherit;
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
 .footer-legal {
   border-top: 1px solid rgba(255,255,255,0.12);
   margin-top: 1.5rem;

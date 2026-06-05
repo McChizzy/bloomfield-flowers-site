@@ -40,6 +40,16 @@ export const products = [
     instagramPost: 'https://www.instagram.com/p/DVi5Wt0l8my/?img_index=1',
   },
   {
+    id: 'test-bouquet',
+    name: 'Test Bouquet',
+    category: 'Flowers',
+    price: '₦2,000',
+    image: '/images/optimized/barbie-deluxe.jpg',
+    short: 'Test product — ignore.',
+    description: 'Internal test product for payment verification.',
+    instagramPost: '',
+  },
+  {
     id: 'the-radiant-garden',
     name: 'The Radiant Garden',
     category: 'Flowers',

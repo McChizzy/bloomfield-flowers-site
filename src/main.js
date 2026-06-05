@@ -99,12 +99,12 @@ const landingShowcaseSlides = [
   {
     image: '/images/hero1.jpeg',
     title: 'Bloomfield Signature Hero',
-    caption: 'Our current hero bouquet, now part of the showcase deck.',
+    caption: 'Statement bouquets crafted for the moments that matter most.',
   },
   {
     image: '/images/optimized/hero2.jpg',
     title: 'Bloomfield Hero Alt',
-    caption: 'A softer alternate hero moment for premium gifting.',
+    caption: 'Because some feelings are best expressed in flowers.',
   },
   {
     image: '/images/optimized/pink-bouquet.jpg',

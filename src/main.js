@@ -262,6 +262,7 @@ function saveCheckoutDraft(draft) {
 
 function getDeliveryFee() {
   const draft = getCheckoutDraft()
+  if ((draft.deliveryMethod || 'delivery') === 'pickup') return 0
   const { fee } = lookupDeliveryFee(draft.city || 'Abuja', draft.area || '')
   return fee ?? 0
 }
@@ -778,30 +779,50 @@ function cartPage() {
 
 function checkoutPage() {
   const draft = getCheckoutDraft()
+  const isPickup = (draft.deliveryMethod || 'delivery') === 'pickup'
   const city = draft.city || getCartCity() || 'Lagos'
   const items = cartDetailed(city)
-  const deliveryFee = getDeliveryFee()
+  const deliveryFee = isPickup ? 0 : getDeliveryFee()
   return shell(`
     <main class="section container split-page">
       <form class="form-card checkout-form-card" data-checkout-form>
         <p class="eyebrow">Checkout</p>
         <h1>Secure checkout</h1>
-        <p class="form-intro">Complete your delivery details and we'll take care of the rest.</p>
+        <p class="form-intro">Complete your details and we'll take care of the rest.</p>
         <label>Full name<input name="fullName" type="text" placeholder="Customer full name" value="${esc(draft.fullName || '')}" required></label>
         <label>Email<input name="email" type="email" placeholder="you@example.com" value="${esc(draft.email || '')}" required></label>
         <label>Phone<input name="phone" type="tel" placeholder="Phone number" value="${esc(draft.phone || '')}" required></label>
         <label>Recipient name<input name="recipientName" type="text" placeholder="Who is receiving the bouquet?" value="${esc(draft.recipientName || '')}"></label>
         <label>Recipient phone<input name="recipientPhone" type="tel" placeholder="Recipient phone number" value="${esc(draft.recipientPhone || '')}"></label>
-        <label>Delivery address<input name="address" type="text" placeholder="Street address" value="${esc(draft.address || '')}" required></label>
-        <label>City<select name="city" required><option value="Abuja"${city === 'Abuja' ? ' selected' : ''}>Abuja</option><option value="Lagos"${city === 'Lagos' ? ' selected' : ''}>Lagos</option></select></label>
-        <label>Area / district<input name="area" type="text" placeholder="e.g. Maitama, Lekki Phase 1, Victoria Island" value="${esc(draft.area || '')}" required></label>
-        <div class="delivery-fee-display" data-delivery-fee-display>
-          ${renderDeliveryFeeContent(draft.city, draft.area)}
+        <div class="delivery-method-toggle" role="group" aria-label="Delivery method">
+          <label class="method-option${!isPickup ? ' is-selected' : ''}">
+            <input type="radio" name="deliveryMethod" value="delivery" ${!isPickup ? 'checked' : ''}>
+            <span>Deliver to me</span>
+          </label>
+          <label class="method-option${isPickup ? ' is-selected' : ''}">
+            <input type="radio" name="deliveryMethod" value="pickup" ${isPickup ? 'checked' : ''}>
+            <span>Pick up</span>
+          </label>
         </div>
-        <label>Preferred delivery date<input name="deliveryDate" type="date" min="${deliveryMinDate()}" max="${deliveryMaxDate()}" value="${esc(draft.deliveryDate || '')}" required></label>
-        <label>Preferred delivery time<select name="deliveryTime" data-delivery-time-select required><option value="" disabled${!draft.deliveryTime ? ' selected' : ''}>Select a time</option>${deliveryTimeOptions(draft.deliveryTime || '', draft.deliveryDate || '')}</select></label>
+        <label>City<select name="city" required><option value="Abuja"${city === 'Abuja' ? ' selected' : ''}>Abuja</option><option value="Lagos"${city === 'Lagos' ? ' selected' : ''}>Lagos</option></select></label>
+        <div data-delivery-fields${isPickup ? ' class="hidden"' : ''}>
+          <label>Delivery address<input name="address" type="text" placeholder="Street address" value="${esc(draft.address || '')}" required ${isPickup ? 'disabled' : ''}></label>
+          <label>Area / district<input name="area" type="text" placeholder="e.g. Maitama, Lekki Phase 1, Victoria Island" value="${esc(draft.area || '')}" required ${isPickup ? 'disabled' : ''}></label>
+          <div class="delivery-fee-display" data-delivery-fee-display>
+            ${renderDeliveryFeeContent(draft.city, draft.area)}
+          </div>
+          <label>Preferred delivery date<input name="deliveryDate" type="date" min="${deliveryMinDate()}" max="${deliveryMaxDate()}" value="${esc(draft.deliveryDate || '')}" required ${isPickup ? 'disabled' : ''}></label>
+          <label>Preferred delivery time<select name="deliveryTime" data-delivery-time-select required ${isPickup ? 'disabled' : ''}><option value="" disabled${!draft.deliveryTime ? ' selected' : ''}>Select a time</option>${deliveryTimeOptions(draft.deliveryTime || '', draft.deliveryDate || '')}</select></label>
+          <label>Delivery notes<textarea name="deliveryNotes" rows="4" placeholder="Gate code or order instructions" maxlength="500" ${isPickup ? 'disabled' : ''}>${esc(draft.deliveryNotes || '')}</textarea></label>
+        </div>
+        <div data-pickup-fields${!isPickup ? ' class="hidden"' : ''}>
+          <div class="pickup-info-box">
+            <p><strong>Pick up from our studio</strong></p>
+            <p>We'll confirm the exact pickup address and your collection time via WhatsApp once your order is placed.</p>
+            <a href="${whatsappUrl}" target="_blank" rel="noreferrer" class="pickup-whatsapp-link">WhatsApp us: ${phoneNumber}</a>
+          </div>
+        </div>
         <label>Card message<textarea name="cardMessage" rows="3" placeholder="Add a note for the recipient" maxlength="500">${esc(draft.cardMessage || '')}</textarea></label>
-        <label>Delivery notes<textarea name="deliveryNotes" rows="4" placeholder="Gate code or order instructions" maxlength="500">${esc(draft.deliveryNotes || '')}</textarea></label>
         <div class="form-status" data-checkout-status aria-live="polite"></div>
         <div class="checkout-actions">
           <button class="btn btn-primary btn-pay" type="submit" data-checkout-submit>${items.length ? 'Pay Securely' : 'Add items to continue'}</button>
@@ -819,8 +840,8 @@ function checkoutPage() {
         ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${esc(item.product.name)} × ${item.qty}</span><strong>${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
         <p class="summary-total">Subtotal: ${naira.format(cartTotal(city))}</p>
         <p>Delivery: <span data-checkout-delivery>${naira.format(deliveryFee)}</span></p>
-        <p class="summary-total">Total: <span data-checkout-total>${naira.format(checkoutGrandTotal(city))}</span></p>
-        <p class="summary-note">You'll be redirected to a secure payment page. Once payment is confirmed, we'll contact you to arrange delivery.</p>
+        <p class="summary-total">Total: <span data-checkout-total>${naira.format(isPickup ? cartTotal(city) : checkoutGrandTotal(city))}</span></p>
+        <p class="summary-note">You'll be redirected to a secure payment page. Once payment is confirmed, we'll contact you to ${isPickup ? 'arrange your pickup' : 'arrange delivery'}.</p>
       </aside>
     </main>
   `, 'checkout')
@@ -1023,6 +1044,7 @@ async function handleCheckoutSubmit(event) {
       recipientPhone: draft.recipientPhone,
     },
     delivery: {
+      method: draft.deliveryMethod || 'delivery',
       city: draft.city,
       area: draft.area,
       address: draft.address,
@@ -1261,6 +1283,30 @@ function bindEvents() {
   const checkoutForm = document.querySelector('[data-checkout-form]')
   if (checkoutForm) {
     checkoutForm.addEventListener('submit', handleCheckoutSubmit)
+
+    checkoutForm.querySelectorAll('[name="deliveryMethod"]').forEach((radio) => {
+      radio.addEventListener('change', () => {
+        const pickup = radio.value === 'pickup'
+        const deliveryFields = checkoutForm.querySelector('[data-delivery-fields]')
+        const pickupFields = checkoutForm.querySelector('[data-pickup-fields]')
+        if (deliveryFields) {
+          deliveryFields.classList.toggle('hidden', pickup)
+          deliveryFields.querySelectorAll('input, select, textarea').forEach((el) => { el.disabled = pickup })
+        }
+        if (pickupFields) pickupFields.classList.toggle('hidden', !pickup)
+        checkoutForm.querySelectorAll('.method-option').forEach((opt) => {
+          opt.classList.toggle('is-selected', opt.querySelector('input')?.checked)
+        })
+        const currentCity = checkoutForm.querySelector('[name="city"]')?.value || getCartCity() || 'Lagos'
+        const currentArea = checkoutForm.querySelector('[name="area"]')?.value || ''
+        const effectiveFee = pickup ? 0 : (lookupDeliveryFee(currentCity, currentArea).fee ?? 0)
+        const deliveryEl = document.querySelector('[data-checkout-delivery]')
+        const totalEl = document.querySelector('[data-checkout-total]')
+        if (deliveryEl) deliveryEl.textContent = naira.format(effectiveFee)
+        if (totalEl) totalEl.textContent = naira.format(cartTotal(currentCity) + effectiveFee)
+      })
+    })
+
     let feeUpdateTimeout
     checkoutForm.querySelectorAll('input, select, textarea').forEach((field) => {
       field.addEventListener('input', () => {
@@ -1273,14 +1319,16 @@ function bindEvents() {
         if (field.name === 'city' || field.name === 'area') {
           clearTimeout(feeUpdateTimeout)
           feeUpdateTimeout = setTimeout(() => {
-            const feeDisplay = document.querySelector('[data-delivery-fee-display]')
-            if (feeDisplay) feeDisplay.innerHTML = renderDeliveryFeeContent(newDraft.city, newDraft.area)
-            const { fee } = lookupDeliveryFee(newDraft.city || 'Abuja', newDraft.area || '')
-            const effectiveFee = fee ?? 0
+            const pickupActive = (newDraft.deliveryMethod || 'delivery') === 'pickup'
+            if (!pickupActive) {
+              const feeDisplay = document.querySelector('[data-delivery-fee-display]')
+              if (feeDisplay) feeDisplay.innerHTML = renderDeliveryFeeContent(newDraft.city, newDraft.area)
+            }
+            const effectiveFee = pickupActive ? 0 : (lookupDeliveryFee(newDraft.city || 'Abuja', newDraft.area || '').fee ?? 0)
             const deliveryEl = document.querySelector('[data-checkout-delivery]')
             const totalEl = document.querySelector('[data-checkout-total]')
             if (deliveryEl) deliveryEl.textContent = naira.format(effectiveFee)
-            if (totalEl) totalEl.textContent = naira.format(cartTotal() + effectiveFee)
+            if (totalEl) totalEl.textContent = naira.format(cartTotal(newDraft.city) + effectiveFee)
           }, 350)
         }
 

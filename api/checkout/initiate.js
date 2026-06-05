@@ -23,15 +23,20 @@ export default async function handler(req, res) {
     if (val && String(val).length > 500) return json(res, 400, { error: `Field '${key}' is too long.` })
   }
 
-  const { fee: zoneDeliveryFee } = lookupDeliveryFee(delivery.city, delivery.area)
+  const isPickup = delivery.method === 'pickup'
+  const { fee: zoneDeliveryFee } = isPickup ? { fee: 0 } : lookupDeliveryFee(delivery.city, delivery.area)
   const order = summarizeOrder(items, zoneDeliveryFee ?? 0, delivery.city)
 
   if (!customer.email || !customer.fullName || !customer.phone) {
     return json(res, 400, { error: 'Name, email, and phone are required.' })
   }
 
-  if (!delivery.city || !delivery.address || !delivery.area) {
-    return json(res, 400, { error: 'Delivery city, area, and address are required.' })
+  if (!delivery.city) {
+    return json(res, 400, { error: 'Please select your city.' })
+  }
+
+  if (!isPickup && (!delivery.address || !delivery.area)) {
+    return json(res, 400, { error: 'Delivery address and area are required.' })
   }
 
   if (!order.lineItems.length || order.total <= 0) {
@@ -90,8 +95,8 @@ export default async function handler(req, res) {
         recipient_name: customer.recipientName || null,
         recipient_phone: customer.recipientPhone || null,
         delivery_city: delivery.city,
-        delivery_area: delivery.area,
-        delivery_address: delivery.address,
+        delivery_area: isPickup ? 'pickup' : delivery.area,
+        delivery_address: isPickup ? 'PICKUP' : delivery.address,
         delivery_date: delivery.deliveryDate || null,
         delivery_time: delivery.deliveryTime || null,
         card_message: delivery.cardMessage || null,

@@ -797,7 +797,7 @@ function checkoutPage() {
         <div class="delivery-method-toggle" role="group" aria-label="Delivery method">
           <label class="method-option${!isPickup ? ' is-selected' : ''}">
             <input type="radio" name="deliveryMethod" value="delivery" ${!isPickup ? 'checked' : ''}>
-            <span>Deliver to me</span>
+            <span>Delivery</span>
           </label>
           <label class="method-option${isPickup ? ' is-selected' : ''}">
             <input type="radio" name="deliveryMethod" value="pickup" ${isPickup ? 'checked' : ''}>
@@ -811,9 +811,7 @@ function checkoutPage() {
           <div class="delivery-fee-display" data-delivery-fee-display>
             ${renderDeliveryFeeContent(draft.city, draft.area)}
           </div>
-          <label>Preferred delivery date<input name="deliveryDate" type="date" min="${deliveryMinDate()}" max="${deliveryMaxDate()}" value="${esc(draft.deliveryDate || '')}" required ${isPickup ? 'disabled' : ''}></label>
-          <label>Preferred delivery time<select name="deliveryTime" data-delivery-time-select required ${isPickup ? 'disabled' : ''}><option value="" disabled${!draft.deliveryTime ? ' selected' : ''}>Select a time</option>${deliveryTimeOptions(draft.deliveryTime || '', draft.deliveryDate || '')}</select></label>
-          <label>Delivery notes<textarea name="deliveryNotes" rows="4" placeholder="Gate code or order instructions" maxlength="500" ${isPickup ? 'disabled' : ''}>${esc(draft.deliveryNotes || '')}</textarea></label>
+          <label>Delivery notes<textarea name="deliveryNotes" rows="3" placeholder="Gate code or access instructions" maxlength="500" ${isPickup ? 'disabled' : ''}>${esc(draft.deliveryNotes || '')}</textarea></label>
         </div>
         <div data-pickup-fields${!isPickup ? ' class="hidden"' : ''}>
           <div class="pickup-info-box">
@@ -822,6 +820,8 @@ function checkoutPage() {
             <a href="${whatsappUrl}" target="_blank" rel="noreferrer" class="pickup-whatsapp-link">WhatsApp us: ${phoneNumber}</a>
           </div>
         </div>
+        <label>Preferred date <span class="form-label-hint">(day / month / year)</span><input name="deliveryDate" type="date" min="${deliveryMinDate()}" max="${deliveryMaxDate()}" value="${esc(draft.deliveryDate || '')}" required></label>
+        <label>Preferred time<select name="deliveryTime" data-delivery-time-select required><option value="" disabled${!draft.deliveryTime ? ' selected' : ''}>Select a time</option>${deliveryTimeOptions(draft.deliveryTime || '', draft.deliveryDate || '')}</select></label>
         <label>Card message<textarea name="cardMessage" rows="3" placeholder="Add a note for the recipient" maxlength="500">${esc(draft.cardMessage || '')}</textarea></label>
         <div class="form-status" data-checkout-status aria-live="polite"></div>
         <div class="checkout-actions">
@@ -1119,10 +1119,10 @@ async function verifyReturnedPayment(retryCount = 0) {
       throw new Error(result.error || 'Verification failed.')
     }
 
-    const paymentState = String(result.transaction_status || 'Pending')
+    const paymentState = String(result.transaction_status || 'Pending').toLowerCase()
     const ref = result.transaction_ref || transactionRef
 
-    if (paymentState === 'Success') {
+    if (paymentState === 'success') {
       if (titleEl) titleEl.textContent = 'Order confirmed!'
       target.textContent = `Payment received (ref: ${ref}). We'll reach out on WhatsApp or Instagram shortly to confirm your delivery. Thank you for choosing Bloomfield Flowers!`
       target.className = 'form-status form-status-persistent form-status-success'
@@ -1130,17 +1130,17 @@ async function verifyReturnedPayment(retryCount = 0) {
       localStorage.removeItem('bloomfield-checkout-draft')
       const badge = document.querySelector('.cart-badge')
       if (badge) badge.textContent = ''
-    } else if (paymentState === 'Failed') {
+    } else if (paymentState === 'failed' || paymentState === 'fail') {
       const d = getCheckoutDraft(); delete d._pendingCheckout; saveCheckoutDraft(d)
       if (titleEl) titleEl.textContent = 'Payment unsuccessful'
       target.textContent = 'Your payment was not completed. Your cart is saved — please return to checkout and try again, or contact us on Instagram or WhatsApp if you need help.'
       target.className = 'form-status form-status-persistent form-status-error'
-    } else if (paymentState === 'Abandoned') {
+    } else if (paymentState === 'abandoned') {
       const d = getCheckoutDraft(); delete d._pendingCheckout; saveCheckoutDraft(d)
       if (titleEl) titleEl.textContent = 'Payment not completed'
       target.textContent = "It looks like the payment was not completed. No worries — your cart is still saved when you're ready."
       target.className = 'form-status form-status-persistent form-status-error'
-    } else if (paymentState === 'Pending') {
+    } else if (paymentState === 'pending' || !paymentState) {
       if (retryCount < 4) {
         if (titleEl) titleEl.textContent = 'Confirming your payment…'
         target.textContent = `Almost there — your payment is being confirmed (ref: ${ref}). Hang tight, this usually takes a few seconds.`
@@ -1157,11 +1157,14 @@ async function verifyReturnedPayment(retryCount = 0) {
         if (badge) badge.textContent = ''
       }
     } else {
-      // Unknown status — clear pending and show generic error
-      const d = getCheckoutDraft(); delete d._pendingCheckout; saveCheckoutDraft(d)
-      if (titleEl) titleEl.textContent = 'Payment not completed'
-      target.textContent = "It looks like the payment was not completed. No worries — your cart is still saved when you're ready."
-      target.className = 'form-status form-status-persistent form-status-error'
+      // Unknown status from Squad — treat pending, clear cart as safety net
+      if (titleEl) titleEl.textContent = 'Order received!'
+      target.textContent = `Your order has been placed (ref: ${ref}). We'll confirm your payment status and contact you on WhatsApp or Instagram shortly.`
+      target.className = 'form-status form-status-persistent form-status-success'
+      saveCart([])
+      localStorage.removeItem('bloomfield-checkout-draft')
+      const badge = document.querySelector('.cart-badge')
+      if (badge) badge.textContent = ''
     }
   } catch (error) {
     const d = getCheckoutDraft(); delete d._pendingCheckout; saveCheckoutDraft(d)

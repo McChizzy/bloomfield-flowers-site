@@ -1,4 +1,6 @@
 import { getEnv, json, squadRequest } from '../_lib/squad.js'
+import { getSupabase } from '../_lib/supabase.js'
+import { sendMail } from '../_lib/mailer.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -17,6 +19,14 @@ export default async function handler(req, res) {
       method: 'GET',
     })
 
+    console.log('Squad verify result', {
+      ref: transactionRef,
+      ok: squad.ok,
+      status: squad.status,
+      transaction_status: squad.data?.data?.transaction_status,
+      raw: JSON.stringify(squad.data).slice(0, 500),
+    })
+
     if (!squad.ok) {
       return json(res, squad.status || 502, {
         error: squad.data?.message || 'Unable to verify transaction.',
@@ -24,7 +34,29 @@ export default async function handler(req, res) {
       })
     }
 
-    return json(res, 200, squad.data?.data || {})
+    const data = squad.data?.data || {}
+    const txStatus = String(data.transaction_status || '').toLowerCase()
+
+    // On confirmed success: update Supabase + send backup email (fire-and-forget)
+    if (txStatus === 'success') {
+      const supabase = getSupabase()
+      if (supabase) {
+        supabase.from('orders').update({ status: 'success' })
+          .eq('transaction_ref', transactionRef)
+          .then(({ error }) => { if (error) console.error('Supabase verify update failed:', error.message) })
+          .catch((err) => console.error('Supabase verify update error:', err))
+      }
+
+      const amountNaira = data.amount
+        ? (data.amount / 100).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
+        : '—'
+      const subject = `Payment confirmed — ${transactionRef}`
+      const text = `Payment confirmed for order ${transactionRef}.\n\nAmount: ${amountNaira}\nEmail: ${data.email || '—'}\nChannel: ${data.transaction_type || '—'}\n\nCheck the orders table in Supabase for full delivery details.`
+      sendMail({ to: 'houseofbloomfield@gmail.com', subject, text, html: `<p>${text.replace(/\n/g, '<br>')}</p>` })
+        .catch((err) => console.error('Verify confirmation email failed:', err))
+    }
+
+    return json(res, 200, data)
   } catch (error) {
     return json(res, 500, { error: error.message || 'Transaction verification failed.' })
   }

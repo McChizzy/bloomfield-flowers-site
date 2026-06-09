@@ -531,7 +531,7 @@ function shopPage() {
         <p>Explore beautifully curated bouquets for birthdays, anniversaries, romantic gestures, celebrations, and everyday surprises.</p>
       </div>
       <div class="shop-toolbar">
-        <p>${products.length} bouquet styles are currently displayed while the full Bloomfield catalog is being prepared.</p>
+        <p>${products.length} bouquets available.</p>
         <a class="btn btn-secondary" href="#/custom-orders">Need a custom bouquet?</a>
       </div>
       <div class="product-grid">

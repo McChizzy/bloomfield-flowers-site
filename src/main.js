@@ -22,6 +22,24 @@ function esc(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 }
 
+// Longest valid Nigerian number: +234 followed by 10 digits
+const NIGERIA_PHONE_MAX_LENGTH = 14
+
+function sanitizePhoneInput(value) {
+  let cleaned = String(value ?? '').replace(/[^\d+]/g, '')
+  const hasPlus = cleaned.startsWith('+')
+  cleaned = cleaned.replace(/\+/g, '')
+  if (hasPlus) cleaned = `+${cleaned}`
+  return cleaned.slice(0, NIGERIA_PHONE_MAX_LENGTH)
+}
+
+function isValidNigerianPhone(value) {
+  const digits = String(value ?? '').replace(/^\+/, '')
+  if (!/^\d+$/.test(digits)) return false
+  if (digits.startsWith('234')) return digits.length === 13
+  return digits.length === 11 && digits.startsWith('0')
+}
+
 function deliverySlotRange(dateStr) {
   const day = dateStr ? new Date(dateStr + 'T12:00:00').getDay() : new Date().getDay()
   return day === 0
@@ -839,9 +857,13 @@ function checkoutPage() {
         <p class="form-intro">Complete your details and we'll take care of the rest.</p>
         <label>Full name<input name="fullName" type="text" placeholder="Customer full name" value="${esc(draft.fullName || '')}" required></label>
         <label>Email<input name="email" type="email" placeholder="you@example.com" value="${esc(draft.email || '')}" required></label>
-        <label>Phone<input name="phone" type="tel" placeholder="Phone number" value="${esc(draft.phone || '')}" required></label>
+        <label>Phone<input name="phone" type="tel" inputmode="tel" placeholder="Phone number" value="${esc(draft.phone || '')}" required>
+          <span class="field-warning" data-phone-warning="phone" hidden>Nigerian phone numbers are at most 14 characters — e.g. 0801 234 5678 or +234 801 234 5678.</span>
+        </label>
         <label>Recipient name<input name="recipientName" type="text" placeholder="Who is receiving the bouquet?" value="${esc(draft.recipientName || '')}"></label>
-        <label>Recipient phone<input name="recipientPhone" type="tel" placeholder="Recipient phone number" value="${esc(draft.recipientPhone || '')}"></label>
+        <label>Recipient phone<input name="recipientPhone" type="tel" inputmode="tel" placeholder="Recipient phone number" value="${esc(draft.recipientPhone || '')}">
+          <span class="field-warning" data-phone-warning="recipientPhone" hidden>Nigerian phone numbers are at most 14 characters — e.g. 0801 234 5678 or +234 801 234 5678.</span>
+        </label>
         <div class="delivery-method-toggle" role="group" aria-label="Delivery method">
           <label class="method-option${!isPickup ? ' is-selected' : ''}">
             <input type="radio" name="deliveryMethod" value="delivery" ${!isPickup ? 'checked' : ''}>
@@ -1079,6 +1101,18 @@ async function handleCheckoutSubmit(event) {
 
   if (!cartCount()) {
     status.textContent = 'Your cart is empty. Add bouquets before checkout.'
+    status.className = 'form-status form-status-error'
+    return
+  }
+
+  if (!isValidNigerianPhone(draft.phone)) {
+    status.textContent = 'Please enter a valid Nigerian phone number (11 digits, e.g. 0801 234 5678, or +234 followed by 10 digits).'
+    status.className = 'form-status form-status-error'
+    return
+  }
+
+  if (draft.recipientPhone && !isValidNigerianPhone(draft.recipientPhone)) {
+    status.textContent = 'Please enter a valid Nigerian recipient phone number (11 digits, e.g. 0801 234 5678, or +234 followed by 10 digits).'
     status.className = 'form-status form-status-error'
     return
   }
@@ -1377,6 +1411,13 @@ function bindEvents() {
     let feeUpdateTimeout
     checkoutForm.querySelectorAll('input, select, textarea').forEach((field) => {
       field.addEventListener('input', () => {
+        if (field.name === 'phone' || field.name === 'recipientPhone') {
+          const rawCleaned = String(field.value).replace(/[^\d+]/g, '')
+          field.value = sanitizePhoneInput(field.value)
+          const warningEl = checkoutForm.querySelector(`[data-phone-warning="${field.name}"]`)
+          if (warningEl) warningEl.hidden = rawCleaned.length <= NIGERIA_PHONE_MAX_LENGTH
+        }
+
         const newDraft = {
           ...getCheckoutDraft(),
           [field.name]: field.value,

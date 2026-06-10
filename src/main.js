@@ -174,6 +174,24 @@ const checkoutDraftKey = 'bloomfield-checkout-draft'
 const cartCityKey = 'bloomfield-cart-city'
 const app = document.querySelector('#app')
 
+let shopSort = 'featured'
+let shopPriceFilter = 'all'
+
+const shopPriceFilters = {
+  all: { label: 'All prices', test: () => true },
+  'under-100k': { label: 'Under ₦100,000', test: (price) => price < 100000 },
+  '100k-300k': { label: '₦100,000 – ₦300,000', test: (price) => price >= 100000 && price <= 300000 },
+  '300k-600k': { label: '₦300,000 – ₦600,000', test: (price) => price > 300000 && price <= 600000 },
+  'over-600k': { label: 'Over ₦600,000', test: (price) => price > 600000 },
+}
+
+const shopSortOptions = {
+  featured: { label: 'Featured', sort: null },
+  'price-asc': { label: 'Price: Low to High', sort: (a, b) => parsePriceValue(a.price) - parsePriceValue(b.price) },
+  'price-desc': { label: 'Price: High to Low', sort: (a, b) => parsePriceValue(b.price) - parsePriceValue(a.price) },
+  'name-asc': { label: 'Name: A to Z', sort: (a, b) => a.name.localeCompare(b.name) },
+}
+
 function getHeroIndex() {
   try {
     const value = Number(localStorage.getItem(heroStorageKey) || '0')
@@ -523,6 +541,10 @@ function homePage() {
 }
 
 function shopPage() {
+  const filtered = products.filter((product) => shopPriceFilters[shopPriceFilter].test(parsePriceValue(product.price)))
+  const sortFn = shopSortOptions[shopSort].sort
+  const visible = sortFn ? [...filtered].sort(sortFn) : filtered
+
   return shell(`
     <main class="section container">
       <div class="section-heading">
@@ -531,11 +553,36 @@ function shopPage() {
         <p>Explore beautifully curated bouquets for birthdays, anniversaries, romantic gestures, celebrations, and everyday surprises.</p>
       </div>
       <div class="shop-toolbar">
-        <p>${products.length} bouquets available.</p>
+        <p>${visible.length === products.length ? `${products.length} bouquets available.` : `Showing ${visible.length} of ${products.length} bouquets.`}</p>
+        <div class="shop-filters">
+          <label class="shop-filter-label">
+            Price
+            <select class="shop-filter-select" data-shop-price-filter>
+              ${Object.entries(shopPriceFilters).map(([value, { label }]) => `
+                <option value="${value}" ${value === shopPriceFilter ? 'selected' : ''}>${label}</option>
+              `).join('')}
+            </select>
+          </label>
+          <label class="shop-filter-label">
+            Sort by
+            <select class="shop-filter-select" data-shop-sort>
+              ${Object.entries(shopSortOptions).map(([value, { label }]) => `
+                <option value="${value}" ${value === shopSort ? 'selected' : ''}>${label}</option>
+              `).join('')}
+            </select>
+          </label>
+        </div>
         <a class="btn btn-secondary" href="#/custom-orders">Need a custom bouquet?</a>
       </div>
+      ${visible.length === 0 ? `
+        <div class="empty-state">
+          <h3>No bouquets in this price range</h3>
+          <p>Try a different price filter, or get in touch for a custom arrangement.</p>
+          <a class="btn btn-primary" href="#/custom-orders">Request a Custom Order</a>
+        </div>
+      ` : `
       <div class="product-grid">
-        ${products.map((product) => `
+        ${visible.map((product) => `
           <article class="product-card">
             <img src="${product.image}" alt="${product.name}" loading="lazy" decoding="async">
             <div class="product-body">
@@ -553,6 +600,7 @@ function shopPage() {
           </article>
         `).join('')}
       </div>
+      `}
     </main>
   `, 'shop')
 }
@@ -1251,6 +1299,22 @@ function bindEvents() {
   document.querySelectorAll('[data-add]').forEach((button) => {
     button.addEventListener('click', () => addToCart(button.dataset.add))
   })
+
+  const shopPriceFilterSelect = document.querySelector('[data-shop-price-filter]')
+  if (shopPriceFilterSelect) {
+    shopPriceFilterSelect.addEventListener('change', () => {
+      shopPriceFilter = shopPriceFilterSelect.value
+      renderApp()
+    })
+  }
+
+  const shopSortSelect = document.querySelector('[data-shop-sort]')
+  if (shopSortSelect) {
+    shopSortSelect.addEventListener('change', () => {
+      shopSort = shopSortSelect.value
+      renderApp()
+    })
+  }
 
   document.querySelectorAll('[data-qty]').forEach((button) => {
     button.addEventListener('click', () => updateQty(button.dataset.id, button.dataset.qty === 'plus' ? 1 : -1))

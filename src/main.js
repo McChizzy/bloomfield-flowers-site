@@ -1,7 +1,8 @@
 import './style.css'
-import { products, parsePriceValue } from './catalog.js'
+import { products, parsePriceValue, priceBounds } from './catalog.js'
 import { lookupDeliveryFee } from './delivery-zones.js'
 
+const SITE_URL = 'https://bloomfieldflowers.ng'
 const primaryLogo = '/images/bff logo-p.jpeg'
 const instagramHandle = 'bloomfieldflowers_'
 const instagramUrl = 'https://www.instagram.com/bloomfieldflowers_/'
@@ -1513,5 +1514,44 @@ function renderApp() {
   }
 }
 
+function injectProductJsonLd() {
+  if (document.getElementById('product-catalog-jsonld')) return
+
+  const itemListElement = products
+    .filter((product) => product.id !== 'test-bouquet')
+    .map((product, index) => {
+      const { low, high } = priceBounds(product.price)
+      const offers = low === high
+        ? { '@type': 'Offer', priceCurrency: 'NGN', price: low, availability: 'https://schema.org/InStock', url: `${SITE_URL}/#/shop` }
+        : { '@type': 'AggregateOffer', priceCurrency: 'NGN', lowPrice: low, highPrice: high, offerCount: 2, availability: 'https://schema.org/InStock', url: `${SITE_URL}/#/shop` }
+
+      return {
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'Product',
+          name: product.name,
+          description: product.description,
+          image: `${SITE_URL}${product.image}`,
+          url: `${SITE_URL}/#/shop`,
+          brand: { '@type': 'Brand', name: 'Bloomfield Flowers' },
+          offers,
+        },
+      }
+    })
+
+  const script = document.createElement('script')
+  script.type = 'application/ld+json'
+  script.id = 'product-catalog-jsonld'
+  script.textContent = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Bloomfield Flowers Catalog',
+    itemListElement,
+  })
+  document.head.appendChild(script)
+}
+
+injectProductJsonLd()
 window.addEventListener('hashchange', renderApp)
 renderApp()

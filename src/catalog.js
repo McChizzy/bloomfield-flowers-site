@@ -198,13 +198,18 @@ export const products = [
   },
 ]
 
-export function parsePriceValue(price, city = '') {
-  if (typeof price === 'number') return price
+export function priceBounds(price) {
+  if (typeof price === 'number') return { low: price, high: price }
   // Remove thousands-separator commas before stripping non-digits, so "390,000" → 390000 not 390
   const cleaned = String(price).replace(/,/g, '').replace(/[^\d]/g, ' ').trim()
   const parts = cleaned.split(/\s+/).map(Number).filter((n) => Number.isFinite(n) && n > 0)
-  if (parts.length === 0) return 0
-  if (parts.length === 1) return parts[0]
+  if (parts.length === 0) return { low: 0, high: 0 }
+  if (parts.length === 1) return { low: parts[0], high: parts[0] }
+  return { low: Math.min(...parts), high: Math.max(...parts) }
+}
+
+export function parsePriceValue(price, city = '') {
+  const { low, high } = priceBounds(price)
   // Lagos = lower price, Abuja = higher price
-  return city === 'Abuja' ? Math.max(...parts) : Math.min(...parts)
+  return city === 'Abuja' ? high : low
 }

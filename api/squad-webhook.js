@@ -25,6 +25,11 @@ async function sendOrderEmail(event, orderRow) {
     phone: row.customer_phone || metaCustomer.phone,
   }
 
+  const recipient = {
+    name: row.recipient_name || metaCustomer.recipientName,
+    phone: row.recipient_phone || metaCustomer.recipientPhone,
+  }
+
   const delivery = {
     city: row.delivery_city || metaDelivery.city,
     area: row.delivery_area || metaDelivery.area,
@@ -42,9 +47,44 @@ async function sendOrderEmail(event, orderRow) {
     total: row.total ?? metaOrder.total,
   }
 
+  const isPickup = delivery.area === 'pickup' || delivery.address === 'PICKUP'
+
   const items = (order.items || [])
-    .map((item) => `  • ${item.name} × ${item.qty} — ₦${Number(item.unitPrice || 0).toLocaleString()}`)
+    .map((item) => `  • ${item.name} × ${item.qty} — ₦${Number(item.subtotal || 0).toLocaleString()}`)
     .join('\n')
+
+  const hasRecipient = Boolean(recipient.name || recipient.phone)
+  const recipientLines = []
+  if (recipient.name) recipientLines.push(`Name: ${recipient.name}`)
+  if (recipient.phone) recipientLines.push(`Phone: ${recipient.phone}`)
+
+  const recipientRows = []
+  if (recipient.name) recipientRows.push(`<tr><td style="padding:3px 14px 3px 0;color:#888">Name</td><td>${esc(recipient.name)}</td></tr>`)
+  if (recipient.phone) recipientRows.push(`<tr><td style="padding:3px 14px 3px 0;color:#888">Phone</td><td>${esc(recipient.phone)}</td></tr>`)
+
+  const deliveryLines = [`City: ${delivery.city || '—'}`]
+  if (isPickup) {
+    deliveryLines.push('Method: Pickup at our studio')
+  } else {
+    deliveryLines.push(`Area: ${delivery.area || '—'}`)
+    deliveryLines.push(`Address: ${delivery.address || '—'}`)
+  }
+  if (delivery.date) deliveryLines.push(`Date: ${delivery.date}`)
+  if (delivery.time) deliveryLines.push(`Time: ${delivery.time}`)
+  if (delivery.cardMessage) deliveryLines.push(`Card message: ${delivery.cardMessage}`)
+  if (delivery.notes) deliveryLines.push(`Notes: ${delivery.notes}`)
+
+  const deliveryRows = [`<tr><td style="padding:3px 14px 3px 0;color:#888">City</td><td>${esc(delivery.city || '—')}</td></tr>`]
+  if (isPickup) {
+    deliveryRows.push('<tr><td style="padding:3px 14px 3px 0;color:#888">Method</td><td>Pickup at our studio</td></tr>')
+  } else {
+    deliveryRows.push(`<tr><td style="padding:3px 14px 3px 0;color:#888">Area</td><td>${esc(delivery.area || '—')}</td></tr>`)
+    deliveryRows.push(`<tr><td style="padding:3px 14px 3px 0;color:#888">Address</td><td>${esc(delivery.address || '—')}</td></tr>`)
+  }
+  if (delivery.date) deliveryRows.push(`<tr><td style="padding:3px 14px 3px 0;color:#888">Date</td><td>${esc(delivery.date)}</td></tr>`)
+  if (delivery.time) deliveryRows.push(`<tr><td style="padding:3px 14px 3px 0;color:#888">Time</td><td>${esc(delivery.time)}</td></tr>`)
+  if (delivery.cardMessage) deliveryRows.push(`<tr><td style="padding:3px 14px 3px 0;color:#888">Card message</td><td>${esc(delivery.cardMessage)}</td></tr>`)
+  if (delivery.notes) deliveryRows.push(`<tr><td style="padding:3px 14px 3px 0;color:#888">Notes</td><td>${esc(delivery.notes)}</td></tr>`)
 
   const text = `
 New paid order on Bloomfield Flowers!
@@ -57,12 +97,9 @@ CUSTOMER
 Name: ${customer.fullName || '—'}
 Email: ${customer.email || body.email || '—'}
 Phone: ${customer.phone || '—'}
-
+${hasRecipient ? `\nRECIPIENT\n${recipientLines.join('\n')}\n` : ''}
 DELIVERY
-City: ${delivery.city || '—'}
-Area: ${delivery.area || '—'}
-Address: ${delivery.address || '—'}
-${delivery.date ? `Date: ${delivery.date}\n` : ''}${delivery.time ? `Time: ${delivery.time}\n` : ''}${delivery.cardMessage ? `Card message: ${delivery.cardMessage}\n` : ''}${delivery.notes ? `Notes: ${delivery.notes}` : ''}
+${deliveryLines.join('\n')}
 
 ORDER
 ${items || '  (details not captured)'}
@@ -84,19 +121,17 @@ Total: ₦${Number(order.total || 0).toLocaleString()}
   <tr><td style="padding:3px 14px 3px 0;color:#888">Email</td><td>${esc(customer.email || body.email || '—')}</td></tr>
   <tr><td style="padding:3px 14px 3px 0;color:#888">Phone</td><td>${esc(customer.phone || '—')}</td></tr>
 </table>
+${hasRecipient ? `<h3 style="font-family:sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:16px 0 6px">Recipient</h3>
+<table style="border-collapse:collapse;font-family:sans-serif;font-size:14px;margin-bottom:16px">
+  ${recipientRows.join('\n  ')}
+</table>` : ''}
 <h3 style="font-family:sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:16px 0 6px">Delivery</h3>
 <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px;margin-bottom:16px">
-  <tr><td style="padding:3px 14px 3px 0;color:#888">City</td><td>${esc(delivery.city || '—')}</td></tr>
-  <tr><td style="padding:3px 14px 3px 0;color:#888">Area</td><td>${esc(delivery.area || '—')}</td></tr>
-  <tr><td style="padding:3px 14px 3px 0;color:#888">Address</td><td>${esc(delivery.address || '—')}</td></tr>
-  ${delivery.date ? `<tr><td style="padding:3px 14px 3px 0;color:#888">Date</td><td>${esc(delivery.date)}</td></tr>` : ''}
-  ${delivery.time ? `<tr><td style="padding:3px 14px 3px 0;color:#888">Time</td><td>${esc(delivery.time)}</td></tr>` : ''}
-  ${delivery.cardMessage ? `<tr><td style="padding:3px 14px 3px 0;color:#888">Card message</td><td>${esc(delivery.cardMessage)}</td></tr>` : ''}
-  ${delivery.notes ? `<tr><td style="padding:3px 14px 3px 0;color:#888">Notes</td><td>${esc(delivery.notes)}</td></tr>` : ''}
+  ${deliveryRows.join('\n  ')}
 </table>
 <h3 style="font-family:sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:16px 0 6px">Order</h3>
 <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px">
-  ${(order.items || []).map((item) => `<tr><td style="padding:3px 14px 3px 0">${esc(item.name)} × ${Number(item.qty)}</td><td>₦${Number(item.unitPrice || 0).toLocaleString()}</td></tr>`).join('')}
+  ${(order.items || []).map((item) => `<tr><td style="padding:3px 14px 3px 0">${esc(item.name)} × ${Number(item.qty)}</td><td>₦${Number(item.subtotal || 0).toLocaleString()}</td></tr>`).join('')}
   <tr><td colspan="2" style="padding-top:8px;border-top:1px solid #eee"></td></tr>
   <tr><td style="padding:3px 14px 3px 0;color:#888">Subtotal</td><td>₦${Number(order.subtotal || 0).toLocaleString()}</td></tr>
   <tr><td style="padding:3px 14px 3px 0;color:#888">Delivery</td><td>₦${Number(order.deliveryFee || 0).toLocaleString()}</td></tr>

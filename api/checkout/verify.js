@@ -1,6 +1,5 @@
 import { getEnv, json, squadRequest } from '../_lib/squad.js'
 import { getSupabase } from '../_lib/supabase.js'
-import { sendMail } from '../_lib/mailer.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -47,17 +46,6 @@ export default async function handler(req, res) {
         } catch (err) {
           console.error('Supabase verify update error:', err.message)
         }
-      }
-
-      const amountNaira = data.amount
-        ? (data.amount / 100).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
-        : '—'
-      const subject = `Payment confirmed — ${transactionRef}`
-      const text = `Payment confirmed for order ${transactionRef}.\n\nAmount: ${amountNaira}\nEmail: ${data.email || '—'}\nChannel: ${data.transaction_type || '—'}\n\nCheck the orders table in Supabase for full delivery details.`
-      try {
-        await sendMail({ to: 'houseofbloomfield@gmail.com', subject, text, html: `<p>${text.replace(/\n/g, '<br>')}</p>` })
-      } catch (err) {
-        console.error('Verify confirmation email failed:', err.message)
       }
     }
 

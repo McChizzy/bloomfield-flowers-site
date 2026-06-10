@@ -6,16 +6,41 @@ function esc(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 }
 
-async function sendOrderEmail(event) {
+async function sendOrderEmail(event, orderRow) {
 
   const body = event?.Body || {}
   const meta = body.meta_data || body.metadata || {}
-  const customer = meta.customer || {}
-  const delivery = meta.delivery || {}
-  const order = meta.order || {}
+  const metaCustomer = meta.customer || {}
+  const metaDelivery = meta.delivery || {}
+  const metaOrder = meta.order || {}
   const ref = body.transaction_ref || event?.TransactionRef || '—'
   const amountKobo = body.amount || 0
   const amountNaira = (amountKobo / 100).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
+
+  const row = orderRow || {}
+
+  const customer = {
+    fullName: row.customer_name || metaCustomer.fullName,
+    email: row.customer_email || metaCustomer.email,
+    phone: row.customer_phone || metaCustomer.phone,
+  }
+
+  const delivery = {
+    city: row.delivery_city || metaDelivery.city,
+    area: row.delivery_area || metaDelivery.area,
+    address: row.delivery_address || metaDelivery.address,
+    notes: row.delivery_notes || metaDelivery.notes,
+    date: row.delivery_date,
+    time: row.delivery_time,
+    cardMessage: row.card_message,
+  }
+
+  const order = {
+    items: row.items || metaOrder.items || [],
+    subtotal: row.subtotal ?? metaOrder.subtotal,
+    deliveryFee: row.delivery_fee ?? metaOrder.deliveryFee,
+    total: row.total ?? metaOrder.total,
+  }
 
   const items = (order.items || [])
     .map((item) => `  • ${item.name} × ${item.qty} — ₦${Number(item.unitPrice || 0).toLocaleString()}`)
@@ -37,7 +62,7 @@ DELIVERY
 City: ${delivery.city || '—'}
 Area: ${delivery.area || '—'}
 Address: ${delivery.address || '—'}
-${delivery.notes ? `Notes: ${delivery.notes}` : ''}
+${delivery.date ? `Date: ${delivery.date}\n` : ''}${delivery.time ? `Time: ${delivery.time}\n` : ''}${delivery.cardMessage ? `Card message: ${delivery.cardMessage}\n` : ''}${delivery.notes ? `Notes: ${delivery.notes}` : ''}
 
 ORDER
 ${items || '  (details not captured)'}
@@ -64,6 +89,9 @@ Total: ₦${Number(order.total || 0).toLocaleString()}
   <tr><td style="padding:3px 14px 3px 0;color:#888">City</td><td>${esc(delivery.city || '—')}</td></tr>
   <tr><td style="padding:3px 14px 3px 0;color:#888">Area</td><td>${esc(delivery.area || '—')}</td></tr>
   <tr><td style="padding:3px 14px 3px 0;color:#888">Address</td><td>${esc(delivery.address || '—')}</td></tr>
+  ${delivery.date ? `<tr><td style="padding:3px 14px 3px 0;color:#888">Date</td><td>${esc(delivery.date)}</td></tr>` : ''}
+  ${delivery.time ? `<tr><td style="padding:3px 14px 3px 0;color:#888">Time</td><td>${esc(delivery.time)}</td></tr>` : ''}
+  ${delivery.cardMessage ? `<tr><td style="padding:3px 14px 3px 0;color:#888">Card message</td><td>${esc(delivery.cardMessage)}</td></tr>` : ''}
   ${delivery.notes ? `<tr><td style="padding:3px 14px 3px 0;color:#888">Notes</td><td>${esc(delivery.notes)}</td></tr>` : ''}
 </table>
 <h3 style="font-family:sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:16px 0 6px">Order</h3>
@@ -117,24 +145,27 @@ export default async function handler(req, res) {
     })
 
     if (status === 'Success') {
-      try {
-        await sendOrderEmail(event)
-      } catch (err) {
-        console.error('Order email failed:', err.message)
+      const ref = event?.Body?.transaction_ref || event?.TransactionRef
+      let orderRow = null
+
+      const supabase = getSupabase()
+      if (supabase && ref) {
+        try {
+          const { data, error } = await supabase.from('orders').update({ status: 'success' })
+            .eq('transaction_ref', ref)
+            .select()
+            .maybeSingle()
+          if (error) console.error('Supabase update failed:', error.message)
+          else orderRow = data
+        } catch (err) {
+          console.error('Supabase update error:', err.message)
+        }
       }
 
-      const ref = event?.Body?.transaction_ref || event?.TransactionRef
-      if (ref) {
-        const supabase = getSupabase()
-        if (supabase) {
-          try {
-            const { error } = await supabase.from('orders').update({ status: 'success' })
-              .eq('transaction_ref', ref)
-            if (error) console.error('Supabase update failed:', error.message)
-          } catch (err) {
-            console.error('Supabase update error:', err.message)
-          }
-        }
+      try {
+        await sendOrderEmail(event, orderRow)
+      } catch (err) {
+        console.error('Order email failed:', err.message)
       }
     }
 

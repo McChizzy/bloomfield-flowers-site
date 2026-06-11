@@ -29,7 +29,7 @@
 html, body {
   margin: 0;
   min-height: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 a {
@@ -1490,32 +1490,75 @@ p {
   font-weight: 600;
 }
 
-/* Cart toast notification */
-.cart-toast {
+/* Added-to-cart popup */
+.cart-popup-backdrop {
   position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%) translateY(12px);
-  background: #1c1c1e;
-  color: #fff;
-  padding: 13px 22px;
-  border-radius: 10px;
-  font-size: 0.9rem;
+  inset: 0;
+  background: rgba(61, 47, 53, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 9999;
+  padding: 1rem;
   opacity: 0;
-  transition: opacity 0.22s ease, transform 0.22s ease;
-  white-space: nowrap;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
   pointer-events: none;
+  transition: opacity 0.22s ease;
 }
-.cart-toast--visible {
+.cart-popup-backdrop.is-visible {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
 }
-.cart-toast-check {
-  color: #6ecf6e;
-  margin-right: 7px;
+.cart-popup {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 2rem 1.75rem;
+  text-align: center;
+  transform: translateY(14px) scale(0.98);
+  transition: transform 0.22s ease;
+}
+.cart-popup-backdrop.is-visible .cart-popup {
+  transform: translateY(0) scale(1);
+}
+.cart-popup-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  background: #e6f6ea;
+  color: #2f9e44;
+  font-size: 1.4rem;
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cart-popup h3 {
+  margin: 0 0 0.5rem;
+}
+.cart-popup p {
+  margin: 0 0 1.4rem;
+  color: var(--muted);
+}
+.cart-popup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.cart-popup-close {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.75rem;
+  border: none;
+  background: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.25rem;
 }
 
 /* Legal pages (T&C, Privacy Policy) */

@@ -243,19 +243,44 @@ function saveCartCity(city) {
   try { localStorage.setItem(cartCityKey, city) } catch { }
 }
 
-function showCartToast(productName) {
-  const prev = document.getElementById('cart-toast')
+function showAddedToCartModal(product) {
+  const prev = document.getElementById('cart-popup')
   if (prev) prev.remove()
-  const toast = document.createElement('div')
-  toast.id = 'cart-toast'
-  toast.className = 'cart-toast'
-  toast.innerHTML = `<span class="cart-toast-check">✓</span> <strong>${productName}</strong> added to cart`
-  document.body.appendChild(toast)
-  requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('cart-toast--visible')))
-  setTimeout(() => {
-    toast.classList.remove('cart-toast--visible')
-    toast.addEventListener('transitionend', () => toast.remove(), { once: true })
-  }, 2800)
+
+  const backdrop = document.createElement('div')
+  backdrop.id = 'cart-popup'
+  backdrop.className = 'cart-popup-backdrop'
+  backdrop.innerHTML = `
+    <div class="cart-popup" role="dialog" aria-modal="true" aria-labelledby="cart-popup-title">
+      <button class="cart-popup-close" type="button" aria-label="Close" data-cart-popup-close>&times;</button>
+      <div class="cart-popup-icon">✓</div>
+      <h3 id="cart-popup-title">Added to your cart</h3>
+      <p><strong>${esc(product?.name || 'Item')}</strong> has been added to your cart.</p>
+      <div class="cart-popup-actions">
+        <a class="btn btn-primary" href="#/cart" data-cart-popup-close>View Cart</a>
+        <button class="btn btn-secondary" type="button" data-cart-popup-close>Keep Shopping</button>
+      </div>
+    </div>
+  `
+  document.body.appendChild(backdrop)
+  requestAnimationFrame(() => requestAnimationFrame(() => backdrop.classList.add('is-visible')))
+
+  const close = () => {
+    document.removeEventListener('keydown', onKeydown)
+    backdrop.classList.remove('is-visible')
+    backdrop.addEventListener('transitionend', () => backdrop.remove(), { once: true })
+  }
+  const onKeydown = (event) => {
+    if (event.key === 'Escape') close()
+  }
+
+  backdrop.addEventListener('click', (event) => {
+    if (event.target === backdrop) close()
+  })
+  backdrop.querySelectorAll('[data-cart-popup-close]').forEach((el) => {
+    el.addEventListener('click', close)
+  })
+  document.addEventListener('keydown', onKeydown)
 }
 
 function addToCart(productId) {
@@ -269,7 +294,7 @@ function addToCart(productId) {
   }
   saveCart(cart)
   renderApp()
-  showCartToast(product?.name || 'Item')
+  showAddedToCartModal(product)
 }
 
 function updateQty(productId, delta) {

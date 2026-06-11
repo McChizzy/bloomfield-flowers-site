@@ -650,7 +650,7 @@ function aboutPage() {
               ['Thoughtfully curated', 'Every bouquet is selected and styled with care, not just assembled.'],
               ['Elegant presentation', 'Gift-ready from the first look — packaging that matches the flowers.'],
               ['Personal gifting', 'We treat every order like it matters, because to someone it does.'],
-              ['Warm experience', 'We confirm availability and delivery before you pay. No surprises.'],
+              ['Warm experience', 'Secure online checkout with delivery details confirmed every step of the way.'],
               ['Abuja & Lagos delivery', 'Same-day delivery for confirmed orders placed before 2pm.'],
             ].map(([title, body]) => `
               <div class="bullet-card about-value-card">
@@ -714,8 +714,8 @@ function deliveryPage() {
       </div>
       <div class="bullet-grid">
         <div class="bullet-card">Browse bouquet inspiration on Instagram or on the shop page.</div>
-        <div class="bullet-card">Send an Instagram DM first, and we will confirm flower availability and delivery details.</div>
-        <div class="bullet-card">After confirmation, payment can be processed and your bouquet prepared for delivery.</div>
+        <div class="bullet-card">Add your favorites to your cart and check out securely online.</div>
+        <div class="bullet-card">We'll confirm your delivery details and get your bouquet ready for delivery.</div>
       </div>
     </main>
   `, 'delivery')

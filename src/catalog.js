@@ -26,7 +26,7 @@ export const products = [
     price: '₦390,000',
     image: '/images/optimized/bff-collection.jpg',
     short: 'A signature rose collection styled with gypsos lettering for standout gifting.',
-    description: 'A premium collection of 50, 75, or 100 roses styled with custom gypsos letters.',
+    description: 'A premium collection of 50 roses styled with custom gypsos letters.',
     instagramPost: 'https://www.instagram.com/p/DVi5Wt0l8my/?img_index=1',
   },
   {

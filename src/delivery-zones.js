@@ -30,7 +30,7 @@ const ABUJA_ZONES = [
   {
     fee: 7000,
     areas: [
-      'maitama', 'guzape', 'gwarinpa', 'gwarimpa',
+      'maitama', 'guzape', 'gwarinpa', 'gwarimpa', 'asokoro',
     ],
   },
   {
@@ -50,12 +50,6 @@ const ABUJA_ZONES = [
     fee: 9000,
     areas: [
       'kubwa',
-    ],
-  },
-  {
-    fee: 10000,
-    areas: [
-      'asokoro',
     ],
   },
 ]

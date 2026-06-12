@@ -1543,7 +1543,6 @@ function injectProductJsonLd() {
   if (document.getElementById('product-catalog-jsonld')) return
 
   const itemListElement = products
-    .filter((product) => product.id !== 'test-bouquet')
     .map((product, index) => {
       const { low, high } = priceBounds(product.price)
       const offers = low === high

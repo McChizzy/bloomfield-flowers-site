@@ -186,16 +186,6 @@ export const products = [
     short: 'Bold red and white roses, elegantly finished with gypso.',
     description: 'A bold large bouquet of red and white roses elegantly accented with gypso.',
   },
-  {
-    id: 'test-bouquet',
-    name: 'Test Bouquet',
-    category: 'Flowers',
-    price: '₦500',
-    image: '/images/optimized/just-because.jpg',
-    short: 'Internal test product.',
-    description: 'Internal test product for payment verification.',
-    instagramPost: '',
-  },
 ]
 
 export function priceBounds(price) {

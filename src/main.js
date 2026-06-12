@@ -310,6 +310,28 @@ function formatPrice(price) {
   return price
 }
 
+function productCard(product) {
+  return `
+    <article class="product-card">
+      <a class="product-card-media" href="#/product/${product.id}">
+        <img src="${product.image}" alt="${product.name}" loading="lazy" decoding="async" width="400" height="480">
+      </a>
+      <div class="product-body">
+        <p class="product-category">${product.category}</p>
+        <h3><a href="#/product/${product.id}">${product.name}</a></h3>
+        <p>${product.short}</p>
+        <div class="product-meta">
+          <strong>${formatPrice(product.price)}</strong>
+          <div class="product-actions">
+            <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
+            <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Order</a>
+          </div>
+        </div>
+      </div>
+    </article>
+  `
+}
+
 function getCheckoutDraft() {
   try {
     return JSON.parse(localStorage.getItem(checkoutDraftKey) || '{}')
@@ -463,7 +485,7 @@ function homePage() {
             </div>
           </div>
           <div class="hero-photo-wrap">
-            <img src="${heroScene.bouquetImage}" alt="${heroScene.alt}" loading="eager" fetchpriority="high" decoding="async">
+            <img src="${heroScene.bouquetImage}" alt="${heroScene.alt}" loading="eager" fetchpriority="high" decoding="async" width="569" height="549">
           </div>
         </div>
       </section>
@@ -503,23 +525,7 @@ function homePage() {
           <h2>Start with our most gift-ready bouquets</h2>
         </div>
         <div class="product-grid product-grid-featured">
-          ${products.slice(0, 3).map((product) => `
-            <article class="product-card">
-              <img src="${product.image}" alt="${product.name}" loading="lazy" decoding="async">
-              <div class="product-body">
-                <p class="product-category">${product.category}</p>
-                <h3>${product.name}</h3>
-                <p>${product.short}</p>
-                <div class="product-meta">
-                  <strong>${formatPrice(product.price)}</strong>
-                  <div class="product-actions">
-                    <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
-                    <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Order</a>
-                  </div>
-                </div>
-              </div>
-            </article>
-          `).join('')}
+          ${products.slice(0, 3).map((product) => productCard(product)).join('')}
         </div>
       </section>
 
@@ -626,25 +632,47 @@ function shopPage() {
         </div>
       ` : `
       <div class="product-grid">
-        ${visible.map((product) => `
-          <article class="product-card">
-            <img src="${product.image}" alt="${product.name}" loading="lazy" decoding="async">
-            <div class="product-body">
-              <p class="product-category">${product.category}</p>
-              <h3>${product.name}</h3>
-              <p>${product.short}</p>
-              <div class="product-meta">
-                <strong>${formatPrice(product.price)}</strong>
-                <div class="product-actions">
-                  <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
-                  <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Order</a>
-                </div>
-              </div>
-            </div>
-          </article>
-        `).join('')}
+        ${visible.map((product) => productCard(product)).join('')}
       </div>
       `}
+    </main>
+  `, 'shop')
+}
+
+function productPage(id) {
+  const product = products.find((p) => p.id === id)
+
+  if (!product) {
+    return shell(`
+      <main class="section container">
+        <div class="empty-state">
+          <h3>Bouquet not found</h3>
+          <p>This bouquet may have been renamed or is no longer available.</p>
+          <a class="btn btn-primary" href="#/shop">Back to Shop</a>
+        </div>
+      </main>
+    `, 'shop')
+  }
+
+  return shell(`
+    <main class="section container">
+      <p class="breadcrumb"><a href="#/shop">&larr; Back to Shop</a></p>
+      <div class="two-col story-grid-polished product-detail-grid">
+        <div class="story-visual-card product-detail-visual">
+          <img src="${product.image}" alt="${product.name}" loading="eager" decoding="async" width="600" height="720">
+        </div>
+        <div class="about-copy product-detail-copy">
+          <p class="product-category">${product.category}</p>
+          <h1>${product.name}</h1>
+          <p class="product-detail-price"><strong>${formatPrice(product.price)}</strong></p>
+          <p>${product.description}</p>
+          <div class="product-actions product-detail-actions">
+            <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
+            <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Order</a>
+          </div>
+          <p>Need a custom size or colour palette? <a class="text-link" href="#/custom-orders">Request a custom bouquet</a>.</p>
+        </div>
+      </div>
     </main>
   `, 'shop')
 }
@@ -1098,6 +1126,8 @@ function privacyPage() {
 }
 
 function router(route = checkoutResultState()) {
+  if (route.startsWith('product/')) return productPage(route.slice('product/'.length))
+
   switch (route) {
     case 'shop': return shopPage()
     case 'about': return aboutPage()
@@ -1542,12 +1572,39 @@ function renderApp() {
 function injectProductJsonLd() {
   if (document.getElementById('product-catalog-jsonld')) return
 
+  const merchantReturnPolicy = {
+    '@type': 'MerchantReturnPolicy',
+    returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
+    applicableCountry: 'NG',
+  }
+
+  const shippingDeliveryTime = {
+    '@type': 'ShippingDeliveryTime',
+    handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 0, unitCode: 'DAY' },
+    transitTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'DAY' },
+  }
+
+  const shippingDetails = [
+    {
+      '@type': 'OfferShippingDetails',
+      shippingRate: { '@type': 'MonetaryAmount', value: 4000, currency: 'NGN' },
+      shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'NG', addressRegion: 'Lagos' },
+      deliveryTime: shippingDeliveryTime,
+    },
+    {
+      '@type': 'OfferShippingDetails',
+      shippingRate: { '@type': 'MonetaryAmount', value: 3500, currency: 'NGN' },
+      shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'NG', addressRegion: 'Abuja' },
+      deliveryTime: shippingDeliveryTime,
+    },
+  ]
+
   const itemListElement = products
     .map((product, index) => {
       const { low, high } = priceBounds(product.price)
       const offers = low === high
-        ? { '@type': 'Offer', priceCurrency: 'NGN', price: low, availability: 'https://schema.org/InStock', url: `${SITE_URL}/#/shop` }
-        : { '@type': 'AggregateOffer', priceCurrency: 'NGN', lowPrice: low, highPrice: high, offerCount: 2, availability: 'https://schema.org/InStock', url: `${SITE_URL}/#/shop` }
+        ? { '@type': 'Offer', priceCurrency: 'NGN', price: low, availability: 'https://schema.org/InStock', url: `${SITE_URL}/#/product/${product.id}`, hasMerchantReturnPolicy: merchantReturnPolicy, shippingDetails }
+        : { '@type': 'AggregateOffer', priceCurrency: 'NGN', lowPrice: low, highPrice: high, offerCount: 2, availability: 'https://schema.org/InStock', url: `${SITE_URL}/#/product/${product.id}`, hasMerchantReturnPolicy: merchantReturnPolicy, shippingDetails }
 
       return {
         '@type': 'ListItem',
@@ -1557,7 +1614,7 @@ function injectProductJsonLd() {
           name: product.name,
           description: product.description,
           image: `${SITE_URL}${product.image}`,
-          url: `${SITE_URL}/#/shop`,
+          url: `${SITE_URL}/#/product/${product.id}`,
           brand: { '@type': 'Brand', name: 'Bloomfield Flowers' },
           offers,
         },

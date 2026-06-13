@@ -78,31 +78,37 @@ const testimonials = [
     name: 'Tosan A.',
     rating: 5,
     text: 'I rate the customer service a 10/10. I called their attention to my delivery and they made sure they got it fixed even when I asked them not to bother. It changed my whole experience with them and I will recommend them to my friends.',
+    image: '/images/5_red_roses.jpg',
   },
   {
     name: 'Adaeze J.',
     rating: 5,
     text: 'Excellent service, very prompt delivery and beautiful flowers. I recommend.',
+    image: '/images/roses_with_fillers.jpg',
   },
   {
     name: 'Oluwadamilola O.',
     rating: 5,
     text: 'The flowers were fresh, beautiful and arrived on time. Love the service.',
+    image: '/images/optimized/barbie-deluxe.jpg',
   },
   {
     name: 'Ngozi N.',
     rating: 5,
     text: 'Very quick response, exceptional customer service. Bouquet came very fresh.',
+    image: '/images/the_seraphina.jpg',
   },
   {
     name: 'Tems K.',
     rating: 5,
     text: 'Very lovely flowers, swift responses and very polite and reliable.',
+    image: '/images/bloom_no_2.jpg',
   },
   {
     name: 'Mudah A.',
     rating: 5,
     text: "Very fast and reliable! Try them out, you won't regret it!",
+    image: '/images/bloom_no_1.jpg',
   },
 ]
 
@@ -596,9 +602,12 @@ function homePage() {
         <div class="review-grid">
           ${testimonials.map((review) => `
             <article class="review-card testimonial-card">
-              <div class="testimonial-stars" aria-label="${review.rating} out of 5 stars">${'★'.repeat(review.rating)}</div>
-              <p class="testimonial-text">&ldquo;${review.text}&rdquo;</p>
-              <p class="testimonial-author">${review.name} <span class="testimonial-source">· Google review</span></p>
+              <img src="${review.image}" alt="A bouquet from Bloomfield Flowers" loading="lazy" decoding="async" width="400" height="335">
+              <div class="testimonial-body">
+                <div class="testimonial-stars" aria-label="${review.rating} out of 5 stars">${'★'.repeat(review.rating)}</div>
+                <p class="testimonial-text">&ldquo;${review.text}&rdquo;</p>
+                <p class="testimonial-author">${review.name} <span class="testimonial-source">· Google review</span></p>
+              </div>
             </article>
           `).join('')}
         </div>

@@ -33,7 +33,7 @@ export const products = [
     id: 'the-radiant-garden',
     name: 'The Radiant Garden',
     category: 'Flowers',
-    price: '₦150,000 - ₦400,000',
+    price: '₦320,000 - ₦350,000',
     image: '/images/optimized/radiant-garden.jpg',
     short: 'A full mixed bouquet with layered floral textures and a rich premium feel.',
     description: 'Mixed bouquet (L) made with chrysanthemums, lilies, roses, spray roses, and gypsos.',

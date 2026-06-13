@@ -73,23 +73,44 @@ function deliveryTimeOptions(selected = '', dateStr = '') {
   return opts.join('')
 }
 
-const reviewImages = [
-  '/images/optimized/review-1.jpg',
-  '/images/optimized/review-2.jpg',
-  '/images/optimized/review-3.jpg',
-  '/images/optimized/review-4.jpg',
-  '/images/optimized/review-5.jpg',
-  '/images/optimized/review-6.jpg',
+const testimonials = [
+  {
+    name: 'Tosan A.',
+    rating: 5,
+    text: 'I rate the customer service a 10/10. I called their attention to my delivery and they made sure they got it fixed even when I asked them not to bother. It changed my whole experience with them and I will recommend them to my friends.',
+  },
+  {
+    name: 'Adaeze J.',
+    rating: 5,
+    text: 'Excellent service, very prompt delivery and beautiful flowers. I recommend.',
+  },
+  {
+    name: 'Oluwadamilola O.',
+    rating: 5,
+    text: 'The flowers were fresh, beautiful and arrived on time. Love the service.',
+  },
+  {
+    name: 'Ngozi N.',
+    rating: 5,
+    text: 'Very quick response, exceptional customer service. Bouquet came very fresh.',
+  },
+  {
+    name: 'Tems K.',
+    rating: 5,
+    text: 'Very lovely flowers, swift responses and very polite and reliable.',
+  },
+  {
+    name: 'Mudah A.',
+    rating: 5,
+    text: "Very fast and reliable! Try them out, you won't regret it!",
+  },
 ]
 
-const reviewCaptions = [
-  { location: 'Abuja', occasion: 'Anniversary' },
-  { location: 'Lagos, Lekki', occasion: 'Birthday Surprise' },
-  { location: 'Abuja, Maitama', occasion: 'Romantic Gesture' },
-  { location: 'Lagos, VI', occasion: 'Birthday Gift' },
-  { location: 'Abuja', occasion: 'Celebration' },
-  { location: 'Lagos', occasion: 'Just Because' },
-]
+const reviewAggregate = {
+  ratingValue: 4.8,
+  reviewCount: 12,
+  bestRating: 5,
+}
 
 const featuredCollections = [
   {
@@ -283,6 +304,10 @@ function showAddedToCartModal(product) {
   document.addEventListener('keydown', onKeydown)
 }
 
+function trackPixelEvent(event, params) {
+  if (typeof window.fbq === 'function') window.fbq('track', event, params)
+}
+
 function addToCart(productId) {
   const product = products.find((p) => p.id === productId)
   const cart = getCart()
@@ -295,6 +320,15 @@ function addToCart(productId) {
   saveCart(cart)
   renderApp()
   showAddedToCartModal(product)
+  if (product) {
+    trackPixelEvent('AddToCart', {
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: 'product',
+      value: parsePriceValue(product.price),
+      currency: 'NGN',
+    })
+  }
 }
 
 function updateQty(productId, delta) {
@@ -557,21 +591,16 @@ function homePage() {
         <div class="section-heading section-heading-centered">
           <p class="eyebrow">Customer love</p>
           <h2>What customers are saying about Bloomfield Flowers</h2>
-          <p>Real feedback and happy reactions from people who have received Bloomfield bouquets.</p>
+          <p>${reviewAggregate.ratingValue} out of 5 from ${reviewAggregate.reviewCount} Google reviews — real feedback from people who have received Bloomfield bouquets.</p>
         </div>
         <div class="review-grid">
-          ${reviewImages.map((image, index) => {
-            const caption = reviewCaptions[index]
-            return `
-            <article class="review-card">
-              <img src="${image}" alt="Bloomfield Flowers customer review ${index + 1}" ${index < 3 ? 'loading="eager"' : 'loading="lazy"'} decoding="async">
-              ${caption ? `
-              <div class="review-caption">
-                <span class="review-location">${caption.location}</span>
-                <span class="review-occasion">${caption.occasion}</span>
-              </div>` : ''}
+          ${testimonials.map((review) => `
+            <article class="review-card testimonial-card">
+              <div class="testimonial-stars" aria-label="${review.rating} out of 5 stars">${'★'.repeat(review.rating)}</div>
+              <p class="testimonial-text">&ldquo;${review.text}&rdquo;</p>
+              <p class="testimonial-author">${review.name} <span class="testimonial-source">· Google review</span></p>
             </article>
-          `}).join('')}
+          `).join('')}
         </div>
       </section>
 
@@ -1264,6 +1293,12 @@ async function verifyReturnedPayment(retryCount = 0) {
       if (titleEl) titleEl.textContent = 'Order confirmed!'
       target.textContent = `Payment received (ref: ${ref}). We'll reach out on WhatsApp or Instagram shortly to confirm your delivery. Thank you for choosing Bloomfield Flowers!`
       target.className = 'form-status form-status-persistent form-status-success'
+      const purchasedCity = getCheckoutDraft().city || 'Abuja'
+      const purchaseValue = checkoutGrandTotal(purchasedCity)
+      const purchasedIds = getCart().map((item) => item.id)
+      if (purchaseValue > 0) {
+        trackPixelEvent('Purchase', { value: purchaseValue, currency: 'NGN', content_ids: purchasedIds, content_type: 'product' })
+      }
       saveCart([])
       localStorage.removeItem('bloomfield-checkout-draft')
       const badge = document.querySelector('.cart-badge')
@@ -1599,6 +1634,20 @@ function injectProductJsonLd() {
     },
   ]
 
+  const aggregateRating = {
+    '@type': 'AggregateRating',
+    ratingValue: reviewAggregate.ratingValue,
+    reviewCount: reviewAggregate.reviewCount,
+    bestRating: reviewAggregate.bestRating,
+  }
+
+  const review = testimonials.map((t) => ({
+    '@type': 'Review',
+    reviewRating: { '@type': 'Rating', ratingValue: t.rating, bestRating: reviewAggregate.bestRating },
+    author: { '@type': 'Person', name: t.name },
+    reviewBody: t.text,
+  }))
+
   const itemListElement = products
     .map((product, index) => {
       const { low, high } = priceBounds(product.price)
@@ -1616,6 +1665,8 @@ function injectProductJsonLd() {
           image: `${SITE_URL}${product.image}`,
           url: `${SITE_URL}/#/product/${product.id}`,
           brand: { '@type': 'Brand', name: 'Bloomfield Flowers' },
+          aggregateRating,
+          review,
           offers,
         },
       }

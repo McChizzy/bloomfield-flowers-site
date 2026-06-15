@@ -3,7 +3,7 @@ export const products = [
     id: 'pastel-cloud-s',
     name: 'Petal Blush',
     category: 'Flowers',
-    price: '₦60,000',
+    price: '₦75,000',
     image: '/images/optimized/barbie-deluxe.jpg',
     short: 'A soft pastel bouquet with lilac, white, and pink chrysanthemums.',
     description: 'Mixed bouquet (S) made with different colors of chrysanthemums, lilac, white, pink roses, and gypsos.',

@@ -336,6 +336,7 @@ p {
 
 .hero-photo-wrap img {
   width: 100%;
+  height: auto;
   display: block;
 }
 

@@ -180,7 +180,7 @@ const landingShowcaseSlides = [
 ]
 
 const heroHighlights = [
-  'Same-day delivery before 2pm',
+  'Same-day delivery',
   'Abuja & Lagos delivery',
   'Hand-tied premium bouquets',
 ]

@@ -1,5 +1,5 @@
 import { getEnv, json, squadRequest, verifyWebhookSignature } from './_lib/squad.js'
-import { getSupabase } from './_lib/supabase.js'
+import { getSupabase, supabaseQuery } from './_lib/supabase.js'
 import { sendMail } from './_lib/mailer.js'
 import { products } from '../src/catalog.js'
 
@@ -368,16 +368,14 @@ export default async function handler(req, res) {
 
       const supabase = getSupabase()
       if (supabase && ref) {
-        try {
-          const { data, error } = await supabase.from('orders').update({ status: 'success' })
+        const { data, error } = await supabaseQuery(() =>
+          supabase.from('orders').update({ status: 'success' })
             .eq('transaction_ref', ref)
             .select()
             .maybeSingle()
-          if (error) console.error('Supabase update failed:', error.message)
-          else orderRow = data
-        } catch (err) {
-          console.error('Supabase update error:', err.message)
-        }
+        )
+        if (error) console.error('Supabase update failed (may be paused/slow):', error.message)
+        else orderRow = data
       } else if (!supabase) {
         console.warn('Supabase not configured — order details will rely on Squad verify endpoint only.')
       }

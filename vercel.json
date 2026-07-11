@@ -1,6 +1,12 @@
 {
   "buildCommand": "vite build",
   "outputDirectory": "dist",
+  "crons": [
+    {
+      "path": "/api/keep-alive",
+      "schedule": "0 9 * * 1,4"
+    }
+  ],
   "rewrites": [
     { "source": "/birthday-flowers-lagos", "destination": "/birthday-flowers-lagos.html" },
     { "source": "/anniversary-flowers-lagos", "destination": "/anniversary-flowers-lagos.html" },

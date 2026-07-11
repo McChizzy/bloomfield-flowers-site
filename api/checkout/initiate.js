@@ -1,6 +1,6 @@
 import { buildSiteUrl, generateTransactionRef, getEnv, json, readJson, squadRequest, summarizeOrder } from '../_lib/squad.js'
 import { lookupDeliveryFee } from '../../src/delivery-zones.js'
-import { getSupabase } from '../_lib/supabase.js'
+import { getSupabase, supabaseQuery } from '../_lib/supabase.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -86,8 +86,8 @@ export default async function handler(req, res) {
 
     const supabase = getSupabase()
     if (supabase) {
-      try {
-        const { error } = await supabase.from('orders').upsert({
+      const { error } = await supabaseQuery(() =>
+        supabase.from('orders').upsert({
           transaction_ref: confirmedRef,
           status: 'initiated',
           customer_name: customer.fullName,
@@ -107,10 +107,10 @@ export default async function handler(req, res) {
           total: order.total,
           items: order.lineItems,
         }, { onConflict: 'transaction_ref' })
-        if (error) console.error('Supabase insert failed:', error.message)
-      } catch (err) {
-        console.error('Supabase insert error:', err.message)
-      }
+      )
+      if (error) console.error('Supabase insert failed:', error.message)
+    } else {
+      console.warn('Supabase not configured — order not persisted to database.')
     }
 
     return json(res, 200, {

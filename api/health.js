@@ -1,4 +1,4 @@
-import { getSupabase } from './_lib/supabase.js'
+import { getSupabase, supabaseQuery } from './_lib/supabase.js'
 
 export default async function handler(req, res) {
   // Simple protection — require a secret param to avoid public exposure
@@ -19,16 +19,16 @@ export default async function handler(req, res) {
   }
 
   let supabaseTest = 'not attempted'
-  try {
-    const supabase = getSupabase()
-    if (!supabase) {
-      supabaseTest = 'FAILED — client is null (URL or SERVICE_ROLE_KEY missing/wrong name)'
-    } else {
-      const { error } = await supabase.from('orders').select('id').limit(1)
-      supabaseTest = error ? `FAILED — ${error.message}` : 'OK — connected and orders table readable'
-    }
-  } catch (err) {
-    supabaseTest = `ERROR — ${err.message}`
+  const supabase = getSupabase()
+  if (!supabase) {
+    supabaseTest = 'FAILED — client is null (SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set)'
+  } else {
+    const { error } = await supabaseQuery(() =>
+      supabase.from('orders').select('id').limit(1)
+    )
+    supabaseTest = error
+      ? `FAILED — ${error.message}` + (error.message === 'Supabase timeout' ? ' (project may be paused — visit supabase.com to unpause)' : '')
+      : 'OK — connected and orders table readable'
   }
 
   res.statusCode = 200

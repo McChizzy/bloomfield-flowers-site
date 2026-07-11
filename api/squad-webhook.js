@@ -1,4 +1,4 @@
-import { getEnv, json, verifyWebhookSignature } from './_lib/squad.js'
+import { getEnv, json, squadRequest, verifyWebhookSignature } from './_lib/squad.js'
 import { getSupabase } from './_lib/supabase.js'
 import { sendMail } from './_lib/mailer.js'
 import { products } from '../src/catalog.js'
@@ -33,21 +33,23 @@ function formatDeliveryTime(timeStr) {
   return `${hour - 12}:00 PM`
 }
 
-function extractOrderDetails(event, orderRow) {
+function extractOrderDetails(event, orderRow, verifyData) {
   const body = event?.Body || {}
-  const meta = body.meta_data || body.metadata || {}
+  const verify = verifyData || {}
+  // Squad webhook body rarely echoes metadata; verify endpoint is the reliable source
+  const meta = body.meta_data || body.metadata || verify.meta_data || verify.metadata || {}
   const metaCustomer = meta.customer || {}
   const metaDelivery = meta.delivery || {}
   const metaOrder = meta.order || {}
   const ref = body.transaction_ref || event?.TransactionRef || '—'
-  const amountKobo = body.amount || 0
+  const amountKobo = body.amount || verify.amount || 0
   const amountNaira = (amountKobo / 100).toLocaleString('en-NG', { style: 'currency', currency: 'NGN' })
 
   const row = orderRow || {}
 
   const customer = {
-    fullName: row.customer_name || metaCustomer.fullName,
-    email: row.customer_email || metaCustomer.email,
+    fullName: row.customer_name || metaCustomer.fullName || verify.customer_name,
+    email: row.customer_email || metaCustomer.email || verify.email || body.email,
     phone: row.customer_phone || metaCustomer.phone,
   }
 
@@ -357,6 +359,7 @@ export default async function handler(req, res) {
       reference: event?.TransactionRef || event?.Body?.transaction_ref,
       status,
       type: event?.Body?.transaction_type,
+      rawBodySnippet: rawBody.slice(0, 800),
     })
 
     if (status === 'Success') {
@@ -375,9 +378,27 @@ export default async function handler(req, res) {
         } catch (err) {
           console.error('Supabase update error:', err.message)
         }
+      } else if (!supabase) {
+        console.warn('Supabase not configured — order details will rely on Squad verify endpoint only.')
       }
 
-      const details = extractOrderDetails(event, orderRow)
+      // Squad webhook body doesn't include full metadata; call verify to get it
+      let verifyData = null
+      if (ref) {
+        try {
+          const verify = await squadRequest(secretKey, `/transaction/verify/${encodeURIComponent(ref)}`, { method: 'GET' })
+          if (verify.ok) {
+            verifyData = verify.data?.data || null
+            console.log('Squad verify data:', JSON.stringify(verifyData).slice(0, 800))
+          } else {
+            console.warn('Squad verify returned non-OK status:', verify.status)
+          }
+        } catch (err) {
+          console.error('Squad verify call failed in webhook:', err.message)
+        }
+      }
+
+      const details = extractOrderDetails(event, orderRow, verifyData)
 
       try {
         await sendOrderEmail(details)

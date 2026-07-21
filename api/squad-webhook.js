@@ -47,10 +47,13 @@ function extractOrderDetails(event, orderRow, verifyData) {
 
   const row = orderRow || {}
 
+  // body.name / body.email / body.customer_mobile are Squad-guaranteed fields present
+  // in every webhook — use them as the last-resort fallback when Supabase is paused
+  // and metadata extraction fails.
   const customer = {
-    fullName: row.customer_name || metaCustomer.fullName || verify.customer_name,
+    fullName: row.customer_name || metaCustomer.fullName || verify.customer_name || body.name,
     email: row.customer_email || metaCustomer.email || verify.email || body.email,
-    phone: row.customer_phone || metaCustomer.phone,
+    phone: row.customer_phone || metaCustomer.phone || body.customer_mobile,
   }
 
   const recipient = {
@@ -120,6 +123,9 @@ async function sendOrderEmail(details) {
     .map((item) => `  • ${item.name} × ${item.qty} — ₦${Number(item.subtotal || 0).toLocaleString()}`)
     .join('\n')
 
+  const missingData = !customer.fullName || !delivery.address || !order.items?.length
+  const squadDashboardUrl = 'https://dashboard.squadco.com/transactions'
+
   const text = `
 New paid order on Bloomfield Flowers!
 
@@ -140,9 +146,25 @@ ${items || '  (details not captured)'}
 Subtotal: ₦${Number(order.subtotal || 0).toLocaleString()}
 Delivery fee: ₦${Number(order.deliveryFee || 0).toLocaleString()}
 Total: ₦${Number(order.total || 0).toLocaleString()}
-`.trim()
+${missingData ? `
+---
+⚠️  SOME FIELDS ARE MISSING. Squad raw data below — look up the transaction in your dashboard to get full details.
+Squad dashboard: ${squadDashboardUrl}
+
+RAW SQUAD FIELDS
+Name: ${body.name || '—'}
+Email: ${body.email || '—'}
+Mobile: ${body.customer_mobile || '—'}
+Channel: ${body.transaction_type || '—'}
+Amount (kobo): ${body.amount || '—'}
+` : ''}`.trim()
 
   const html = `
+${missingData ? `<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:12px 16px;margin-bottom:16px;font-family:sans-serif;font-size:13px">
+  <strong>⚠️ Some order fields are missing</strong> — Supabase may have been paused when this order was placed.<br>
+  Raw Squad fields below. <a href="${squadDashboardUrl}" style="color:#7a2e5a">Look up ref ${esc(ref)} in your Squad dashboard</a> for full details.<br>
+  <em>Name: ${esc(body.name || '—')} &nbsp;|&nbsp; Email: ${esc(body.email || '—')} &nbsp;|&nbsp; Mobile: ${esc(body.customer_mobile || '—')}</em>
+</div>` : ''}
 <h2 style="color:#7a2e5a;font-family:serif">New paid order — Bloomfield Flowers</h2>
 <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px;margin-bottom:16px">
   <tr><td style="padding:3px 14px 3px 0;color:#888">Reference</td><td><strong>${ref}</strong></td></tr>
@@ -173,7 +195,10 @@ ${hasRecipient ? `<h3 style="font-family:sans-serif;font-size:13px;text-transfor
 </table>
 `
 
-  await sendMail({ to: 'houseofbloomfield@gmail.com', subject: `New order ${ref} — Bloomfield Flowers`, text, html })
+  const subject = missingData
+    ? `⚠️ New order ${ref} — INCOMPLETE DATA — Bloomfield Flowers`
+    : `New order ${ref} — Bloomfield Flowers`
+  await sendMail({ to: 'houseofbloomfield@gmail.com', subject, text, html })
 }
 
 async function sendCustomerOrderEmail(details) {

@@ -70,6 +70,8 @@ create or replace view confirmed_orders as
     delivery_notes,
     subtotal,
     delivery_fee,
+    discount_code,
+    discount_amount,
     total,
     items,
     created_at
@@ -118,3 +120,9 @@ on conflict (code) do nothing;
 -- Migration: add discount columns to existing orders table if not present
 alter table orders add column if not exists discount_code   text;
 alter table orders add column if not exists discount_amount integer default 0;
+
+-- Atomic increment for discount code usage (called by webhook on confirmed payment)
+create or replace function increment_discount_uses(p_code text)
+returns void language sql security definer as $$
+  update discount_codes set uses = uses + 1 where code = p_code;
+$$;

@@ -17,6 +17,9 @@ const WEEKDAY_SLOT_END = 18    // 6 PM
 const SUNDAY_SLOT_START = 13   // 1 PM
 const SUNDAY_SLOT_END = 16     // 4 PM
 const dmPrefill = encodeURIComponent('Hello Bloomfield Flowers. I would like to place an order. We will respond to process your order and confirm flower availability. Thanks for your patronage.')
+
+// Applied discount state — reset on page navigation
+let appliedDiscount = null // { code, discountAmount, freeDelivery, message }
 const customOrderPrefill = encodeURIComponent('Hello Bloomfield Flowers. I would like to request a custom bouquet. We will respond to process your order and confirm flower availability. Thanks for your patronage.')
 
 function esc(str) {
@@ -455,6 +458,16 @@ function shell(content, route = '') {
   return `
     <div class="site-shell">
       <header class="site-header">
+        <div class="promo-ticker" aria-label="Promotion">
+          <div class="promo-ticker-track">
+            <span class="promo-ticker-item">🌸 Girlfriend's Day — Aug 1st &nbsp;·&nbsp; Use code <strong>GFDAY5</strong> for 5% off any order</span>
+            <span class="promo-ticker-item">💐 Free delivery on orders above ₦250,000 &nbsp;·&nbsp; Code: <strong>GFDAY5</strong></span>
+            <span class="promo-ticker-item">🌷 Order now and she gets it fresh &nbsp;·&nbsp; Shop at bloomfieldflowers.ng</span>
+            <span class="promo-ticker-item">🌸 Girlfriend's Day — Aug 1st &nbsp;·&nbsp; Use code <strong>GFDAY5</strong> for 5% off any order</span>
+            <span class="promo-ticker-item">💐 Free delivery on orders above ₦250,000 &nbsp;·&nbsp; Code: <strong>GFDAY5</strong></span>
+            <span class="promo-ticker-item">🌷 Order now and she gets it fresh &nbsp;·&nbsp; Shop at bloomfieldflowers.ng</span>
+          </div>
+        </div>
         <div class="container nav-row">
           <a class="brand" href="#/home">
             <span class="brand-logo-wrap">
@@ -985,6 +998,11 @@ function checkoutPage() {
         <label>Preferred date <span class="form-label-hint">(day / month / year)</span><input name="deliveryDate" type="date" min="${deliveryMinDate()}" max="${deliveryMaxDate()}" value="${esc(draft.deliveryDate || '')}" required></label>
         <label>Preferred time<select name="deliveryTime" data-delivery-time-select required><option value="" disabled${!draft.deliveryTime ? ' selected' : ''}>Select a time</option>${deliveryTimeOptions(draft.deliveryTime || '', draft.deliveryDate || '')}</select></label>
         <label>Card message<textarea name="cardMessage" rows="3" placeholder="Add a note for the recipient" maxlength="500">${esc(draft.cardMessage || '')}</textarea></label>
+        <div class="coupon-row">
+          <input name="couponCode" type="text" placeholder="Promo code (e.g. GFDAY5)" data-coupon-input autocomplete="off" style="text-transform:uppercase">
+          <button type="button" class="btn btn-secondary btn-sm" data-apply-coupon>Apply</button>
+        </div>
+        <div class="coupon-status" data-coupon-status aria-live="polite"></div>
         <div class="form-status" data-checkout-status aria-live="polite"></div>
         <div class="checkout-actions">
           <button class="btn btn-primary btn-pay" type="submit" data-checkout-submit>${items.length ? 'Pay Securely' : 'Add items to continue'}</button>
@@ -1001,8 +1019,9 @@ function checkoutPage() {
         <h3>Order Summary</h3>
         ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${esc(item.product.name)} × ${item.qty}</span><strong>${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
         <p class="summary-total">Subtotal: ${naira.format(cartTotal(city))}</p>
-        <p>Delivery: <span data-checkout-delivery>${naira.format(deliveryFee)}</span></p>
-        <p class="summary-total">Total: <span data-checkout-total>${naira.format(isPickup ? cartTotal(city) : checkoutGrandTotal(city))}</span></p>
+        <p data-discount-line${appliedDiscount ? '' : ' class="hidden"'} style="color:#C27E8C;font-weight:600">Discount (<span data-discount-code-label>${appliedDiscount?.code || ''}</span>): −<span data-discount-amount>${naira.format(appliedDiscount?.discountAmount || 0)}</span></p>
+        <p>Delivery: <span data-checkout-delivery>${appliedDiscount?.freeDelivery ? '<span style="text-decoration:line-through;color:#aaa">' + naira.format(deliveryFee) + '</span> <strong style="color:#C27E8C">Free</strong>' : naira.format(deliveryFee)}</span></p>
+        <p class="summary-total">Total: <span data-checkout-total>${naira.format(isPickup ? cartTotal(city) - (appliedDiscount?.discountAmount || 0) : checkoutGrandTotal(city) - (appliedDiscount?.discountAmount || 0) - (appliedDiscount?.freeDelivery ? deliveryFee : 0))}</span></p>
         <p class="summary-note">You'll be redirected to a secure payment page. Once payment is confirmed, we'll contact you to ${isPickup ? 'arrange your pickup' : 'arrange delivery'}.</p>
       </aside>
     </main>
@@ -1230,6 +1249,7 @@ async function handleCheckoutSubmit(event) {
       deliveryNotes: draft.deliveryNotes,
     },
     items: getCart(),
+    discountCode: appliedDiscount?.code || null,
   }
 
   submit.disabled = true
@@ -1481,6 +1501,63 @@ function bindEvents() {
     })
   }
 
+  const applyCouponBtn = document.querySelector('[data-apply-coupon]')
+  if (applyCouponBtn) {
+    applyCouponBtn.addEventListener('click', async () => {
+      const input = document.querySelector('[data-coupon-input]')
+      const statusEl = document.querySelector('[data-coupon-status]')
+      const code = (input?.value || '').trim().toUpperCase()
+      if (!code) return
+
+      applyCouponBtn.disabled = true
+      applyCouponBtn.textContent = '…'
+      if (statusEl) { statusEl.textContent = ''; statusEl.className = 'coupon-status' }
+
+      const draft = getCheckoutDraft()
+      const city = draft.city || getCartCity() || 'Lagos'
+      const subtotal = cartTotal(city)
+
+      try {
+        const res = await fetch('/api/checkout/apply-coupon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, subtotal }),
+        })
+        const result = await res.json().catch(() => ({}))
+
+        if (!res.ok || !result.valid) {
+          appliedDiscount = null
+          if (statusEl) { statusEl.textContent = result.error || 'Invalid code'; statusEl.className = 'coupon-status coupon-status-error' }
+        } else {
+          appliedDiscount = { code: result.code, discountAmount: result.discountAmount, freeDelivery: result.freeDelivery, message: result.message }
+          if (statusEl) { statusEl.textContent = result.message; statusEl.className = 'coupon-status coupon-status-success' }
+
+          // Update summary UI
+          const discountLine = document.querySelector('[data-discount-line]')
+          const codeLabel = document.querySelector('[data-discount-code-label]')
+          const discountAmountEl = document.querySelector('[data-discount-amount]')
+          if (discountLine) discountLine.classList.remove('hidden')
+          if (codeLabel) codeLabel.textContent = result.code
+          if (discountAmountEl) discountAmountEl.textContent = naira.format(result.discountAmount)
+
+          const isPickupNow = (draft.deliveryMethod || 'delivery') === 'pickup'
+          const effectiveFee = result.freeDelivery ? 0 : (isPickupNow ? 0 : (lookupDeliveryFee(city, draft.area || '').fee ?? 0))
+          const deliveryEl = document.querySelector('[data-checkout-delivery]')
+          const totalEl = document.querySelector('[data-checkout-total]')
+          if (deliveryEl) deliveryEl.innerHTML = result.freeDelivery
+            ? `<span style="text-decoration:line-through;color:#aaa">${naira.format(lookupDeliveryFee(city, draft.area || '').fee ?? 0)}</span> <strong style="color:#C27E8C">Free</strong>`
+            : naira.format(effectiveFee)
+          if (totalEl) totalEl.textContent = naira.format(Math.max(0, subtotal - result.discountAmount + effectiveFee))
+        }
+      } catch {
+        if (statusEl) { statusEl.textContent = 'Could not apply code. Please try again.'; statusEl.className = 'coupon-status coupon-status-error' }
+      } finally {
+        applyCouponBtn.disabled = false
+        applyCouponBtn.textContent = 'Apply'
+      }
+    })
+  }
+
   const checkoutForm = document.querySelector('[data-checkout-form]')
   if (checkoutForm) {
     checkoutForm.addEventListener('submit', handleCheckoutSubmit)
@@ -1593,6 +1670,7 @@ function renderApp() {
   try {
     const route = checkoutResultState()
     const shouldResetScroll = route !== lastRenderedRoute
+    if (shouldResetScroll && route !== 'checkout') appliedDiscount = null
     const currentScrollX = window.scrollX
     const currentScrollY = window.scrollY
 

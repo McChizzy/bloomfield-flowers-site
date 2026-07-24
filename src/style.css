@@ -64,6 +64,74 @@ body {
   border-bottom: 1px solid rgba(234, 220, 223, 0.9);
 }
 
+/* Promo ticker */
+.promo-ticker {
+  background: #C27E8C;
+  overflow: hidden;
+  white-space: nowrap;
+  height: 2.2rem;
+  display: flex;
+  align-items: center;
+}
+
+.promo-ticker-track {
+  display: inline-flex;
+  gap: 0;
+  animation: ticker-scroll 32s linear infinite;
+}
+
+.promo-ticker-item {
+  display: inline-block;
+  padding: 0 3rem;
+  font-size: 0.8rem;
+  color: #fff;
+  letter-spacing: 0.03em;
+}
+
+.promo-ticker-item strong {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Coupon row */
+.coupon-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.coupon-row input {
+  flex: 1;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.coupon-status {
+  font-size: 0.85rem;
+  margin-top: 0.35rem;
+  min-height: 1.2em;
+}
+
+.coupon-status-success {
+  color: #C27E8C;
+  font-weight: 600;
+}
+
+.coupon-status-error {
+  color: #c0392b;
+}
+
 .nav-row {
   display: flex;
   align-items: center;

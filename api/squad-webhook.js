@@ -75,6 +75,8 @@ function extractOrderDetails(event, orderRow, verifyData) {
     items: row.items || metaOrder.items || [],
     subtotal: row.subtotal ?? metaOrder.subtotal,
     deliveryFee: row.delivery_fee ?? metaOrder.deliveryFee,
+    discountCode: row.discount_code || metaOrder.discountCode || null,
+    discountAmount: row.discount_amount ?? metaOrder.discountAmount ?? 0,
     total: row.total ?? metaOrder.total,
   }
 
@@ -144,7 +146,7 @@ ${deliveryLines.join('\n')}
 ORDER
 ${items || '  (details not captured)'}
 Subtotal: ₦${Number(order.subtotal || 0).toLocaleString()}
-Delivery fee: ₦${Number(order.deliveryFee || 0).toLocaleString()}
+${order.discountCode ? `Discount (${order.discountCode}): −₦${Number(order.discountAmount || 0).toLocaleString()}\n` : ''}Delivery fee: ₦${Number(order.deliveryFee || 0).toLocaleString()}
 Total: ₦${Number(order.total || 0).toLocaleString()}
 ${missingData ? `
 ---
@@ -190,6 +192,7 @@ ${hasRecipient ? `<h3 style="font-family:sans-serif;font-size:13px;text-transfor
   ${(order.items || []).map((item) => `<tr><td style="padding:3px 14px 3px 0">${esc(item.name)} × ${Number(item.qty)}</td><td>₦${Number(item.subtotal || 0).toLocaleString()}</td></tr>`).join('')}
   <tr><td colspan="2" style="padding-top:8px;border-top:1px solid #eee"></td></tr>
   <tr><td style="padding:3px 14px 3px 0;color:#888">Subtotal</td><td>₦${Number(order.subtotal || 0).toLocaleString()}</td></tr>
+  ${order.discountCode ? `<tr><td style="padding:3px 14px 3px 0;color:#C27E8C">Discount (${esc(order.discountCode)})</td><td style="color:#C27E8C">−₦${Number(order.discountAmount || 0).toLocaleString()}</td></tr>` : ''}
   <tr><td style="padding:3px 14px 3px 0;color:#888">Delivery</td><td>₦${Number(order.deliveryFee || 0).toLocaleString()}</td></tr>
   <tr><td style="padding:3px 14px 3px 0;font-weight:700">Total</td><td style="font-weight:700">₦${Number(order.total || 0).toLocaleString()}</td></tr>
 </table>
@@ -284,7 +287,7 @@ ORDER REFERENCE: ${ref}
 YOUR ORDER
 ${itemLines || '  (details not captured)'}
 Subtotal: ₦${Number(order.subtotal || 0).toLocaleString()}
-Delivery fee: ₦${Number(order.deliveryFee || 0).toLocaleString()}
+${order.discountCode ? `Discount (${order.discountCode}): −₦${Number(order.discountAmount || 0).toLocaleString()}\n` : ''}Delivery fee: ₦${Number(order.deliveryFee || 0).toLocaleString()}
 Total: ₦${Number(order.total || 0).toLocaleString()}
 
 ${isPickup ? 'PICKUP DETAILS' : 'DELIVERY DETAILS'}
@@ -323,6 +326,7 @@ Questions about your order? Message us on Instagram: ${INSTAGRAM_URL}
         </table>
         <table role="presentation" width="100%" style="border-collapse:collapse;font-size:14px;margin-bottom:24px">
           <tr><td style="padding:3px 0;color:${BRAND_MUTED}">Subtotal</td><td style="text-align:right">₦${Number(order.subtotal || 0).toLocaleString()}</td></tr>
+          ${order.discountCode ? `<tr><td style="padding:3px 0;color:#C27E8C">Discount (${esc(order.discountCode)})</td><td style="text-align:right;color:#C27E8C">−₦${Number(order.discountAmount || 0).toLocaleString()}</td></tr>` : ''}
           <tr><td style="padding:3px 0;color:${BRAND_MUTED}">Delivery fee</td><td style="text-align:right">₦${Number(order.deliveryFee || 0).toLocaleString()}</td></tr>
           <tr><td style="padding:6px 0 0;font-weight:700;color:${BRAND_TEXT};border-top:1px solid ${BRAND_LINE}">Total</td><td style="text-align:right;padding-top:6px;font-weight:700;color:${BRAND_TEXT};border-top:1px solid ${BRAND_LINE}">₦${Number(order.total || 0).toLocaleString()}</td></tr>
         </table>
@@ -400,7 +404,15 @@ export default async function handler(req, res) {
             .maybeSingle()
         )
         if (error) console.error('Supabase update failed (may be paused/slow):', error.message)
-        else orderRow = data
+        else {
+          orderRow = data
+          // Increment discount code uses counter when payment is confirmed
+          if (data?.discount_code) {
+            await supabaseQuery(() =>
+              supabase.rpc('increment_discount_uses', { p_code: data.discount_code })
+            ).catch((err) => console.error('Failed to increment discount uses:', err?.message))
+          }
+        }
       } else if (!supabase) {
         console.warn('Supabase not configured — order details will rely on Squad verify endpoint only.')
       }

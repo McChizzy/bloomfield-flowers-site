@@ -50,6 +50,9 @@ export default async function handler(req, res) {
 
   if (discountCode) {
     const supabase = getSupabase()
+    if (!supabase) {
+      return json(res, 503, { error: 'Our discount service is temporarily unavailable. Please try again in a moment, or proceed without the code.' })
+    }
     if (supabase) {
       const { data: codeRow } = await supabaseQuery(() =>
         supabase

@@ -999,10 +999,10 @@ function checkoutPage() {
         <label>Preferred time<select name="deliveryTime" data-delivery-time-select required><option value="" disabled${!draft.deliveryTime ? ' selected' : ''}>Select a time</option>${deliveryTimeOptions(draft.deliveryTime || '', draft.deliveryDate || '')}</select></label>
         <label>Card message<textarea name="cardMessage" rows="3" placeholder="Add a note for the recipient" maxlength="500">${esc(draft.cardMessage || '')}</textarea></label>
         <div class="coupon-row">
-          <input name="couponCode" type="text" placeholder="Promo code (e.g. GFDAY5)" data-coupon-input autocomplete="off" style="text-transform:uppercase">
+          <input name="couponCode" type="text" placeholder="Promo code (e.g. GFDAY5)" data-coupon-input autocomplete="off" style="text-transform:uppercase" value="${esc(appliedDiscount?.code || '')}">
           <button type="button" class="btn btn-secondary btn-sm" data-apply-coupon>Apply</button>
         </div>
-        <div class="coupon-status" data-coupon-status aria-live="polite"></div>
+        <div class="coupon-status${appliedDiscount ? ' coupon-status-success' : ''}" data-coupon-status aria-live="polite">${appliedDiscount ? esc(appliedDiscount.message || `${appliedDiscount.code} applied`) : ''}</div>
         <div class="form-status" data-checkout-status aria-live="polite"></div>
         <div class="checkout-actions">
           <button class="btn btn-primary btn-pay" type="submit" data-checkout-submit>${items.length ? 'Pay Securely' : 'Add items to continue'}</button>

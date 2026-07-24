@@ -1,3 +1,10 @@
 node_modules
 dist
 .git
+meta backups
+*.zip
+*.xlsx
+images
+leads
+scripts
+BOUQUET_BUILDER_PLAN.md

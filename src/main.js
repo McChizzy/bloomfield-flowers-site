@@ -458,16 +458,7 @@ function shell(content, route = '') {
   return `
     <div class="site-shell">
       <header class="site-header">
-        <div class="promo-ticker" aria-label="Promotion">
-          <div class="promo-ticker-track">
-            <span class="promo-ticker-item">🌸 Girlfriend's Day — Aug 1st &nbsp;·&nbsp; Use code <strong>GFDAY5</strong> for 5% off any order</span>
-            <span class="promo-ticker-item">💐 Free delivery on orders above ₦250,000 &nbsp;·&nbsp; Code: <strong>GFDAY5</strong></span>
-            <span class="promo-ticker-item">🌷 Order now and she gets it fresh &nbsp;·&nbsp; Shop at bloomfieldflowers.ng</span>
-            <span class="promo-ticker-item">🌸 Girlfriend's Day — Aug 1st &nbsp;·&nbsp; Use code <strong>GFDAY5</strong> for 5% off any order</span>
-            <span class="promo-ticker-item">💐 Free delivery on orders above ₦250,000 &nbsp;·&nbsp; Code: <strong>GFDAY5</strong></span>
-            <span class="promo-ticker-item">🌷 Order now and she gets it fresh &nbsp;·&nbsp; Shop at bloomfieldflowers.ng</span>
-          </div>
-        </div>
+
         <div class="container nav-row">
           <a class="brand" href="#/home">
             <span class="brand-logo-wrap">

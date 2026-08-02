@@ -42,6 +42,24 @@ npm run preview      # preview the production build locally
 
 **Squad environment:** `getSquadBaseUrl()` auto-selects sandbox (`https://sandbox-api-d.squadco.com`) vs live (`https://api-d.squadco.com`) based on whether the secret key starts with `sandbox_`. Required env var: `SQUAD_SECRET_KEY`.
 
+## .vercelignore — CRITICAL RULE
+
+**Never add `images/`, `public/`, or any product asset folder to `.vercelignore`.** Doing so silently removes all bouquet photos from the Vercel build, breaking the entire site with no build error. This has happened twice.
+
+The only safe entries in `.vercelignore` are backup/scratch folders that never ship to production:
+```
+node_modules
+dist
+.git
+meta backups
+*.zip
+*.xlsx
+leads
+scripts
+```
+
+If you are tempted to add something to reduce upload size, **do not add any folder that contains images or public assets**. Check what the folder contains before adding it.
+
 ## Key decisions and known TODOs
 
 - Both the contact form and the `/custom-orders` form post to `api/contact.js` (`formType: 'contact' | 'custom-order'`), which emails `houseofbloomfield@gmail.com` via `api/_lib/mailer.js` and optionally logs the inquiry to Supabase.

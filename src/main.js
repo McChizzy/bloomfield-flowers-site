@@ -617,6 +617,20 @@ function homePage() {
         </div>
       </section>
 
+      <section class="section container instagram-feed-section">
+        <div class="section-heading section-heading-centered">
+          <p class="eyebrow">Fresh from our studio</p>
+          <h2>Follow us on Instagram</h2>
+          <p>See our latest arrangements as they happen — <a href="${instagramUrl}" target="_blank" rel="noreferrer" class="ig-handle-link">@${instagramHandle}</a></p>
+        </div>
+        <div class="ig-grid" data-instagram-feed>
+          ${Array(9).fill(0).map(() => '<div class="ig-placeholder"></div>').join('')}
+        </div>
+        <div style="text-align:center;margin-top:1.75rem">
+          <a class="btn btn-secondary" href="${instagramUrl}" target="_blank" rel="noreferrer">Follow @${instagramHandle}</a>
+        </div>
+      </section>
+
       <section class="section container cta-band cta-band-polished section-tight-bottom">
         <div>
           <p class="eyebrow">Custom bouquets</p>
@@ -1655,6 +1669,28 @@ function bindEvents() {
   }
 }
 
+async function loadInstagramFeed() {
+  const grid = document.querySelector('[data-instagram-feed]')
+  if (!grid) return
+  try {
+    const res = await fetch('/api/instagram-feed')
+    if (!res.ok) { grid.closest('section')?.remove(); return }
+    const { posts } = await res.json()
+    if (!posts?.length) { grid.closest('section')?.remove(); return }
+    grid.innerHTML = posts.map((post) => {
+      const img = post.media_type === 'VIDEO' ? (post.thumbnail_url || post.media_url) : post.media_url
+      if (!img) return ''
+      const caption = post.caption ? post.caption.replace(/\n/g, ' ').substring(0, 80) : 'Bloomfield Flowers bouquet'
+      return `<a class="ig-post" href="${esc(post.permalink)}" target="_blank" rel="noreferrer" aria-label="${esc(caption)}">
+        <img src="${esc(img)}" alt="${esc(caption)}" loading="lazy" decoding="async">
+        <div class="ig-post-overlay"></div>
+      </a>`
+    }).join('')
+  } catch {
+    document.querySelector('[data-instagram-feed]')?.closest('section')?.remove()
+  }
+}
+
 let lastRenderedRoute = ''
 
 function renderApp() {
@@ -1674,6 +1710,7 @@ function renderApp() {
     }
 
     bindEvents()
+    if (route === 'home') loadInstagramFeed()
     if (route === 'checkout-complete') verifyReturnedPayment()
     lastRenderedRoute = route
   } catch (err) {

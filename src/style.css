@@ -65,6 +65,61 @@ body {
 }
 
 
+/* Instagram feed grid */
+.ig-handle-link { color: #C27E8C; font-weight: 600; text-decoration: none; }
+.ig-handle-link:hover { text-decoration: underline; }
+
+.ig-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.ig-placeholder {
+  aspect-ratio: 1;
+  background: linear-gradient(90deg, #f5eced 25%, #ecdadc 50%, #f5eced 75%);
+  background-size: 200% 100%;
+  animation: ig-shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes ig-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.ig-post {
+  display: block;
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.ig-post img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.ig-post:hover img { transform: scale(1.05); }
+
+.ig-post-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(194, 126, 140, 0);
+  transition: background 0.2s;
+}
+
+.ig-post:hover .ig-post-overlay { background: rgba(194, 126, 140, 0.25); }
+
+@media (max-width: 600px) {
+  .ig-grid { grid-template-columns: repeat(2, 1fr); gap: 0.35rem; }
+}
+
 /* Coupon row */
 .coupon-row {
   display: flex;

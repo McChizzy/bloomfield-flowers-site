@@ -15,32 +15,40 @@ async function bootstrap(supabase) {
   const shortToken = process.env.INSTAGRAM_TOKEN
   const appId = process.env.INSTAGRAM_APP_ID
   const appSecret = process.env.INSTAGRAM_APP_SECRET
-  console.log('[instagram] bootstrap env check — TOKEN:', !!shortToken, 'APP_ID:', !!appId, 'APP_SECRET:', !!appSecret)
-  if (!shortToken || !appId || !appSecret) return null
+  console.log('[ig:1] env — TOKEN:', !!shortToken, 'APP_ID:', appId || 'MISSING', 'APP_SECRET:', !!appSecret)
+  if (!shortToken || !appId || !appSecret) { console.error('[ig] missing env vars — aborting'); return null }
 
   // Exchange short-lived → long-lived user token (60 days)
+  console.log('[ig:2] exchanging token...')
   const lt = await gget(
     `/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${shortToken}`,
     shortToken
   )
+  console.log('[ig:3] exchange result:', JSON.stringify(lt).substring(0, 300))
   const longToken = lt.access_token
-  if (!longToken) { console.error('Token exchange failed:', JSON.stringify(lt)); return null }
+  if (!longToken) { console.error('[ig] token exchange failed — token may be expired'); return null }
 
   // Get linked Facebook Pages
+  console.log('[ig:4] fetching pages...')
   const pages = await gget('/me/accounts', longToken)
-  if (!pages.data?.length) { console.error('No Facebook Pages found:', JSON.stringify(pages)); return null }
+  console.log('[ig:5] pages result:', JSON.stringify(pages).substring(0, 300))
+  if (!pages.data?.length) { console.error('[ig] no Facebook Pages found'); return null }
 
   const page = pages.data[0]
   const pageToken = page.access_token
   const pageId = page.id
+  console.log('[ig:6] page found:', pageId, page.name)
 
   // Get Instagram Business Account linked to this page
+  console.log('[ig:7] fetching Instagram account...')
   const igData = await gget(`/${pageId}?fields=instagram_business_account`, pageToken)
+  console.log('[ig:8] IG account result:', JSON.stringify(igData).substring(0, 300))
   const igUserId = igData.instagram_business_account?.id
   if (!igUserId) {
-    console.error('No Instagram Business Account linked to Page. Ensure your Instagram is set to Business/Creator and linked to the Facebook Page.')
+    console.error('[ig] no Instagram Business Account linked to this Page — ensure Instagram is set to Business/Creator in app settings and linked to the Facebook Page')
     return null
   }
+  console.log('[ig:9] IG user ID:', igUserId)
 
   // Persist credentials so future calls skip this flow
   await Promise.all([
@@ -48,6 +56,7 @@ async function bootstrap(supabase) {
     supabaseQuery(() => supabase.from('settings').upsert({ key: 'instagram_ig_user_id', value: igUserId })),
   ])
 
+  console.log('[ig:10] bootstrap complete — credentials stored in Supabase')
   return { pageToken, igUserId }
 }
 

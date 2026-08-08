@@ -15,6 +15,7 @@ async function bootstrap(supabase) {
   const shortToken = process.env.INSTAGRAM_TOKEN
   const appId = process.env.INSTAGRAM_APP_ID
   const appSecret = process.env.INSTAGRAM_APP_SECRET
+  console.log('[instagram] bootstrap env check — TOKEN:', !!shortToken, 'APP_ID:', !!appId, 'APP_SECRET:', !!appSecret)
   if (!shortToken || !appId || !appSecret) return null
 
   // Exchange short-lived → long-lived user token (60 days)

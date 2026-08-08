@@ -4,6 +4,7 @@ import { getSupabase, supabaseQuery } from './_lib/supabase.js'
 const GRAPH = 'https://graph.facebook.com/v20.0'
 let memCache = { data: null, at: 0 }
 const CACHE_TTL = 5 * 60 * 1000
+let lastBootstrapError = null
 
 async function gget(path, token) {
   const sep = path.includes('?') ? '&' : '?'
@@ -26,13 +27,13 @@ async function bootstrap(supabase) {
   )
   console.log('[ig:3] exchange result:', JSON.stringify(lt).substring(0, 300))
   const longToken = lt.access_token
-  if (!longToken) { console.error('[ig] token exchange failed — token may be expired'); return null }
+  if (!longToken) { lastBootstrapError = `token_exchange: ${JSON.stringify(lt)}`; console.error('[ig] token exchange failed:', lastBootstrapError); return null }
 
   // Get linked Facebook Pages
   console.log('[ig:4] fetching pages...')
   const pages = await gget('/me/accounts', longToken)
   console.log('[ig:5] pages result:', JSON.stringify(pages).substring(0, 300))
-  if (!pages.data?.length) { console.error('[ig] no Facebook Pages found'); return null }
+  if (!pages.data?.length) { lastBootstrapError = `no_pages: ${JSON.stringify(pages)}`; console.error('[ig] no pages'); return null }
 
   const page = pages.data[0]
   const pageToken = page.access_token
@@ -45,7 +46,8 @@ async function bootstrap(supabase) {
   console.log('[ig:8] IG account result:', JSON.stringify(igData).substring(0, 300))
   const igUserId = igData.instagram_business_account?.id
   if (!igUserId) {
-    console.error('[ig] no Instagram Business Account linked to this Page — ensure Instagram is set to Business/Creator in app settings and linked to the Facebook Page')
+    lastBootstrapError = `no_ig_account: page=${pageId} response=${JSON.stringify(igData)}`
+    console.error('[ig] no IG business account linked to page')
     return null
   }
   console.log('[ig:9] IG user ID:', igUserId)
@@ -83,7 +85,7 @@ export default async function handler(req, res) {
     // First-run: exchange token and discover account
     if (!pageToken || !igUserId) {
       const boot = await bootstrap(supabase)
-      if (!boot) return json(res, 503, { error: 'Instagram not configured. Check INSTAGRAM_TOKEN, INSTAGRAM_APP_ID, INSTAGRAM_APP_SECRET env vars.' })
+      if (!boot) return json(res, 503, { error: 'Instagram bootstrap failed', debug: lastBootstrapError })
       pageToken = boot.pageToken
       igUserId = boot.igUserId
     }

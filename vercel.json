@@ -9,10 +9,17 @@
   ],
   "rewrites": [
     { "source": "/birthday-flowers-lagos", "destination": "/birthday-flowers-lagos.html" },
+    { "source": "/birthday-flowers-abuja", "destination": "/birthday-flowers-abuja.html" },
+    { "source": "/birthday-flowers-port-harcourt", "destination": "/birthday-flowers-port-harcourt.html" },
     { "source": "/anniversary-flowers-lagos", "destination": "/anniversary-flowers-lagos.html" },
+    { "source": "/anniversary-flowers-abuja", "destination": "/anniversary-flowers-abuja.html" },
+    { "source": "/anniversary-flowers-port-harcourt", "destination": "/anniversary-flowers-port-harcourt.html" },
     { "source": "/graduation-flowers-lagos", "destination": "/graduation-flowers-lagos.html" },
+    { "source": "/graduation-flowers-abuja", "destination": "/graduation-flowers-abuja.html" },
+    { "source": "/graduation-flowers-port-harcourt", "destination": "/graduation-flowers-port-harcourt.html" },
     { "source": "/flower-delivery-lagos", "destination": "/flower-delivery-lagos.html" },
     { "source": "/flower-delivery-abuja", "destination": "/flower-delivery-abuja.html" },
+    { "source": "/flower-delivery-port-harcourt", "destination": "/flower-delivery-port-harcourt.html" },
     {
       "source": "/(.*)",
       "destination": "/index.html"

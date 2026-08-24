@@ -10,6 +10,17 @@ const emailAddress = 'houseofbloomfield@gmail.com'
 const phoneNumber = '+234 701 120 3325'
 const whatsappUrl = 'https://wa.me/2347011203325'
 const businessHours = 'Open 24 hours'
+const deliveryCities = ['Lagos', 'Abuja', 'Port Harcourt']
+const serviceCitiesText = 'Lagos, Abuja, and Port Harcourt'
+const serviceCitiesShortText = 'Lagos · Abuja · Port Harcourt'
+const phLaunchTickerItems = [
+  'Port Harcourt launch loading',
+  'PH town delivery ₦5,000',
+  'Old GRA + Eastern Bypass included',
+  'Outskirts delivery ₦6,000',
+  'DM PH for first access',
+  'First 5 PH orders get 10% off',
+]
 // Business hours: Mon–Sat 9am–7pm, Sun 12pm–5pm
 // Delivery slots: 1hr after opening, 1hr before closing
 const WEEKDAY_SLOT_START = 10  // 10 AM
@@ -17,13 +28,33 @@ const WEEKDAY_SLOT_END = 18    // 6 PM
 const SUNDAY_SLOT_START = 13   // 1 PM
 const SUNDAY_SLOT_END = 16     // 4 PM
 const dmPrefill = encodeURIComponent('Hello Bloomfield Flowers. I would like to place an order. We will respond to process your order and confirm flower availability. Thanks for your patronage.')
-
-// Applied discount state — reset on page navigation
-let appliedDiscount = null // { code, discountAmount, freeDelivery, message }
 const customOrderPrefill = encodeURIComponent('Hello Bloomfield Flowers. I would like to request a custom bouquet. We will respond to process your order and confirm flower availability. Thanks for your patronage.')
 
 function esc(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+}
+
+function cityOptions(selected = '') {
+  return deliveryCities.map((city) => `<option value="${city}"${selected === city ? ' selected' : ''}>${city}</option>`).join('')
+}
+
+function phLaunchPromo() {
+  const tickerItems = [...phLaunchTickerItems, ...phLaunchTickerItems]
+    .map((item) => `<span class="promo-ticker-item">${item}</span>`)
+    .join('')
+
+  return `
+    <div class="ph-launch-banner" aria-label="Port Harcourt launch notice">
+      <div>
+        <strong>Port Harcourt, Bloomfield is getting ready for you.</strong>
+        <span>Preview the PH ordering flow, delivery rates, and launch pages before we go live.</span>
+      </div>
+      <a href="/flower-delivery-port-harcourt">View PH page</a>
+    </div>
+    <div class="promo-ticker" aria-label="Port Harcourt launch highlights">
+      <div class="promo-ticker-track">${tickerItems}</div>
+    </div>
+  `
 }
 
 // Longest valid Nigerian number: +234 followed by 10 digits
@@ -184,7 +215,7 @@ const landingShowcaseSlides = [
 
 const heroHighlights = [
   'Same-day delivery',
-  'Abuja & Lagos delivery',
+  `${serviceCitiesShortText} delivery`,
   'Hand-tied premium bouquets',
 ]
 
@@ -193,7 +224,7 @@ const heroScene = {
   alt: 'Bloomfield Flowers signature bouquet',
   eyebrow: 'Bloomfield Flowers',
   title: 'Luxury bouquets for meaningful moments',
-  body: 'Elegant floral gifting in Abuja and Lagos for romance, birthdays, celebrations, and premium everyday surprises.',
+  body: `Elegant floral gifting in ${serviceCitiesText} for romance, birthdays, celebrations, and premium everyday surprises.`,
 }
 
 const careMoments = [
@@ -390,7 +421,7 @@ function saveCheckoutDraft(draft) {
 function getDeliveryFee() {
   const draft = getCheckoutDraft()
   if ((draft.deliveryMethod || 'delivery') === 'pickup') return 0
-  const { fee } = lookupDeliveryFee(draft.city || 'Abuja', draft.area || '')
+  const { fee } = lookupDeliveryFee(draft.city || getCartCity() || 'Lagos', draft.area || '')
   return fee ?? 0
 }
 
@@ -398,7 +429,7 @@ function renderDeliveryFeeContent(city, area) {
   if (!area || !area.trim()) {
     return `<p class="delivery-fee-note">Enter your area above to see the estimated delivery fee.</p>`
   }
-  const { fee, exact } = lookupDeliveryFee(city || 'Abuja', area)
+  const { fee, exact } = lookupDeliveryFee(city || getCartCity() || 'Lagos', area)
   if (!fee) {
     return `<p class="delivery-fee-note">We'll confirm your delivery fee after you place your order.</p>`
   }
@@ -458,16 +489,7 @@ function shell(content, route = '') {
   return `
     <div class="site-shell">
       <header class="site-header">
-        <div class="promo-ticker" aria-label="Promotion">
-          <div class="promo-ticker-track">
-            <span class="promo-ticker-item">🌸 Girlfriend's Day — Aug 1st &nbsp;·&nbsp; Use code <strong>GFDAY5</strong> for 5% off any order</span>
-            <span class="promo-ticker-item">💐 Free delivery on orders above ₦250,000 &nbsp;·&nbsp; Code: <strong>GFDAY5</strong></span>
-            <span class="promo-ticker-item">🌷 Order now and she gets it fresh &nbsp;·&nbsp; Shop at bloomfieldflowers.ng</span>
-            <span class="promo-ticker-item">🌸 Girlfriend's Day — Aug 1st &nbsp;·&nbsp; Use code <strong>GFDAY5</strong> for 5% off any order</span>
-            <span class="promo-ticker-item">💐 Free delivery on orders above ₦250,000 &nbsp;·&nbsp; Code: <strong>GFDAY5</strong></span>
-            <span class="promo-ticker-item">🌷 Order now and she gets it fresh &nbsp;·&nbsp; Shop at bloomfieldflowers.ng</span>
-          </div>
-        </div>
+        ${phLaunchPromo()}
         <div class="container nav-row">
           <a class="brand" href="#/home">
             <span class="brand-logo-wrap">
@@ -491,7 +513,7 @@ function shell(content, route = '') {
         <div class="container footer-grid">
           <div>
             <h3>Bloomfield Flowers</h3>
-            <p>Luxury bouquets, everyday gifting, romance, celebrations, and custom floral moments, beautifully arranged for Abuja and Lagos.</p>
+            <p>Luxury bouquets, everyday gifting, romance, celebrations, and custom floral moments, beautifully arranged for ${serviceCitiesText}.</p>
           </div>
           <div>
             <h4>Quick Links</h4>
@@ -508,8 +530,8 @@ function shell(content, route = '') {
           </div>
         </div>
         <div class="footer-seo-links">
-          <p>Flower delivery: <a href="/flower-delivery-lagos">Lagos</a> · <a href="/flower-delivery-abuja">Abuja</a></p>
-          <p>Shop by occasion: <a href="/birthday-flowers-lagos">Birthdays</a> · <a href="/anniversary-flowers-lagos">Anniversaries</a> · <a href="/graduation-flowers-lagos">Graduations</a></p>
+          <p>Flower delivery: <a href="/flower-delivery-lagos">Lagos</a> · <a href="/flower-delivery-abuja">Abuja</a> · <a href="/flower-delivery-port-harcourt">Port Harcourt</a></p>
+          <p>Shop by occasion: <a href="/birthday-flowers-lagos">Birthdays</a> · <a href="/anniversary-flowers-lagos">Anniversaries</a> · <a href="/graduation-flowers-lagos">Graduations</a> · <a href="/birthday-flowers-port-harcourt">PH birthdays</a></p>
         </div>
         <div class="footer-legal">
           <p>&copy; ${new Date().getFullYear()} Bloomfield Flowers. All rights reserved.</p>
@@ -590,7 +612,7 @@ function homePage() {
           <div>
             <p class="eyebrow">About Bloomfield Flowers</p>
             <h2>Thoughtfully curated bouquets for life's most meaningful moments</h2>
-            <p>At Bloomfield Flowers, we create arrangements that feel elegant, expressive, and gift-worthy. We serve Abuja and Lagos with premium gifting, custom bouquets, romance flowers, birthday blooms, and same-day delivery for confirmed orders placed before 2pm.</p>
+            <p>At Bloomfield Flowers, we create arrangements that feel elegant, expressive, and gift-worthy. We serve ${serviceCitiesText} with premium gifting, custom bouquets, romance flowers, birthday blooms, and same-day delivery for confirmed orders placed before 2pm.</p>
             <a class="text-link" href="#/about">Learn more about Bloomfield Flowers</a>
           </div>
         </div>
@@ -602,7 +624,7 @@ function homePage() {
           <h2>Why Bloomfield Flowers</h2>
         </div>
         <div class="bullet-grid">
-          ${['Premium bouquet styling with gift-ready presentation', 'Same-day delivery available for confirmed orders before 2pm', 'Serving Abuja and Lagos with elegant bouquets for gifting moments', 'Custom bouquet options for personal requests and special occasions', 'Clear delivery confirmation before payment so expectations stay aligned'].map((item) => `<div class="bullet-card">${item}</div>`).join('')}
+          ${['Premium bouquet styling with gift-ready presentation', 'Same-day delivery available for confirmed orders before 2pm', `Serving ${serviceCitiesText} with elegant bouquets for gifting moments`, 'Custom bouquet options for personal requests and special occasions', 'Clear delivery confirmation before payment so expectations stay aligned'].map((item) => `<div class="bullet-card">${item}</div>`).join('')}
         </div>
       </section>
 
@@ -738,7 +760,7 @@ function aboutPage() {
         <div class="about-copy">
           <p class="eyebrow">About</p>
           <h1>We make gifting feel like a moment</h1>
-          <p>Bloomfield Flowers is a Nigeria-based floral studio creating beautifully curated bouquets for meaningful moments across Abuja and Lagos. We believe flowers are more than gifts — they are expressions of love, care, celebration, and thoughtfulness.</p>
+          <p>Bloomfield Flowers is a Nigeria-based floral studio creating beautifully curated bouquets for meaningful moments across ${serviceCitiesText}. We believe flowers are more than gifts — they are expressions of love, care, celebration, and thoughtfulness.</p>
           <p>Every arrangement is carefully styled, elegantly presented, and easy to order. We work closely with each customer to make sure the bouquet feels personal, gift-ready, and exactly right for the moment.</p>
           <a class="btn btn-primary" href="#/shop">Shop Bouquets</a>
         </div>
@@ -755,7 +777,7 @@ function aboutPage() {
               ['Elegant presentation', 'Gift-ready from the first look — packaging that matches the flowers.'],
               ['Personal gifting', 'We treat every order like it matters, because to someone it does.'],
               ['Warm experience', 'Secure online checkout with delivery details confirmed every step of the way.'],
-              ['Abuja & Lagos delivery', 'Same-day delivery for confirmed orders placed before 2pm.'],
+              [`${serviceCitiesShortText} delivery`, 'Same-day delivery for confirmed orders placed before 2pm.'],
             ].map(([title, body]) => `
               <div class="bullet-card about-value-card">
                 <h3>${title}</h3>
@@ -780,7 +802,7 @@ function customOrdersPage() {
         <div class="contact-list">
           <p><strong>Instagram DM:</strong> <a href="${instagramUrl}" target="_blank" rel="noreferrer">@${instagramHandle}</a></p>
           <p><strong>Phone:</strong> ${phoneNumber}</p>
-          <p><strong>Delivery:</strong> Abuja and Lagos, same day for confirmed orders before 2pm</p>
+          <p><strong>Delivery:</strong> ${serviceCitiesText}, same day for confirmed orders before 2pm</p>
         </div>
       </div>
       <form class="form-card" data-contact-form data-form-type="custom-order">
@@ -808,7 +830,8 @@ function deliveryPage() {
       <h1>Delivery Information</h1>
       <p>We want your flowers to arrive beautifully and on time. Please review our delivery guidance before placing your order.</p>
       <div class="info-list">
-        <div class="info-card"><h3>Locations Served</h3><p>Bloomfield Flowers currently serves Abuja and Lagos, Nigeria.</p></div>
+        <div class="info-card"><h3>Locations Served</h3><p>Bloomfield Flowers currently serves ${serviceCitiesText}, Nigeria.</p></div>
+        <div class="info-card"><h3>Port Harcourt Delivery</h3><p>PH town delivery is ₦5,000. Outskirts are ₦6,000. Old GRA and Eastern Bypass are included in the ₦5,000 town rate.</p></div>
         <div class="info-card"><h3>Same-Day Delivery</h3><p>Same-day delivery is available for confirmed orders placed before 2pm. Orders after that may roll into the next delivery window.</p></div>
         <div class="info-card"><h3>Delivery Confirmation</h3><p>Delivery details and fees are confirmed before payment. Standard delivery cutoff is 7pm.</p></div>
       </div>
@@ -932,8 +955,7 @@ function cartPage() {
         <div class="cart-city-row">
           <label class="cart-city-label" for="cart-city-select">Delivery city</label>
           <select id="cart-city-select" data-cart-city class="cart-city-select">
-            <option value="Lagos"${city === 'Lagos' ? ' selected' : ''}>Lagos</option>
-            <option value="Abuja"${city === 'Abuja' ? ' selected' : ''}>Abuja</option>
+            ${cityOptions(city)}
           </select>
         </div>
         <p>Items: ${cartCount()}</p>
@@ -979,10 +1001,10 @@ function checkoutPage() {
             <span>Pick up</span>
           </label>
         </div>
-        <label>City<select name="city" required><option value="Abuja"${city === 'Abuja' ? ' selected' : ''}>Abuja</option><option value="Lagos"${city === 'Lagos' ? ' selected' : ''}>Lagos</option></select></label>
+        <label>City<select name="city" required>${cityOptions(city)}</select></label>
         <div data-delivery-fields${isPickup ? ' class="hidden"' : ''}>
           <label>Delivery address<input name="address" type="text" placeholder="Street address" value="${esc(draft.address || '')}" required ${isPickup ? 'disabled' : ''}></label>
-          <label>Area / district<input name="area" type="text" placeholder="e.g. Maitama, Lekki Phase 1, Victoria Island" value="${esc(draft.area || '')}" required ${isPickup ? 'disabled' : ''}></label>
+          <label>Area / district<input name="area" type="text" placeholder="e.g. Old GRA, Eastern Bypass, Lekki Phase 1" value="${esc(draft.area || '')}" required ${isPickup ? 'disabled' : ''}></label>
           <div class="delivery-fee-display" data-delivery-fee-display>
             ${renderDeliveryFeeContent(draft.city, draft.area)}
           </div>
@@ -998,11 +1020,6 @@ function checkoutPage() {
         <label>Preferred date <span class="form-label-hint">(day / month / year)</span><input name="deliveryDate" type="date" min="${deliveryMinDate()}" max="${deliveryMaxDate()}" value="${esc(draft.deliveryDate || '')}" required></label>
         <label>Preferred time<select name="deliveryTime" data-delivery-time-select required><option value="" disabled${!draft.deliveryTime ? ' selected' : ''}>Select a time</option>${deliveryTimeOptions(draft.deliveryTime || '', draft.deliveryDate || '')}</select></label>
         <label>Card message<textarea name="cardMessage" rows="3" placeholder="Add a note for the recipient" maxlength="500">${esc(draft.cardMessage || '')}</textarea></label>
-        <div class="coupon-row">
-          <input name="couponCode" type="text" placeholder="Promo code (e.g. GFDAY5)" data-coupon-input autocomplete="off" style="text-transform:uppercase">
-          <button type="button" class="btn btn-secondary btn-sm" data-apply-coupon>Apply</button>
-        </div>
-        <div class="coupon-status" data-coupon-status aria-live="polite"></div>
         <div class="form-status" data-checkout-status aria-live="polite"></div>
         <div class="checkout-actions">
           <button class="btn btn-primary btn-pay" type="submit" data-checkout-submit>${items.length ? 'Pay Securely' : 'Add items to continue'}</button>
@@ -1017,11 +1034,10 @@ function checkoutPage() {
       </form>
       <aside class="summary-card summary-card-emphasis">
         <h3>Order Summary</h3>
-        ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${esc(item.product.name)} × ${item.qty}</span><strong>${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
+        ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${esc(item.product.name)} × ${item.qty}</span><strong data-checkout-item-total="${item.id}">${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
         <p class="summary-total">Subtotal: ${naira.format(cartTotal(city))}</p>
-        <p data-discount-line${appliedDiscount ? '' : ' class="hidden"'} style="color:#C27E8C;font-weight:600">Discount (<span data-discount-code-label>${appliedDiscount?.code || ''}</span>): −<span data-discount-amount>${naira.format(appliedDiscount?.discountAmount || 0)}</span></p>
-        <p>Delivery: <span data-checkout-delivery>${appliedDiscount?.freeDelivery ? '<span style="text-decoration:line-through;color:#aaa">' + naira.format(deliveryFee) + '</span> <strong style="color:#C27E8C">Free</strong>' : naira.format(deliveryFee)}</span></p>
-        <p class="summary-total">Total: <span data-checkout-total>${naira.format(isPickup ? cartTotal(city) - (appliedDiscount?.discountAmount || 0) : checkoutGrandTotal(city) - (appliedDiscount?.discountAmount || 0) - (appliedDiscount?.freeDelivery ? deliveryFee : 0))}</span></p>
+        <p>Delivery: <span data-checkout-delivery>${naira.format(deliveryFee)}</span></p>
+        <p class="summary-total">Total: <span data-checkout-total>${naira.format(isPickup ? cartTotal(city) : checkoutGrandTotal(city))}</span></p>
         <p class="summary-note">You'll be redirected to a secure payment page. Once payment is confirmed, we'll contact you to ${isPickup ? 'arrange your pickup' : 'arrange delivery'}.</p>
       </aside>
     </main>
@@ -1067,21 +1083,21 @@ function termsPage() {
       <p class="legal-intro">Please read these terms carefully before placing an order with Bloomfield Flowers. By completing a purchase you confirm that you have read, understood, and agreed to the following.</p>
 
       <h2>1. About Bloomfield Flowers</h2>
-      <p>Bloomfield Flowers is a luxury floral gifting brand based in Nigeria, serving Abuja and Lagos. We create bespoke bouquets and floral arrangements for romance, birthdays, anniversaries, and celebrations.</p>
+      <p>Bloomfield Flowers is a luxury floral gifting brand based in Nigeria, serving ${serviceCitiesText}. We create bespoke bouquets and floral arrangements for romance, birthdays, anniversaries, and celebrations.</p>
 
       <h2>2. Orders</h2>
       <p>All orders are subject to flower availability. Placing an order and completing payment does not constitute a guaranteed acceptance until we have confirmed availability with you. We will contact you via WhatsApp or Instagram within a reasonable time after your order is placed to confirm details.</p>
       <p>We reserve the right to cancel any order and issue a full refund if we are unable to fulfil it due to stock unavailability or circumstances beyond our control.</p>
 
       <h2>3. Pricing</h2>
-      <p>All prices are displayed in Nigerian Naira (₦) and are inclusive of applicable taxes. Delivery fees are calculated at checkout based on your delivery location. Prices may vary by city — Lagos and Abuja pricing may differ for the same arrangement.</p>
+      <p>All prices are displayed in Nigerian Naira (₦) and are inclusive of applicable taxes. Delivery fees are calculated at checkout based on your delivery location. Prices may vary by city — Lagos, Abuja, and Port Harcourt pricing may differ for the same arrangement.</p>
       <p>We reserve the right to update prices at any time. The price displayed at the time of checkout is the price you will be charged.</p>
 
       <h2>4. Payment</h2>
       <p>Payment is processed securely via Squad (a PCI-compliant payment platform). We accept card payments, bank transfers, and USSD. Payment must be completed in full before your order is prepared.</p>
 
       <h2>5. Delivery</h2>
-      <p><strong>Delivery method:</strong> We use third-party dispatch riders (including but not limited to Bolt and Uber) for deliveries across Abuja and Lagos. Delivery is kerbside — our rider will bring your order to the front of the delivery address. We are unable to enter gated communities, office blocks, or residential buildings without prior arrangement.</p>
+      <p><strong>Delivery method:</strong> We use third-party dispatch riders (including but not limited to Bolt and Uber) for deliveries across ${serviceCitiesText}. Delivery is kerbside — our rider will bring your order to the front of the delivery address. We are unable to enter gated communities, office blocks, or residential buildings without prior arrangement.</p>
       <p><strong>Kerbside delivery:</strong> The recipient or a designated person must be available at the kerbside to receive the order at the agreed time. Bloomfield Flowers is not responsible for delays arising from the recipient being unavailable.</p>
       <p><strong>Delivery window:</strong> Deliveries are made Monday–Saturday between 10am and 6pm, and on Sundays between 1pm and 4pm. Same-day delivery is available for orders confirmed before 2pm (subject to availability). Delivery times are estimates and may be affected by traffic or unforeseen circumstances.</p>
       <p><strong>Customer responsibility:</strong> It is your responsibility to ensure that the recipient's address, phone number, and availability are correct. Bloomfield Flowers is not liable for failed deliveries caused by incorrect information provided by the customer.</p>
@@ -1249,7 +1265,6 @@ async function handleCheckoutSubmit(event) {
       deliveryNotes: draft.deliveryNotes,
     },
     items: getCart(),
-    discountCode: appliedDiscount?.code || null,
   }
 
   submit.disabled = true
@@ -1501,63 +1516,6 @@ function bindEvents() {
     })
   }
 
-  const applyCouponBtn = document.querySelector('[data-apply-coupon]')
-  if (applyCouponBtn) {
-    applyCouponBtn.addEventListener('click', async () => {
-      const input = document.querySelector('[data-coupon-input]')
-      const statusEl = document.querySelector('[data-coupon-status]')
-      const code = (input?.value || '').trim().toUpperCase()
-      if (!code) return
-
-      applyCouponBtn.disabled = true
-      applyCouponBtn.textContent = '…'
-      if (statusEl) { statusEl.textContent = ''; statusEl.className = 'coupon-status' }
-
-      const draft = getCheckoutDraft()
-      const city = draft.city || getCartCity() || 'Lagos'
-      const subtotal = cartTotal(city)
-
-      try {
-        const res = await fetch('/api/checkout/apply-coupon', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, subtotal }),
-        })
-        const result = await res.json().catch(() => ({}))
-
-        if (!res.ok || !result.valid) {
-          appliedDiscount = null
-          if (statusEl) { statusEl.textContent = result.error || 'Invalid code'; statusEl.className = 'coupon-status coupon-status-error' }
-        } else {
-          appliedDiscount = { code: result.code, discountAmount: result.discountAmount, freeDelivery: result.freeDelivery, message: result.message }
-          if (statusEl) { statusEl.textContent = result.message; statusEl.className = 'coupon-status coupon-status-success' }
-
-          // Update summary UI
-          const discountLine = document.querySelector('[data-discount-line]')
-          const codeLabel = document.querySelector('[data-discount-code-label]')
-          const discountAmountEl = document.querySelector('[data-discount-amount]')
-          if (discountLine) discountLine.classList.remove('hidden')
-          if (codeLabel) codeLabel.textContent = result.code
-          if (discountAmountEl) discountAmountEl.textContent = naira.format(result.discountAmount)
-
-          const isPickupNow = (draft.deliveryMethod || 'delivery') === 'pickup'
-          const effectiveFee = result.freeDelivery ? 0 : (isPickupNow ? 0 : (lookupDeliveryFee(city, draft.area || '').fee ?? 0))
-          const deliveryEl = document.querySelector('[data-checkout-delivery]')
-          const totalEl = document.querySelector('[data-checkout-total]')
-          if (deliveryEl) deliveryEl.innerHTML = result.freeDelivery
-            ? `<span style="text-decoration:line-through;color:#aaa">${naira.format(lookupDeliveryFee(city, draft.area || '').fee ?? 0)}</span> <strong style="color:#C27E8C">Free</strong>`
-            : naira.format(effectiveFee)
-          if (totalEl) totalEl.textContent = naira.format(Math.max(0, subtotal - result.discountAmount + effectiveFee))
-        }
-      } catch {
-        if (statusEl) { statusEl.textContent = 'Could not apply code. Please try again.'; statusEl.className = 'coupon-status coupon-status-error' }
-      } finally {
-        applyCouponBtn.disabled = false
-        applyCouponBtn.textContent = 'Apply'
-      }
-    })
-  }
-
   const checkoutForm = document.querySelector('[data-checkout-form]')
   if (checkoutForm) {
     checkoutForm.addEventListener('submit', handleCheckoutSubmit)
@@ -1609,7 +1567,12 @@ function bindEvents() {
               const feeDisplay = document.querySelector('[data-delivery-fee-display]')
               if (feeDisplay) feeDisplay.innerHTML = renderDeliveryFeeContent(newDraft.city, newDraft.area)
             }
-            const effectiveFee = pickupActive ? 0 : (lookupDeliveryFee(newDraft.city || 'Abuja', newDraft.area || '').fee ?? 0)
+            if (field.name === 'city') saveCartCity(newDraft.city)
+            cartDetailed(newDraft.city).forEach((item) => {
+              const el = document.querySelector(`[data-checkout-item-total="${item.id}"]`)
+              if (el) el.textContent = naira.format(item.subtotal)
+            })
+            const effectiveFee = pickupActive ? 0 : (lookupDeliveryFee(newDraft.city || getCartCity() || 'Lagos', newDraft.area || '').fee ?? 0)
             const deliveryEl = document.querySelector('[data-checkout-delivery]')
             const totalEl = document.querySelector('[data-checkout-total]')
             if (deliveryEl) deliveryEl.textContent = naira.format(effectiveFee)
@@ -1670,7 +1633,6 @@ function renderApp() {
   try {
     const route = checkoutResultState()
     const shouldResetScroll = route !== lastRenderedRoute
-    if (shouldResetScroll && route !== 'checkout') appliedDiscount = null
     const currentScrollX = window.scrollX
     const currentScrollY = window.scrollY
 
@@ -1719,6 +1681,12 @@ function injectProductJsonLd() {
       shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'NG', addressRegion: 'Abuja' },
       deliveryTime: shippingDeliveryTime,
     },
+    {
+      '@type': 'OfferShippingDetails',
+      shippingRate: { '@type': 'MonetaryAmount', value: 5000, currency: 'NGN' },
+      shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'NG', addressRegion: 'Port Harcourt' },
+      deliveryTime: shippingDeliveryTime,
+    },
   ]
 
   const aggregateRating = {
@@ -1740,7 +1708,7 @@ function injectProductJsonLd() {
       const { low, high } = priceBounds(product.price)
       const offers = low === high
         ? { '@type': 'Offer', priceCurrency: 'NGN', price: low, availability: 'https://schema.org/InStock', url: `${SITE_URL}/#/product/${product.id}`, hasMerchantReturnPolicy: merchantReturnPolicy, shippingDetails }
-        : { '@type': 'AggregateOffer', priceCurrency: 'NGN', lowPrice: low, highPrice: high, offerCount: 2, availability: 'https://schema.org/InStock', url: `${SITE_URL}/#/product/${product.id}`, hasMerchantReturnPolicy: merchantReturnPolicy, shippingDetails }
+        : { '@type': 'AggregateOffer', priceCurrency: 'NGN', lowPrice: low, highPrice: high, offerCount: 3, availability: 'https://schema.org/InStock', url: `${SITE_URL}/#/product/${product.id}`, hasMerchantReturnPolicy: merchantReturnPolicy, shippingDetails }
 
       return {
         '@type': 'ListItem',

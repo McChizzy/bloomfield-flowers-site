@@ -115,21 +115,52 @@ const LAGOS_ZONES = [
   },
 ]
 
+const PORT_HARCOURT_ZONES = [
+  {
+    fee: 5000,
+    areas: [
+      'port harcourt', 'ph', 'ph town', 'town', 'port harcourt town',
+      'old gra', 'old g.r.a', 'new gra', 'new g.r.a', 'gra',
+      'eastern bypass', 'd-line', 'd line', 'trans amadi',
+      'peter odili road', 'peter odili', 'stadium road', 'woji',
+      'rumuola', 'rumuomasi', 'aba road',
+    ],
+  },
+  {
+    fee: 6000,
+    areas: [
+      'eliozu', 'rumuokoro', 'ada george', 'rumuigbo', 'mgbuoba',
+      'elelenwo', 'choba', 'aluu', 'uniport', 'airport road',
+      'omagwa', 'eleme', 'igwuruta', 'oyigbo',
+    ],
+  },
+]
+
 const CITY_FALLBACK_FEE = {
   Abuja: 5000,
   Lagos: 6500,
+  'Port Harcourt': 5000,
 }
 
 function normalizeArea(area) {
   return String(area || '').toLowerCase().trim().replace(/\s+/g, ' ')
 }
 
+function normalizeCity(city) {
+  const value = String(city || '').toLowerCase().trim().replace(/\s+/g, ' ')
+  if (value === 'lagos') return 'Lagos'
+  if (value === 'abuja') return 'Abuja'
+  if (value === 'ph' || value === 'port harcourt' || value === 'port-harcourt') return 'Port Harcourt'
+  return String(city || '').trim()
+}
+
 export function lookupDeliveryFee(city, area) {
-  const normalCity = String(city || '').trim()
+  const normalCity = normalizeCity(city)
   const normalArea = normalizeArea(area)
 
   const zones = normalCity === 'Lagos' ? LAGOS_ZONES
     : normalCity === 'Abuja' ? ABUJA_ZONES
+    : normalCity === 'Port Harcourt' ? PORT_HARCOURT_ZONES
     : null
 
   if (!zones) return { fee: null, exact: false }

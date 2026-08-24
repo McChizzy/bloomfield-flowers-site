@@ -200,6 +200,6 @@ export function priceBounds(price) {
 
 export function parsePriceValue(price, city = '') {
   const { low, high } = priceBounds(price)
-  // Lagos = lower price, Abuja = higher price
-  return city === 'Abuja' ? high : low
+  // Lagos = lower price; Abuja and Port Harcourt use the higher range until city-specific PH prices are added.
+  return city === 'Abuja' || city === 'Port Harcourt' ? high : low
 }

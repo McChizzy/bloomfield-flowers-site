@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     return json(res, 400, { error: 'Invalid JSON payload' })
   }
 
-  const { customer = {}, delivery = {}, items = [], discountCode } = payload || {}
+  const { customer = {}, delivery = {}, items = [] } = payload || {}
 
   // Validate field lengths to prevent oversized payloads
   const fields = { fullName: customer.fullName, email: customer.email, phone: customer.phone, address: delivery.address, area: delivery.area, cardMessage: delivery.cardMessage, deliveryNotes: delivery.deliveryNotes }
@@ -43,46 +43,13 @@ export default async function handler(req, res) {
     return json(res, 400, { error: 'Your cart is empty.' })
   }
 
-  // Server-side discount validation
-  let discountAmount = 0
-  let freeDelivery = false
-  let validatedCode = null
-
-  if (discountCode) {
-    const supabase = getSupabase()
-    if (supabase) {
-      const { data: codeRow } = await supabaseQuery(() =>
-        supabase
-          .from('discount_codes')
-          .select('*')
-          .eq('code', String(discountCode).toUpperCase().trim())
-          .eq('active', true)
-          .single()
-      )
-      if (
-        codeRow &&
-        (!codeRow.expires_at || new Date(codeRow.expires_at) >= new Date()) &&
-        (codeRow.max_uses === null || codeRow.uses < codeRow.max_uses) &&
-        order.subtotal >= (codeRow.min_order || 0)
-      ) {
-        validatedCode = codeRow.code
-        if (codeRow.type === 'percent') discountAmount = Math.round(order.subtotal * codeRow.value / 100)
-        else if (codeRow.type === 'fixed') discountAmount = Math.min(codeRow.value, order.subtotal)
-        freeDelivery = codeRow.free_delivery_threshold !== null && order.subtotal >= codeRow.free_delivery_threshold
-      }
-    }
-  }
-
-  const effectiveDeliveryFee = freeDelivery ? 0 : order.deliveryFee
-  const effectiveTotal = order.subtotal - discountAmount + effectiveDeliveryFee
-
   try {
     const secretKey = getEnv('SQUAD_SECRET_KEY')
     const callbackBase = process.env.SQUAD_REDIRECT_URL || `${buildSiteUrl(req)}/checkout-complete`
     const transactionRef = generateTransactionRef()
 
     const squadPayload = {
-      amount: Math.max(effectiveTotal, 0) * 100,
+      amount: order.amountKobo,
       email: customer.email,
       currency: 'NGN',
       initiate_type: 'inline',
@@ -96,10 +63,8 @@ export default async function handler(req, res) {
         delivery,
         order: {
           subtotal: order.subtotal,
-          deliveryFee: effectiveDeliveryFee,
-          discountCode: validatedCode,
-          discountAmount,
-          total: effectiveTotal,
+          deliveryFee: order.deliveryFee,
+          total: order.total,
           items: order.lineItems,
         },
       },
@@ -138,10 +103,8 @@ export default async function handler(req, res) {
           card_message: delivery.cardMessage || null,
           delivery_notes: delivery.deliveryNotes || null,
           subtotal: order.subtotal,
-          delivery_fee: effectiveDeliveryFee,
-          discount_code: validatedCode,
-          discount_amount: discountAmount,
-          total: effectiveTotal,
+          delivery_fee: order.deliveryFee,
+          total: order.total,
           items: order.lineItems,
         }, { onConflict: 'transaction_ref' })
       )
@@ -153,11 +116,9 @@ export default async function handler(req, res) {
     return json(res, 200, {
       checkoutUrl: squad.data?.data?.checkout_url,
       transactionRef: confirmedRef,
-      amount: effectiveTotal,
+      amount: order.total,
       subtotal: order.subtotal,
-      deliveryFee: effectiveDeliveryFee,
-      discountCode: validatedCode,
-      discountAmount,
+      deliveryFee: order.deliveryFee,
     })
   } catch (error) {
     return json(res, 500, { error: error.message || 'Checkout initialization failed.' })

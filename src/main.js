@@ -15,11 +15,13 @@ const serviceCitiesText = 'Lagos, Abuja, and Port Harcourt'
 const serviceCitiesShortText = 'Lagos · Abuja · Port Harcourt'
 const phLaunchTickerItems = [
   'Port Harcourt launch loading',
-  'PH town delivery ₦5,000',
-  'Old GRA + Eastern Bypass included',
-  'Outskirts delivery ₦6,000',
+  'PH town',
+  'Old GRA',
+  'Eastern Bypass',
+  'Trans Amadi',
+  'Woji',
+  'Outskirts by confirmation',
   'DM PH for first access',
-  'First 5 PH orders get 10% off',
 ]
 // Business hours: Mon–Sat 9am–7pm, Sun 12pm–5pm
 // Delivery slots: 1hr after opening, 1hr before closing
@@ -47,9 +49,8 @@ function phLaunchPromo() {
     <div class="ph-launch-banner" aria-label="Port Harcourt launch notice">
       <div>
         <strong>Port Harcourt, Bloomfield is getting ready for you.</strong>
-        <span>Preview the PH ordering flow, delivery rates, and launch pages before we go live.</span>
+        <span>PH ordering is being tested before launch.</span>
       </div>
-      <a href="/flower-delivery-port-harcourt">View PH page</a>
     </div>
     <div class="promo-ticker" aria-label="Port Harcourt launch highlights">
       <div class="promo-ticker-track">${tickerItems}</div>
@@ -423,6 +424,16 @@ function getDeliveryFee() {
   if ((draft.deliveryMethod || 'delivery') === 'pickup') return 0
   const { fee } = lookupDeliveryFee(draft.city || getCartCity() || 'Lagos', draft.area || '')
   return fee ?? 0
+}
+
+function deliveryFeeSummary(city, area, isPickup = false) {
+  if (isPickup) return { fee: 0, feeText: naira.format(0), canPay: true }
+  const { fee } = lookupDeliveryFee(city || getCartCity() || 'Lagos', area || '')
+  return {
+    fee: fee ?? 0,
+    feeText: fee ? naira.format(fee) : 'To be confirmed',
+    canPay: Boolean(fee),
+  }
 }
 
 function renderDeliveryFeeContent(city, area) {
@@ -831,7 +842,7 @@ function deliveryPage() {
       <p>We want your flowers to arrive beautifully and on time. Please review our delivery guidance before placing your order.</p>
       <div class="info-list">
         <div class="info-card"><h3>Locations Served</h3><p>Bloomfield Flowers currently serves ${serviceCitiesText}, Nigeria.</p></div>
-        <div class="info-card"><h3>Port Harcourt Delivery</h3><p>PH town delivery is ₦5,000. Outskirts are ₦6,000. Old GRA and Eastern Bypass are included in the ₦5,000 town rate.</p></div>
+        <div class="info-card"><h3>Port Harcourt Delivery</h3><p>PH town, Old GRA, Eastern Bypass, Trans Amadi, Woji, and selected nearby areas are part of the Port Harcourt launch flow. Outskirts are confirmed before payment.</p></div>
         <div class="info-card"><h3>Same-Day Delivery</h3><p>Same-day delivery is available for confirmed orders placed before 2pm. Orders after that may roll into the next delivery window.</p></div>
         <div class="info-card"><h3>Delivery Confirmation</h3><p>Delivery details and fees are confirmed before payment. Standard delivery cutoff is 7pm.</p></div>
       </div>
@@ -975,7 +986,8 @@ function checkoutPage() {
   const isPickup = (draft.deliveryMethod || 'delivery') === 'pickup'
   const city = draft.city || getCartCity() || 'Lagos'
   const items = cartDetailed(city)
-  const deliveryFee = isPickup ? 0 : getDeliveryFee()
+  const deliveryFee = deliveryFeeSummary(city, draft.area, isPickup)
+  const subtotal = cartTotal(city)
   return shell(`
     <main class="section container split-page">
       <form class="form-card checkout-form-card" data-checkout-form>
@@ -1035,9 +1047,9 @@ function checkoutPage() {
       <aside class="summary-card summary-card-emphasis">
         <h3>Order Summary</h3>
         ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${esc(item.product.name)} × ${item.qty}</span><strong data-checkout-item-total="${item.id}">${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
-        <p class="summary-total">Subtotal: <span data-checkout-subtotal>${naira.format(cartTotal(city))}</span></p>
-        <p>Delivery: <span data-checkout-delivery>${naira.format(deliveryFee)}</span></p>
-        <p class="summary-total">Total: <span data-checkout-total>${naira.format(isPickup ? cartTotal(city) : checkoutGrandTotal(city))}</span></p>
+        <p class="summary-total">Subtotal: <span data-checkout-subtotal>${naira.format(subtotal)}</span></p>
+        <p>Delivery: <span data-checkout-delivery>${deliveryFee.feeText}</span></p>
+        <p class="summary-total">Total: <span data-checkout-total>${deliveryFee.canPay ? naira.format(subtotal + deliveryFee.fee) : `${naira.format(subtotal)} + delivery`}</span></p>
         <p class="summary-note">You'll be redirected to a secure payment page. Once payment is confirmed, we'll contact you to ${isPickup ? 'arrange your pickup' : 'arrange delivery'}.</p>
       </aside>
     </main>
@@ -1242,6 +1254,15 @@ async function handleCheckoutSubmit(event) {
 
   if (draft.recipientPhone && !isValidNigerianPhone(draft.recipientPhone)) {
     status.textContent = 'Please enter a valid Nigerian recipient phone number (11 digits, e.g. 0801 234 5678, or +234 followed by 10 digits).'
+    status.className = 'form-status form-status-error'
+    return
+  }
+
+  const feeCheck = draft.deliveryMethod === 'pickup'
+    ? { fee: 0 }
+    : lookupDeliveryFee(draft.city, draft.area)
+  if (draft.deliveryMethod !== 'pickup' && !feeCheck.fee) {
+    status.textContent = "We'll confirm the delivery fee for this area before payment. Please message us on Instagram or WhatsApp to complete this order."
     status.className = 'form-status form-status-error'
     return
   }
@@ -1535,11 +1556,12 @@ function bindEvents() {
         })
         const currentCity = checkoutForm.querySelector('[name="city"]')?.value || getCartCity() || 'Lagos'
         const currentArea = checkoutForm.querySelector('[name="area"]')?.value || ''
-        const effectiveFee = pickup ? 0 : (lookupDeliveryFee(currentCity, currentArea).fee ?? 0)
+        const feeSummary = deliveryFeeSummary(currentCity, currentArea, pickup)
+        const subtotal = cartTotal(currentCity)
         const deliveryEl = document.querySelector('[data-checkout-delivery]')
         const totalEl = document.querySelector('[data-checkout-total]')
-        if (deliveryEl) deliveryEl.textContent = naira.format(effectiveFee)
-        if (totalEl) totalEl.textContent = naira.format(cartTotal(currentCity) + effectiveFee)
+        if (deliveryEl) deliveryEl.textContent = feeSummary.feeText
+        if (totalEl) totalEl.textContent = feeSummary.canPay ? naira.format(subtotal + feeSummary.fee) : `${naira.format(subtotal)} + delivery`
       })
     })
 
@@ -1572,13 +1594,14 @@ function bindEvents() {
               const el = document.querySelector(`[data-checkout-item-total="${item.id}"]`)
               if (el) el.textContent = naira.format(item.subtotal)
             })
-            const effectiveFee = pickupActive ? 0 : (lookupDeliveryFee(newDraft.city || getCartCity() || 'Lagos', newDraft.area || '').fee ?? 0)
+            const feeSummary = deliveryFeeSummary(newDraft.city || getCartCity() || 'Lagos', newDraft.area || '', pickupActive)
+            const subtotal = cartTotal(newDraft.city)
             const deliveryEl = document.querySelector('[data-checkout-delivery]')
             const subtotalEl = document.querySelector('[data-checkout-subtotal]')
             const totalEl = document.querySelector('[data-checkout-total]')
-            if (subtotalEl) subtotalEl.textContent = naira.format(cartTotal(newDraft.city))
-            if (deliveryEl) deliveryEl.textContent = naira.format(effectiveFee)
-            if (totalEl) totalEl.textContent = naira.format(cartTotal(newDraft.city) + effectiveFee)
+            if (subtotalEl) subtotalEl.textContent = naira.format(subtotal)
+            if (deliveryEl) deliveryEl.textContent = feeSummary.feeText
+            if (totalEl) totalEl.textContent = feeSummary.canPay ? naira.format(subtotal + feeSummary.fee) : `${naira.format(subtotal)} + delivery`
           }, 350)
         }
 

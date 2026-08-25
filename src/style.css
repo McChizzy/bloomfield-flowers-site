@@ -84,8 +84,7 @@ body {
 }
 
 .ph-launch-banner strong,
-.ph-launch-banner span,
-.ph-launch-banner a {
+.ph-launch-banner span {
   color: #fff;
 }
 
@@ -96,15 +95,6 @@ body {
 .ph-launch-banner span {
   font-size: 0.84rem;
   opacity: 0.88;
-}
-
-.ph-launch-banner a {
-  flex: 0 0 auto;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  border-radius: 999px;
-  padding: 0.38rem 0.8rem;
-  font-size: 0.78rem;
-  font-weight: 700;
 }
 
 .promo-ticker {
@@ -1386,10 +1376,6 @@ p {
   .ph-launch-banner span,
   .promo-ticker-item {
     font-size: 0.76rem;
-  }
-
-  .ph-launch-banner a {
-    align-self: center;
   }
 
   .nav-row {

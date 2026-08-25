@@ -139,7 +139,6 @@ const PORT_HARCOURT_ZONES = [
 const CITY_FALLBACK_FEE = {
   Abuja: 5000,
   Lagos: 6500,
-  'Port Harcourt': 5000,
 }
 
 function normalizeArea(area) {

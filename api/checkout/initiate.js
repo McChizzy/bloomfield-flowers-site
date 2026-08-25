@@ -39,6 +39,10 @@ export default async function handler(req, res) {
     return json(res, 400, { error: 'Delivery address and area are required.' })
   }
 
+  if (!isPickup && zoneDeliveryFee === null) {
+    return json(res, 400, { error: 'Delivery fee for this area needs to be confirmed before payment.' })
+  }
+
   if (!order.lineItems.length || order.total <= 0) {
     return json(res, 400, { error: 'Your cart is empty.' })
   }

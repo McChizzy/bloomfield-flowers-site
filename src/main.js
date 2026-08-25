@@ -1035,7 +1035,7 @@ function checkoutPage() {
       <aside class="summary-card summary-card-emphasis">
         <h3>Order Summary</h3>
         ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${esc(item.product.name)} × ${item.qty}</span><strong data-checkout-item-total="${item.id}">${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
-        <p class="summary-total">Subtotal: ${naira.format(cartTotal(city))}</p>
+        <p class="summary-total">Subtotal: <span data-checkout-subtotal>${naira.format(cartTotal(city))}</span></p>
         <p>Delivery: <span data-checkout-delivery>${naira.format(deliveryFee)}</span></p>
         <p class="summary-total">Total: <span data-checkout-total>${naira.format(isPickup ? cartTotal(city) : checkoutGrandTotal(city))}</span></p>
         <p class="summary-note">You'll be redirected to a secure payment page. Once payment is confirmed, we'll contact you to ${isPickup ? 'arrange your pickup' : 'arrange delivery'}.</p>
@@ -1574,7 +1574,9 @@ function bindEvents() {
             })
             const effectiveFee = pickupActive ? 0 : (lookupDeliveryFee(newDraft.city || getCartCity() || 'Lagos', newDraft.area || '').fee ?? 0)
             const deliveryEl = document.querySelector('[data-checkout-delivery]')
+            const subtotalEl = document.querySelector('[data-checkout-subtotal]')
             const totalEl = document.querySelector('[data-checkout-total]')
+            if (subtotalEl) subtotalEl.textContent = naira.format(cartTotal(newDraft.city))
             if (deliveryEl) deliveryEl.textContent = naira.format(effectiveFee)
             if (totalEl) totalEl.textContent = naira.format(cartTotal(newDraft.city) + effectiveFee)
           }, 350)

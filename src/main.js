@@ -14,14 +14,14 @@ const deliveryCities = ['Lagos', 'Abuja', 'Port Harcourt']
 const serviceCitiesText = 'Lagos, Abuja, and Port Harcourt'
 const serviceCitiesShortText = 'Lagos · Abuja · Port Harcourt'
 const phLaunchTickerItems = [
-  'Port Harcourt launch loading',
-  'PH town',
-  'Old GRA',
-  'Eastern Bypass',
-  'Trans Amadi',
-  'Woji',
-  'Outskirts by confirmation',
-  'DM PH for first access',
+  '🌿 Port Harcourt — Bloomfield is coming',
+  '📍 PH Town · Old GRA · New GRA',
+  '🌺 Eastern Bypass · Trans Amadi · Woji',
+  '🌸 Stadium Road · Rumuola · Rumuomasi',
+  '📩 Outer PH areas? DM us to confirm delivery',
+  '💐 Premium bouquets, now reaching Rivers State',
+  '🌿 Same-day delivery for confirmed PH orders',
+  '📍 Be first — DM @bloomfieldflowers_ for PH access',
 ]
 // Business hours: Mon–Sat 9am–7pm, Sun 12pm–5pm
 // Delivery slots: 1hr after opening, 1hr before closing
@@ -47,9 +47,9 @@ function phLaunchPromo() {
 
   return `
     <div class="ph-launch-banner" aria-label="Port Harcourt launch notice">
-      <div>
-        <strong>Port Harcourt, Bloomfield is getting ready for you.</strong>
-      </div>
+      <span class="ph-launch-badge">Coming Soon</span>
+      <strong>🌿 Port Harcourt — Bloomfield is on the way.</strong>
+      <a class="ph-launch-dm" href="${instagramUrl}" target="_blank" rel="noreferrer">DM for early access →</a>
     </div>
     <div class="promo-ticker" aria-label="Port Harcourt launch highlights">
       <div class="promo-ticker-track">${tickerItems}</div>

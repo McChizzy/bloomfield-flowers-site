@@ -64,6 +64,99 @@ body {
   border-bottom: 1px solid rgba(234, 220, 223, 0.9);
 }
 
+/* PH launch banner + scrolling ticker */
+.ph-launch-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 0.65rem 1.25rem;
+  background: linear-gradient(90deg, #5c2a46, #7a3860);
+  color: #fff;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.ph-launch-badge {
+  display: inline-block;
+  padding: 0.18rem 0.65rem;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.ph-launch-banner strong {
+  font-size: 0.9rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.ph-launch-dm {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,0.4);
+  white-space: nowrap;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.ph-launch-dm:hover {
+  color: #fff;
+  border-color: rgba(255,255,255,0.85);
+}
+
+.promo-ticker {
+  overflow: hidden;
+  background: #fff3f6;
+  border-bottom: 1px solid rgba(234, 220, 223, 0.9);
+  color: var(--primary-dark);
+}
+
+.promo-ticker-track {
+  display: flex;
+  width: max-content;
+  animation: promo-scroll 36s linear infinite;
+}
+
+.promo-ticker-item {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 1.45rem;
+  font-size: 0.83rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.promo-ticker-item::after {
+  content: "";
+  width: 0.32rem;
+  height: 0.32rem;
+  margin-left: 1.45rem;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+@keyframes promo-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-ticker-track {
+    animation: none;
+    flex-wrap: wrap;
+    width: auto;
+    justify-content: center;
+  }
+}
 
 /* Instagram feed grid */
 .ig-handle-link { color: #C27E8C; font-weight: 600; text-decoration: none; }
@@ -1367,6 +1460,24 @@ p {
 @media (max-width: 640px) {
   .container {
     width: min(var(--max), calc(100% - 1.1rem));
+  }
+
+  .ph-launch-banner {
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .ph-launch-banner strong {
+    font-size: 0.84rem;
+  }
+
+  .ph-launch-badge {
+    font-size: 0.68rem;
+  }
+
+  .ph-launch-dm,
+  .promo-ticker-item {
+    font-size: 0.76rem;
   }
 
   .nav-row {

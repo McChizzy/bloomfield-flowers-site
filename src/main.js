@@ -10,6 +10,34 @@ const emailAddress = 'houseofbloomfield@gmail.com'
 const phoneNumber = '+234 701 120 3325'
 const whatsappUrl = 'https://wa.me/2347011203325'
 const businessHours = 'Open 24 hours'
+
+const phTickerItems = [
+  '🌿 Port Harcourt — Bloomfield is coming',
+  '📍 PH Town · Old GRA · New GRA',
+  '🌺 Eastern Bypass · Trans Amadi · Woji',
+  '🌸 Stadium Road · Rumuola · Rumuomasi',
+  '📩 Outer PH areas? DM us to confirm delivery',
+  '💐 Premium bouquets, now reaching Rivers State',
+  '🌿 Same-day delivery for confirmed PH orders',
+  '📍 Be first — DM @bloomfieldflowers_ for PH access',
+]
+
+function phLaunchTicker() {
+  const items = [...phTickerItems, ...phTickerItems]
+    .map((item) => `<span class="promo-ticker-item">${item}</span>`)
+    .join('')
+  return `
+    <div class="ph-launch-banner" aria-label="Port Harcourt launch notice">
+      <span class="ph-launch-badge">Coming Soon</span>
+      <strong>🌿 Port Harcourt — Bloomfield is on the way.</strong>
+      <a class="ph-launch-dm" href="${instagramUrl}" target="_blank" rel="noreferrer">DM for early access →</a>
+    </div>
+    <div class="promo-ticker" aria-label="Port Harcourt launch highlights">
+      <div class="promo-ticker-track">${items}</div>
+    </div>
+  `
+}
+
 // Business hours: Mon–Sat 9am–7pm, Sun 12pm–5pm
 // Delivery slots: 1hr after opening, 1hr before closing
 const WEEKDAY_SLOT_START = 10  // 10 AM
@@ -458,7 +486,7 @@ function shell(content, route = '') {
   return `
     <div class="site-shell">
       <header class="site-header">
-
+        ${phLaunchTicker()}
         <div class="container nav-row">
           <a class="brand" href="#/home">
             <span class="brand-logo-wrap">

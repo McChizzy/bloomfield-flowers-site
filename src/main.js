@@ -49,7 +49,6 @@ function phLaunchPromo() {
     <div class="ph-launch-banner" aria-label="Port Harcourt launch notice">
       <div>
         <strong>Port Harcourt, Bloomfield is getting ready for you.</strong>
-        <span>PH ordering is being tested before launch.</span>
       </div>
     </div>
     <div class="promo-ticker" aria-label="Port Harcourt launch highlights">

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloomfield PH Coming Soon Flyer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Cormorant+Garamond:ital,wght@1,500;1,600&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #211218; }
+  body { font-family: "Montserrat", Arial, sans-serif; }
+  .flyer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    color: #fff8f4;
+    background: #211218;
+  }
+  .photo {
+    position: absolute;
+    inset: 0;
+    background: url("assets/coming-soon-soft-mixed.jpg") center 45% / 145% auto no-repeat;
+    filter: saturate(1.08) contrast(1.04) brightness(.95);
+  }
+  .scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(33,18,24,.36) 0%, rgba(33,18,24,.08) 28%, rgba(33,18,24,.44) 59%, rgba(33,18,24,.94) 100%),
+      radial-gradient(circle at 50% 36%, rgba(255,255,255,.12), rgba(255,255,255,0) 42%);
+  }
+  .frame {
+    position: absolute;
+    inset: 34px;
+    border: 1.5px solid rgba(255,248,244,.68);
+  }
+  .frame::after {
+    content: "";
+    position: absolute;
+    inset: 7px;
+    border: 1px solid rgba(192,128,143,.68);
+  }
+  .logo {
+    position: absolute;
+    top: 44px;
+    left: 50%;
+    width: 176px;
+    height: 176px;
+    object-fit: contain;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 9px 24px rgba(0,0,0,.5));
+  }
+  .copy {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 82px;
+    padding: 0 76px;
+    text-align: center;
+  }
+  .kicker {
+    margin-bottom: 18px;
+    padding-left: .34em;
+    color: #f3d8dd;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: .34em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    text-shadow: 0 4px 18px rgba(0,0,0,.82);
+  }
+  h1 {
+    color: #fff;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 103px;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: .96;
+    text-shadow: 0 9px 34px rgba(0,0,0,.82);
+  }
+  .sub {
+    max-width: 850px;
+    margin: 24px auto 0;
+    color: #fff5f1;
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 40px;
+    font-style: italic;
+    font-weight: 600;
+    line-height: 1.18;
+    text-shadow: 0 5px 20px rgba(0,0,0,.84);
+  }
+  .areas {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    max-width: 880px;
+    margin: 28px auto 0;
+  }
+  .area {
+    min-width: 168px;
+    padding: 15px 17px;
+    border: 1px solid rgba(255,248,244,.68);
+    background: rgba(33,18,24,.58);
+    box-shadow: 0 8px 24px rgba(0,0,0,.24);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+  .handle {
+    margin-top: 28px;
+    padding-left: .28em;
+    color: #f4dde0;
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: .28em;
+    line-height: 1.2;
+    text-shadow: 0 3px 16px rgba(0,0,0,.82);
+  }
+</style>
+</head>
+<body>
+  <main class="flyer" aria-label="Bloomfield Flowers Port Harcourt coming soon campaign flyer">
+    <div class="photo"></div>
+    <div class="scrim"></div>
+    <div class="frame"></div>
+    <img class="logo" src="assets/logo-dark-transparent.png" alt="Bloomfield Flowers">
+    <section class="copy">
+      <p class="kicker">Port Harcourt</p>
+      <h1>Bloomfield<br>Is Coming</h1>
+      <p class="sub">Premium bouquets are almost ready to send across PH.</p>
+      <div class="areas" aria-label="Launch awareness areas">
+        <span class="area">Old GRA</span>
+        <span class="area">Woji</span>
+        <span class="area">Trans Amadi</span>
+      </div>
+      <p class="handle">@bloomfieldflowers_</p>
+    </section>
+  </main>
+</body>
+</html>

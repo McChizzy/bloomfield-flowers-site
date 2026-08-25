@@ -157,6 +157,39 @@ body {
   }
 }
 
+.coupon-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.coupon-row input {
+  flex: 1;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.coupon-status {
+  font-size: 0.85rem;
+  margin-top: -0.65rem;
+  min-height: 1.2em;
+}
+
+.coupon-status-success {
+  color: #C27E8C;
+  font-weight: 700;
+}
+
+.coupon-status-error {
+  color: #c0392b;
+}
+
 .nav-row {
   display: flex;
   align-items: center;

@@ -23,6 +23,7 @@ const phLaunchTickerItems = [
   '🌿 Same-day delivery for confirmed PH orders',
   '📍 Be first — DM @bloomfieldflowers_ for PH access',
 ]
+let appliedDiscount = null
 // Business hours: Mon–Sat 9am–7pm, Sun 12pm–5pm
 // Delivery slots: 1hr after opening, 1hr before closing
 const WEEKDAY_SLOT_START = 10  // 10 AM
@@ -451,6 +452,42 @@ function renderDeliveryFeeContent(city, area) {
 
 function checkoutGrandTotal(city = '') {
   return cartTotal(city) + getDeliveryFee()
+}
+
+function discountAmount() {
+  return Math.max(0, Number(appliedDiscount?.discountAmount || 0))
+}
+
+function renderCheckoutDeliveryText(feeSummary) {
+  if (appliedDiscount?.freeDelivery && feeSummary.canPay) {
+    return `<span style="text-decoration:line-through;color:#aaa">${naira.format(feeSummary.fee)}</span> <strong style="color:#C27E8C">Free</strong>`
+  }
+  return feeSummary.feeText
+}
+
+function renderCheckoutTotalText(subtotal, feeSummary) {
+  const discountedSubtotal = Math.max(0, subtotal - discountAmount())
+  if (!feeSummary.canPay) return `${naira.format(discountedSubtotal)} + delivery`
+  const deliveryFee = appliedDiscount?.freeDelivery ? 0 : feeSummary.fee
+  return naira.format(discountedSubtotal + deliveryFee)
+}
+
+function updateCheckoutSummary(city, area, isPickup) {
+  const feeSummary = deliveryFeeSummary(city, area, isPickup)
+  const subtotal = cartTotal(city)
+  const deliveryEl = document.querySelector('[data-checkout-delivery]')
+  const subtotalEl = document.querySelector('[data-checkout-subtotal]')
+  const totalEl = document.querySelector('[data-checkout-total]')
+  const discountLine = document.querySelector('[data-discount-line]')
+  const codeLabel = document.querySelector('[data-discount-code-label]')
+  const discountAmountEl = document.querySelector('[data-discount-amount]')
+
+  if (subtotalEl) subtotalEl.textContent = naira.format(subtotal)
+  if (deliveryEl) deliveryEl.innerHTML = renderCheckoutDeliveryText(feeSummary)
+  if (totalEl) totalEl.textContent = renderCheckoutTotalText(subtotal, feeSummary)
+  if (discountLine) discountLine.classList.toggle('hidden', !appliedDiscount)
+  if (codeLabel) codeLabel.textContent = appliedDiscount?.code || ''
+  if (discountAmountEl) discountAmountEl.textContent = naira.format(discountAmount())
 }
 
 function getTransactionRefFromUrl() {
@@ -1031,6 +1068,11 @@ function checkoutPage() {
         <label>Preferred date <span class="form-label-hint">(day / month / year)</span><input name="deliveryDate" type="date" min="${deliveryMinDate()}" max="${deliveryMaxDate()}" value="${esc(draft.deliveryDate || '')}" required></label>
         <label>Preferred time<select name="deliveryTime" data-delivery-time-select required><option value="" disabled${!draft.deliveryTime ? ' selected' : ''}>Select a time</option>${deliveryTimeOptions(draft.deliveryTime || '', draft.deliveryDate || '')}</select></label>
         <label>Card message<textarea name="cardMessage" rows="3" placeholder="Add a note for the recipient" maxlength="500">${esc(draft.cardMessage || '')}</textarea></label>
+        <div class="coupon-row">
+          <input name="couponCode" type="text" placeholder="Promo code" data-coupon-input autocomplete="off" style="text-transform:uppercase">
+          <button type="button" class="btn btn-secondary btn-sm" data-apply-coupon>Apply</button>
+        </div>
+        <div class="coupon-status" data-coupon-status aria-live="polite"></div>
         <div class="form-status" data-checkout-status aria-live="polite"></div>
         <div class="checkout-actions">
           <button class="btn btn-primary btn-pay" type="submit" data-checkout-submit>${items.length ? 'Pay Securely' : 'Add items to continue'}</button>
@@ -1047,8 +1089,9 @@ function checkoutPage() {
         <h3>Order Summary</h3>
         ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${esc(item.product.name)} × ${item.qty}</span><strong data-checkout-item-total="${item.id}">${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
         <p class="summary-total">Subtotal: <span data-checkout-subtotal>${naira.format(subtotal)}</span></p>
-        <p>Delivery: <span data-checkout-delivery>${deliveryFee.feeText}</span></p>
-        <p class="summary-total">Total: <span data-checkout-total>${deliveryFee.canPay ? naira.format(subtotal + deliveryFee.fee) : `${naira.format(subtotal)} + delivery`}</span></p>
+        <p data-discount-line${appliedDiscount ? '' : ' class="hidden"'} style="color:#C27E8C;font-weight:600">Discount (<span data-discount-code-label>${appliedDiscount?.code || ''}</span>): -<span data-discount-amount>${naira.format(discountAmount())}</span></p>
+        <p>Delivery: <span data-checkout-delivery>${renderCheckoutDeliveryText(deliveryFee)}</span></p>
+        <p class="summary-total">Total: <span data-checkout-total>${renderCheckoutTotalText(subtotal, deliveryFee)}</span></p>
         <p class="summary-note">You'll be redirected to a secure payment page. Once payment is confirmed, we'll contact you to ${isPickup ? 'arrange your pickup' : 'arrange delivery'}.</p>
       </aside>
     </main>
@@ -1285,6 +1328,7 @@ async function handleCheckoutSubmit(event) {
       deliveryNotes: draft.deliveryNotes,
     },
     items: getCart(),
+    discountCode: appliedDiscount?.code || null,
   }
 
   submit.disabled = true
@@ -1294,7 +1338,7 @@ async function handleCheckoutSubmit(event) {
   // Reuse an existing checkout session if it was created in the last 5 minutes
   const existingDraft = getCheckoutDraft()
   const pending = existingDraft._pendingCheckout
-  if (pending?.url && pending?.ts && (Date.now() - pending.ts) < 5 * 60 * 1000) {
+  if (pending?.url && pending?.ts && pending.discountCode === (appliedDiscount?.code || null) && (Date.now() - pending.ts) < 5 * 60 * 1000) {
     status.textContent = 'Redirecting to payment page…'
     window.location.href = pending.url
     return
@@ -1321,7 +1365,7 @@ async function handleCheckoutSubmit(event) {
     }
 
     // Store the checkout URL so re-clicks reuse it instead of creating a new transaction
-    saveCheckoutDraft({ ...getCheckoutDraft(), _pendingCheckout: { url: result.checkoutUrl, ref: result.transactionRef, ts: Date.now() } })
+    saveCheckoutDraft({ ...getCheckoutDraft(), _pendingCheckout: { url: result.checkoutUrl, ref: result.transactionRef, discountCode: appliedDiscount?.code || null, ts: Date.now() } })
     status.textContent = 'Redirecting to payment page…'
     window.location.href = result.checkoutUrl
   } catch (error) {
@@ -1536,6 +1580,65 @@ function bindEvents() {
     })
   }
 
+  const applyCouponBtn = document.querySelector('[data-apply-coupon]')
+  if (applyCouponBtn) {
+    applyCouponBtn.addEventListener('click', async () => {
+      const input = document.querySelector('[data-coupon-input]')
+      const statusEl = document.querySelector('[data-coupon-status]')
+      const code = (input?.value || '').trim().toUpperCase()
+      if (!code) return
+
+      applyCouponBtn.disabled = true
+      applyCouponBtn.textContent = '...'
+      if (statusEl) {
+        statusEl.textContent = ''
+        statusEl.className = 'coupon-status'
+      }
+
+      const draft = getCheckoutDraft()
+      const city = draft.city || getCartCity() || 'Lagos'
+      const subtotal = cartTotal(city)
+
+      try {
+        const res = await fetch('/api/checkout/apply-coupon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, subtotal }),
+        })
+        const result = await res.json().catch(() => ({}))
+
+        if (!res.ok || !result.valid) {
+          appliedDiscount = null
+          if (statusEl) {
+            statusEl.textContent = result.error || 'Invalid code'
+            statusEl.className = 'coupon-status coupon-status-error'
+          }
+        } else {
+          appliedDiscount = {
+            code: result.code,
+            discountAmount: result.discountAmount,
+            freeDelivery: result.freeDelivery,
+            message: result.message,
+          }
+          if (statusEl) {
+            statusEl.textContent = result.message
+            statusEl.className = 'coupon-status coupon-status-success'
+          }
+        }
+
+        updateCheckoutSummary(city, draft.area || '', (draft.deliveryMethod || 'delivery') === 'pickup')
+      } catch {
+        if (statusEl) {
+          statusEl.textContent = 'Could not apply code. Please try again.'
+          statusEl.className = 'coupon-status coupon-status-error'
+        }
+      } finally {
+        applyCouponBtn.disabled = false
+        applyCouponBtn.textContent = 'Apply'
+      }
+    })
+  }
+
   const checkoutForm = document.querySelector('[data-checkout-form]')
   if (checkoutForm) {
     checkoutForm.addEventListener('submit', handleCheckoutSubmit)
@@ -1555,12 +1658,7 @@ function bindEvents() {
         })
         const currentCity = checkoutForm.querySelector('[name="city"]')?.value || getCartCity() || 'Lagos'
         const currentArea = checkoutForm.querySelector('[name="area"]')?.value || ''
-        const feeSummary = deliveryFeeSummary(currentCity, currentArea, pickup)
-        const subtotal = cartTotal(currentCity)
-        const deliveryEl = document.querySelector('[data-checkout-delivery]')
-        const totalEl = document.querySelector('[data-checkout-total]')
-        if (deliveryEl) deliveryEl.textContent = feeSummary.feeText
-        if (totalEl) totalEl.textContent = feeSummary.canPay ? naira.format(subtotal + feeSummary.fee) : `${naira.format(subtotal)} + delivery`
+        updateCheckoutSummary(currentCity, currentArea, pickup)
       })
     })
 
@@ -1593,14 +1691,7 @@ function bindEvents() {
               const el = document.querySelector(`[data-checkout-item-total="${item.id}"]`)
               if (el) el.textContent = naira.format(item.subtotal)
             })
-            const feeSummary = deliveryFeeSummary(newDraft.city || getCartCity() || 'Lagos', newDraft.area || '', pickupActive)
-            const subtotal = cartTotal(newDraft.city)
-            const deliveryEl = document.querySelector('[data-checkout-delivery]')
-            const subtotalEl = document.querySelector('[data-checkout-subtotal]')
-            const totalEl = document.querySelector('[data-checkout-total]')
-            if (subtotalEl) subtotalEl.textContent = naira.format(subtotal)
-            if (deliveryEl) deliveryEl.textContent = feeSummary.feeText
-            if (totalEl) totalEl.textContent = feeSummary.canPay ? naira.format(subtotal + feeSummary.fee) : `${naira.format(subtotal)} + delivery`
+            updateCheckoutSummary(newDraft.city || getCartCity() || 'Lagos', newDraft.area || '', pickupActive)
           }, 350)
         }
 

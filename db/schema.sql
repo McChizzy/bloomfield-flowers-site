@@ -126,3 +126,15 @@ create or replace function increment_discount_uses(p_code text)
 returns void language sql security definer as $$
   update discount_codes set uses = uses + 1 where code = p_code;
 $$;
+
+-- App settings (Instagram tokens, account IDs, etc.)
+create table if not exists settings (
+  key        text primary key,
+  value      text not null,
+  updated_at timestamptz default now()
+);
+
+drop trigger if exists settings_updated_at on settings;
+create trigger settings_updated_at
+  before update on settings
+  for each row execute function update_updated_at();

@@ -10,6 +10,34 @@ const emailAddress = 'houseofbloomfield@gmail.com'
 const phoneNumber = '+234 701 120 3325'
 const whatsappUrl = 'https://wa.me/2347011203325'
 const businessHours = 'Open 24 hours'
+
+const phTickerItems = [
+  '🌿 Port Harcourt — Bloomfield is coming',
+  '📍 PH Town · Old GRA · New GRA',
+  '🌺 Eastern Bypass · Trans Amadi · Woji',
+  '🌸 Stadium Road · Rumuola · Rumuomasi',
+  '📩 Outer PH areas? DM us to confirm delivery',
+  '💐 Premium bouquets, now reaching Rivers State',
+  '🌿 Same-day delivery for confirmed PH orders',
+  '📍 Be first — DM @bloomfieldflowers_ for PH access',
+]
+
+function phLaunchTicker() {
+  const items = [...phTickerItems, ...phTickerItems]
+    .map((item) => `<span class="promo-ticker-item">${item}</span>`)
+    .join('')
+  return `
+    <div class="ph-launch-banner" aria-label="Port Harcourt launch notice">
+      <span class="ph-launch-badge">Coming Soon</span>
+      <strong>🌿 Port Harcourt — Bloomfield is on the way.</strong>
+      <a class="ph-launch-dm" href="${instagramUrl}" target="_blank" rel="noreferrer">DM for early access →</a>
+    </div>
+    <div class="promo-ticker" aria-label="Port Harcourt launch highlights">
+      <div class="promo-ticker-track">${items}</div>
+    </div>
+  `
+}
+
 // Business hours: Mon–Sat 9am–7pm, Sun 12pm–5pm
 // Delivery slots: 1hr after opening, 1hr before closing
 const WEEKDAY_SLOT_START = 10  // 10 AM
@@ -458,7 +486,7 @@ function shell(content, route = '') {
   return `
     <div class="site-shell">
       <header class="site-header">
-
+        ${phLaunchTicker()}
         <div class="container nav-row">
           <a class="brand" href="#/home">
             <span class="brand-logo-wrap">
@@ -614,6 +642,20 @@ function homePage() {
               </div>
             </article>
           `).join('')}
+        </div>
+      </section>
+
+      <section class="section container instagram-feed-section">
+        <div class="section-heading section-heading-centered">
+          <p class="eyebrow">Fresh from our studio</p>
+          <h2>Follow us on Instagram</h2>
+          <p>See our latest arrangements as they happen — <a href="${instagramUrl}" target="_blank" rel="noreferrer" class="ig-handle-link">@${instagramHandle}</a></p>
+        </div>
+        <div class="ig-grid" data-instagram-feed>
+          ${Array(9).fill(0).map(() => '<div class="ig-placeholder"></div>').join('')}
+        </div>
+        <div style="text-align:center;margin-top:1.75rem">
+          <a class="btn btn-secondary" href="${instagramUrl}" target="_blank" rel="noreferrer">Follow @${instagramHandle}</a>
         </div>
       </section>
 
@@ -1655,6 +1697,28 @@ function bindEvents() {
   }
 }
 
+async function loadInstagramFeed() {
+  const grid = document.querySelector('[data-instagram-feed]')
+  if (!grid) return
+  try {
+    const res = await fetch('/api/instagram-feed')
+    if (!res.ok) { grid.closest('section')?.remove(); return }
+    const { posts } = await res.json()
+    if (!posts?.length) { grid.closest('section')?.remove(); return }
+    grid.innerHTML = posts.map((post) => {
+      const img = post.media_type === 'VIDEO' ? (post.thumbnail_url || post.media_url) : post.media_url
+      if (!img) return ''
+      const caption = post.caption ? post.caption.replace(/\n/g, ' ').substring(0, 80) : 'Bloomfield Flowers bouquet'
+      return `<a class="ig-post" href="${esc(post.permalink)}" target="_blank" rel="noreferrer" aria-label="${esc(caption)}">
+        <img src="${esc(img)}" alt="${esc(caption)}" loading="lazy" decoding="async">
+        <div class="ig-post-overlay"></div>
+      </a>`
+    }).join('')
+  } catch {
+    document.querySelector('[data-instagram-feed]')?.closest('section')?.remove()
+  }
+}
+
 let lastRenderedRoute = ''
 
 function renderApp() {
@@ -1674,6 +1738,7 @@ function renderApp() {
     }
 
     bindEvents()
+    if (route === 'home') loadInstagramFeed()
     if (route === 'checkout-complete') verifyReturnedPayment()
     lastRenderedRoute = route
   } catch (err) {

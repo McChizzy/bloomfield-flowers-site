@@ -8,7 +8,10 @@
   --primary: #8f4c73;
   --primary-dark: #6e3556;
   --accent: #d9a5b3;
-  --shadow: 0 18px 40px rgba(110, 53, 86, 0.08);
+  --shadow: 0 1px 2px rgba(110, 53, 86, 0.06), 0 18px 40px rgba(110, 53, 86, 0.08);
+  --shadow-lift: 0 2px 6px rgba(110, 53, 86, 0.08), 0 24px 58px rgba(110, 53, 86, 0.16);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --drawer-ease: cubic-bezier(0.32, 0.72, 0, 1);
   --radius: 24px;
   --radius-sm: 16px;
   --max: 1180px;
@@ -59,7 +62,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 20;
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px) saturate(1.35);
   background: rgba(255, 250, 248, 0.88);
   border-bottom: 1px solid rgba(234, 220, 223, 0.9);
 }
@@ -249,6 +252,7 @@ body {
   flex-direction: column;
   gap: 0.28rem;
   cursor: pointer;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms var(--spring), background 180ms ease;
 }
 
 .nav-toggle span {
@@ -256,6 +260,15 @@ body {
   height: 2px;
   background: var(--primary-dark);
   border-radius: 999px;
+  transition: transform 220ms var(--drawer-ease), opacity 160ms ease;
+  transform-origin: center;
+}
+
+.nav-toggle:hover,
+.nav-toggle:focus-visible {
+  background: #fff;
+  border-color: rgba(143, 76, 115, 0.32);
+  box-shadow: 0 10px 24px rgba(110, 53, 86, 0.12);
 }
 
 .nav-links {
@@ -273,12 +286,20 @@ body {
   min-height: 2.5rem;
   padding-bottom: 0.15rem;
   border-bottom: 2px solid transparent;
+  transition: color 180ms ease, border-color 180ms ease, background 180ms ease, transform 180ms ease;
 }
 
 .nav-links a:hover,
 .nav-links a.is-active {
   color: var(--primary-dark);
   border-bottom-color: var(--primary);
+}
+
+.nav-links a:focus-visible,
+.cart-link:focus-visible,
+.btn:focus-visible {
+  outline: 3px solid rgba(217, 165, 179, 0.45);
+  outline-offset: 3px;
 }
 
 .cart-link {
@@ -711,15 +732,24 @@ p {
   border: none;
   cursor: pointer;
   font-weight: 600;
+  transition: transform 180ms var(--spring), box-shadow 180ms ease, background 180ms ease, border-color 180ms ease, color 180ms ease;
 }
 
 .btn-primary {
   background: var(--primary);
   color: #fff;
+  box-shadow: 0 10px 22px rgba(143, 76, 115, 0.18), 0 1px 1px rgba(110, 53, 86, 0.08);
 }
 
 .btn-primary:hover {
   background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 32px rgba(110, 53, 86, 0.22), 0 2px 4px rgba(110, 53, 86, 0.1);
+}
+
+.btn-primary:active,
+.btn-secondary:active {
+  transform: translateY(0) scale(0.99);
 }
 
 .btn-secondary {
@@ -735,10 +765,6 @@ p {
   background: #fff7fa;
   border-color: rgba(143, 76, 115, 0.2);
   box-shadow: 0 14px 28px rgba(110, 53, 86, 0.1);
-}
-
-.btn-secondary:active {
-  transform: translateY(0);
 }
 
 .section-soft {
@@ -892,6 +918,16 @@ p {
 
 .product-card {
   overflow: hidden;
+  position: relative;
+  transition: transform 260ms var(--spring), box-shadow 260ms ease, border-color 260ms ease;
+  will-change: transform;
+}
+
+.product-card:hover,
+.product-card:focus-within {
+  transform: translateY(-5px) scale(1.012);
+  border-color: rgba(143, 76, 115, 0.24);
+  box-shadow: var(--shadow-lift);
 }
 
 .review-card {
@@ -949,10 +985,20 @@ p {
   width: 100%;
   aspect-ratio: 4 / 4.8;
   object-fit: cover;
+  transition: transform 520ms ease, filter 520ms ease;
+  will-change: transform;
 }
 
 .product-card-media {
   display: block;
+  overflow: hidden;
+  background: #f7eff2;
+}
+
+.product-card:hover img,
+.product-card:focus-within img {
+  transform: scale(1.045);
+  filter: saturate(1.04) contrast(1.02);
 }
 
 .product-body {
@@ -1452,19 +1498,56 @@ p {
     top: calc(100% + 0.65rem);
     left: 0.55rem;
     right: 0.55rem;
-    display: none;
+    display: flex;
     flex-direction: column;
     align-items: stretch;
     gap: 0.2rem;
     padding: 0.55rem;
     border-radius: 24px;
-    background: rgba(255, 250, 248, 0.98);
+    background: rgba(255, 250, 248, 0.96);
+    backdrop-filter: blur(16px) saturate(1.28);
     border: 1px solid rgba(234, 220, 223, 0.95);
-    box-shadow: 0 18px 40px rgba(110, 53, 86, 0.12);
+    box-shadow: var(--shadow-lift);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-10px) scale(0.985);
+    transform-origin: top center;
+    transition: opacity 180ms ease, visibility 180ms ease, transform 260ms var(--drawer-ease);
+  }
+
+  .site-header::after {
+    content: "";
+    position: fixed;
+    inset: 100% 0 auto;
+    height: 100vh;
+    background: rgba(61, 47, 53, 0.16);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
   }
 
   .site-header.is-open .nav-links {
-    display: flex;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+  }
+
+  .site-header.is-open::after {
+    opacity: 1;
+  }
+
+  .site-header.is-open .nav-toggle span:nth-child(1) {
+    transform: translateY(0.39rem) rotate(45deg);
+  }
+
+  .site-header.is-open .nav-toggle span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .site-header.is-open .nav-toggle span:nth-child(3) {
+    transform: translateY(-0.39rem) rotate(-45deg);
   }
 
   .nav-links a,
@@ -1474,6 +1557,14 @@ p {
     padding: 0.7rem 0.9rem;
     border-radius: 16px;
     border-bottom: none;
+  }
+
+  .nav-links a:hover,
+  .nav-links a.is-active,
+  .cart-link:hover,
+  .cart-link.is-active-cart {
+    background: #fff3f6;
+    transform: translateX(2px);
   }
 
   .cart-link {
@@ -1703,11 +1794,34 @@ p {
   max-width: 360px;
   background: #fff;
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-lift);
   padding: 2rem 1.75rem;
   text-align: center;
   transform: translateY(14px) scale(0.98);
   transition: transform 0.22s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .nav-toggle,
+  .nav-toggle span,
+  .nav-links,
+  .nav-links a,
+  .product-card,
+  .product-card img {
+    transition: none !important;
+  }
+
+  .product-card:hover,
+  .product-card:focus-within,
+  .product-card:hover img,
+  .product-card:focus-within img,
+  .nav-links a:hover,
+  .nav-links a.is-active,
+  .cart-link:hover,
+  .cart-link.is-active-cart {
+    transform: none;
+  }
 }
 .cart-popup-backdrop.is-visible .cart-popup {
   transform: translateY(0) scale(1);

@@ -345,6 +345,59 @@ function showAddedToCartModal(product) {
   document.addEventListener('keydown', onKeydown)
 }
 
+function showProductQuickView(productId) {
+  const product = products.find((p) => p.id === productId)
+  if (!product) return
+
+  const prev = document.getElementById('quick-view-sheet')
+  if (prev) prev.remove()
+
+  const backdrop = document.createElement('div')
+  backdrop.id = 'quick-view-sheet'
+  backdrop.className = 'quick-view-backdrop'
+  backdrop.innerHTML = `
+    <div class="quick-view-sheet" role="dialog" aria-modal="true" aria-labelledby="quick-view-title">
+      <button class="quick-view-close" type="button" aria-label="Close quick view" data-quick-view-close>&times;</button>
+      <div class="quick-view-media">
+        <img src="${product.image}" alt="${esc(product.name)}" loading="eager" decoding="async">
+      </div>
+      <div class="quick-view-body">
+        <p class="product-category">${esc(product.category)}</p>
+        <h2 id="quick-view-title">${esc(product.name)}</h2>
+        <p class="quick-view-price"><strong>${formatPrice(product.price)}</strong></p>
+        <p>${esc(product.description || product.short)}</p>
+        <div class="quick-view-actions">
+          <button class="btn btn-primary" type="button" data-add="${product.id}" data-quick-view-close>Add to Cart</button>
+          <a class="btn btn-secondary" href="#/product/${product.id}" data-quick-view-close>View Details</a>
+          <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Order</a>
+        </div>
+      </div>
+    </div>
+  `
+  document.body.appendChild(backdrop)
+  requestAnimationFrame(() => requestAnimationFrame(() => backdrop.classList.add('is-visible')))
+
+  const close = () => {
+    document.removeEventListener('keydown', onKeydown)
+    backdrop.classList.remove('is-visible')
+    backdrop.addEventListener('transitionend', () => backdrop.remove(), { once: true })
+  }
+  const onKeydown = (event) => {
+    if (event.key === 'Escape') close()
+  }
+
+  backdrop.addEventListener('click', (event) => {
+    if (event.target === backdrop) close()
+  })
+  backdrop.querySelectorAll('[data-quick-view-close]').forEach((el) => {
+    el.addEventListener('click', close)
+  })
+  backdrop.querySelectorAll('[data-add]').forEach((button) => {
+    button.addEventListener('click', () => addToCart(button.dataset.add))
+  })
+  document.addEventListener('keydown', onKeydown)
+}
+
 function trackPixelEvent(event, params) {
   if (typeof window.fbq === 'function') window.fbq('track', event, params)
 }
@@ -390,6 +443,7 @@ function productCard(product) {
     <article class="product-card">
       <a class="product-card-media" href="#/product/${product.id}">
         <img src="${product.image}" alt="${product.name}" loading="lazy" decoding="async" width="400" height="480">
+        <span class="product-quick-view-hint">Tap for details</span>
       </a>
       <div class="product-body">
         <p class="product-category">${product.category}</p>
@@ -399,6 +453,7 @@ function productCard(product) {
           <strong>${formatPrice(product.price)}</strong>
           <div class="product-actions">
             <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
+            <button class="btn btn-secondary" type="button" data-quick-view="${product.id}">Quick View</button>
             <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Order</a>
           </div>
         </div>
@@ -1531,6 +1586,10 @@ function goToHero(index) {
 function bindEvents() {
   document.querySelectorAll('[data-add]').forEach((button) => {
     button.addEventListener('click', () => addToCart(button.dataset.add))
+  })
+
+  document.querySelectorAll('[data-quick-view]').forEach((button) => {
+    button.addEventListener('click', () => showProductQuickView(button.dataset.quickView))
   })
 
   const shopPriceFilterSelect = document.querySelector('[data-shop-price-filter]')

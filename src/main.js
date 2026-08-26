@@ -148,8 +148,8 @@ const testimonials = [
 ]
 
 const reviewAggregate = {
-  ratingValue: 4.8,
-  reviewCount: 12,
+  ratingValue: 4.9,
+  reviewCount: 21,
   bestRating: 5,
 }
 
@@ -230,16 +230,20 @@ const heroScene = {
 
 const careMoments = [
   {
-    title: 'Fresh from the first day',
-    body: 'Trim the stems slightly before arranging your bouquet in clean water so the flowers stay hydrated and lively.',
+    title: 'Cut stems at an angle',
+    body: 'Cut each stem at a 45-degree angle before placing the bouquet in a vase. This helps the flowers take in water more easily.',
   },
   {
-    title: 'Keep the water clean',
-    body: 'Refresh the water every day or two and gently rinse the vase to help your arrangement last longer.',
+    title: 'Keep bacteria down',
+    body: 'Add half a cap of bleach to the vase water to help slow bacteria growth and keep the water cleaner for longer.',
   },
   {
-    title: 'Protect delicate blooms',
-    body: 'Keep flowers away from direct sunlight, heat, and strong wind or air-conditioning for a longer vase life.',
+    title: 'Feed the flowers',
+    body: 'Add 3 tablespoons of sugar to the water to help nourish the flowers after delivery.',
+  },
+  {
+    title: 'Refresh the vase',
+    body: 'Change the water every 2-3 days, rinse the vase, and trim the stems again so the bouquet stays fresh.',
   },
 ]
 
@@ -253,6 +257,8 @@ const storageKey = 'bloomfield-cart'
 const heroStorageKey = 'bloomfield-hero-index'
 const checkoutDraftKey = 'bloomfield-checkout-draft'
 const cartCityKey = 'bloomfield-cart-city'
+const shopReturnProductKey = 'bloomfield-shop-return-product'
+const shopReturnScrollKey = 'bloomfield-shop-return-scroll'
 const app = document.querySelector('#app')
 
 let shopSort = 'featured'
@@ -303,6 +309,32 @@ function getCartCity() {
 }
 function saveCartCity(city) {
   try { localStorage.setItem(cartCityKey, city) } catch { }
+}
+
+function rememberShopReturn(productId) {
+  if (!productId) return
+  try {
+    sessionStorage.setItem(shopReturnProductKey, productId)
+    sessionStorage.setItem(shopReturnScrollKey, String(window.scrollY || 0))
+  } catch { /* session storage unavailable */ }
+}
+
+function getShopReturn() {
+  try {
+    return {
+      productId: sessionStorage.getItem(shopReturnProductKey) || '',
+      scrollY: Number(sessionStorage.getItem(shopReturnScrollKey) || 0),
+    }
+  } catch {
+    return { productId: '', scrollY: 0 }
+  }
+}
+
+function clearShopReturn() {
+  try {
+    sessionStorage.removeItem(shopReturnProductKey)
+    sessionStorage.removeItem(shopReturnScrollKey)
+  } catch { /* session storage unavailable */ }
 }
 
 function showAddedToCartModal(product) {
@@ -368,7 +400,7 @@ function showProductQuickView(productId) {
         <p>${esc(product.description || product.short)}</p>
         <div class="quick-view-actions">
           <button class="btn btn-primary" type="button" data-add="${product.id}" data-quick-view-close>Add to Cart</button>
-          <a class="btn btn-secondary" href="#/product/${product.id}" data-quick-view-close>View Details</a>
+          <a class="btn btn-secondary" href="#/product/${product.id}" data-product-link="${product.id}" data-quick-view-close>View Details</a>
           <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Order</a>
         </div>
       </div>
@@ -391,6 +423,9 @@ function showProductQuickView(productId) {
   })
   backdrop.querySelectorAll('[data-quick-view-close]').forEach((el) => {
     el.addEventListener('click', close)
+  })
+  backdrop.querySelectorAll('[data-product-link]').forEach((link) => {
+    link.addEventListener('click', () => rememberShopReturn(link.dataset.productLink))
   })
   backdrop.querySelectorAll('[data-add]').forEach((button) => {
     button.addEventListener('click', () => addToCart(button.dataset.add))
@@ -440,14 +475,14 @@ function formatPrice(price) {
 
 function productCard(product) {
   return `
-    <article class="product-card">
-      <a class="product-card-media" href="#/product/${product.id}">
+    <article class="product-card" id="product-${product.id}">
+      <a class="product-card-media" href="#/product/${product.id}" data-product-link="${product.id}">
         <img src="${product.image}" alt="${product.name}" loading="lazy" decoding="async" width="400" height="480">
         <span class="product-quick-view-hint">Tap for details</span>
       </a>
       <div class="product-body">
         <p class="product-category">${product.category}</p>
-        <h3><a href="#/product/${product.id}">${product.name}</a></h3>
+        <h3><a href="#/product/${product.id}" data-product-link="${product.id}">${product.name}</a></h3>
         <p>${product.short}</p>
         <div class="product-meta">
           <strong>${formatPrice(product.price)}</strong>
@@ -734,7 +769,7 @@ function homePage() {
         <div class="section-heading section-heading-centered">
           <p class="eyebrow">Customer love</p>
           <h2>What customers are saying about Bloomfield Flowers</h2>
-          <p>${reviewAggregate.ratingValue} out of 5 from ${reviewAggregate.reviewCount} Google reviews — real feedback from people who have received Bloomfield bouquets.</p>
+          <p>${reviewAggregate.ratingValue} out of 5 from over 20 Google reviews — real feedback from people who have received Bloomfield bouquets.</p>
         </div>
         <div class="review-grid">
           ${testimonials.map((review) => `
@@ -831,7 +866,7 @@ function productPage(id) {
 
   return shell(`
     <main class="section container">
-      <p class="breadcrumb"><a href="#/shop">&larr; Back to Shop</a></p>
+      <p class="breadcrumb"><a href="#/shop" data-shop-back="${product.id}">&larr; Back to Shop</a></p>
       <div class="two-col story-grid-polished product-detail-grid">
         <div class="story-visual-card product-detail-visual">
           <img src="${product.image}" alt="${product.name}" loading="eager" decoding="async" width="600" height="720">
@@ -992,7 +1027,7 @@ function flowerCarePage() {
           </div>
           <div class="bullet-grid">
             <div class="bullet-card">Remove leaves below the water line to help prevent bacteria buildup.</div>
-            <div class="bullet-card">Mist delicate blooms lightly if needed, especially in dry indoor spaces.</div>
+            <div class="bullet-card">Keep your bouquet away from direct sunlight, heat, and strong wind or air-conditioning.</div>
             <div class="bullet-card">Contact Bloomfield Flowers on Instagram if you want bouquet-specific care advice.</div>
           </div>
         </div>
@@ -1584,6 +1619,14 @@ function goToHero(index) {
 }
 
 function bindEvents() {
+  document.querySelectorAll('[data-product-link]').forEach((link) => {
+    link.addEventListener('click', () => rememberShopReturn(link.dataset.productLink))
+  })
+
+  document.querySelectorAll('[data-shop-back]').forEach((link) => {
+    link.addEventListener('click', () => rememberShopReturn(link.dataset.shopBack))
+  })
+
   document.querySelectorAll('[data-add]').forEach((button) => {
     button.addEventListener('click', () => addToCart(button.dataset.add))
   })
@@ -1809,10 +1852,24 @@ function renderApp() {
     const shouldResetScroll = route !== lastRenderedRoute
     const currentScrollX = window.scrollX
     const currentScrollY = window.scrollY
+    const shopReturn = getShopReturn()
+    const shouldRestoreShopPosition = route === 'shop' && Boolean(shopReturn.productId || shopReturn.scrollY)
 
     app.innerHTML = router(route)
 
-    if (shouldResetScroll) {
+    if (shouldRestoreShopPosition) {
+      requestAnimationFrame(() => {
+        const target = shopReturn.productId ? document.getElementById(`product-${shopReturn.productId}`) : null
+        if (target) {
+          target.scrollIntoView({ block: 'center', behavior: 'auto' })
+          target.classList.add('is-return-target')
+          setTimeout(() => target.classList.remove('is-return-target'), 1800)
+        } else if (shopReturn.scrollY) {
+          window.scrollTo({ top: shopReturn.scrollY, left: 0, behavior: 'auto' })
+        }
+        clearShopReturn()
+      })
+    } else if (shouldResetScroll) {
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
     } else {
       window.scrollTo({ top: currentScrollY, left: currentScrollX, behavior: 'auto' })

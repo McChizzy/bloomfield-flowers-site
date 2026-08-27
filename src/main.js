@@ -401,7 +401,6 @@ function showProductQuickView(productId) {
         <div class="quick-view-actions">
           <button class="btn btn-primary" type="button" data-add="${product.id}" data-quick-view-close>Add to Cart</button>
           <a class="btn btn-secondary" href="#/product/${product.id}" data-product-link="${product.id}" data-quick-view-close>View Details</a>
-          <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Order</a>
         </div>
       </div>
     </div>
@@ -489,7 +488,6 @@ function productCard(product) {
           <div class="product-actions">
             <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
             <button class="btn btn-secondary" type="button" data-quick-view="${product.id}">Quick View</button>
-            <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Order</a>
           </div>
         </div>
       </div>
@@ -878,7 +876,7 @@ function productPage(id) {
           <p>${product.description}</p>
           <div class="product-actions product-detail-actions">
             <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
-            <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Order</a>
+            <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Customize</a>
           </div>
           <p>Need a custom size or colour palette? <a class="text-link" href="#/custom-orders">Request a custom bouquet</a>.</p>
         </div>

@@ -921,6 +921,18 @@ p {
   position: relative;
   transition: transform 260ms var(--spring), box-shadow 260ms ease, border-color 260ms ease;
   will-change: transform;
+  animation: card-reveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-play-state: paused;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+.product-card.is-visible {
+  animation-play-state: running;
+}
+
+@keyframes card-reveal {
+  from { opacity: 0; translate: 0 22px; }
+  to   { opacity: 1; translate: 0 0; }
 }
 
 .product-card:hover,
@@ -1878,6 +1890,9 @@ p {
   .quick-view-backdrop,
   .quick-view-sheet {
     transition: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    translate: none !important;
   }
 
   .product-card:hover,

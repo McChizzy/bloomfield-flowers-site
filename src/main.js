@@ -1616,7 +1616,26 @@ function goToHero(index) {
   updateSliderDOM(index)
 }
 
+function initRevealObserver() {
+  const cards = document.querySelectorAll('.product-card')
+  if (!cards.length) return
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible')
+        io.unobserve(entry.target)
+      }
+    })
+  }, { threshold: 0.06 })
+  cards.forEach((card, i) => {
+    card.style.setProperty('--reveal-delay', `${i * 55}ms`)
+    io.observe(card)
+  })
+}
+
 function bindEvents() {
+  initRevealObserver()
+
   document.querySelectorAll('[data-product-link]').forEach((link) => {
     link.addEventListener('click', () => rememberShopReturn(link.dataset.productLink))
   })

@@ -1361,6 +1361,60 @@ p {
   flex: initial;
 }
 
+.product-gallery {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.product-gallery-track {
+  display: flex;
+  height: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+
+.product-gallery-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  margin: 0;
+  scroll-snap-align: start;
+  background: #f7eff2;
+}
+
+.product-gallery-slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 4 / 4.5;
+  object-fit: cover;
+}
+
+.product-gallery-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 0.9rem;
+  display: flex;
+  gap: 0.38rem;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.product-gallery-dot {
+  width: 0.46rem;
+  height: 0.46rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 2px 8px rgba(61, 47, 53, 0.18);
+}
+
+.product-gallery-dot.is-active {
+  width: 1.15rem;
+  background: #fff;
+}
+
 .flower-care-hero {
   padding: 3.5rem 0 2rem;
   background: linear-gradient(180deg, rgba(255,250,248,0.9), rgba(247,239,238,0.75));
@@ -1670,6 +1724,8 @@ p {
   .quick-view-sheet {
     width: 100%;
     max-height: 92vh;
+    display: flex;
+    flex-direction: column;
     grid-template-columns: 1fr;
     border-radius: 24px 24px 0 0;
     transform: translateY(100%);
@@ -1680,12 +1736,21 @@ p {
     transform: translateY(0);
   }
 
+  .quick-view-media {
+    flex: 0 0 min(44vh, 360px);
+    min-height: 0;
+    overflow: hidden;
+  }
+
   .quick-view-media img {
     min-height: 0;
-    height: min(44vh, 360px);
+    height: 100%;
   }
 
   .quick-view-body {
+    position: relative;
+    z-index: 1;
+    background: #fff;
     padding: 1.25rem;
   }
 
@@ -2058,6 +2123,8 @@ p {
   .quick-view-sheet {
     width: 100%;
     max-height: 92vh;
+    display: flex;
+    flex-direction: column;
     grid-template-columns: 1fr;
     border-radius: 24px 24px 0 0;
     transform: translateY(100%);
@@ -2068,12 +2135,21 @@ p {
     transform: translateY(0);
   }
 
+  .quick-view-media {
+    flex: 0 0 min(44vh, 360px);
+    min-height: 0;
+    overflow: hidden;
+  }
+
   .quick-view-media img {
     min-height: 0;
-    height: min(44vh, 360px);
+    height: 100%;
   }
 
   .quick-view-body {
+    position: relative;
+    z-index: 1;
+    background: #fff;
     padding: 1.25rem;
   }
 

@@ -391,7 +391,7 @@ function showProductQuickView(productId) {
     <div class="quick-view-sheet" role="dialog" aria-modal="true" aria-labelledby="quick-view-title">
       <button class="quick-view-close" type="button" aria-label="Close quick view" data-quick-view-close>&times;</button>
       <div class="quick-view-media">
-        <img src="${product.image}" alt="${esc(product.name)}" loading="eager" decoding="async">
+        ${productGalleryMarkup(product, 'quick-view')}
       </div>
       <div class="quick-view-body">
         <p class="product-category">${esc(product.category)}</p>
@@ -406,6 +406,7 @@ function showProductQuickView(productId) {
     </div>
   `
   document.body.appendChild(backdrop)
+  bindProductGalleries(backdrop)
   requestAnimationFrame(() => requestAnimationFrame(() => backdrop.classList.add('is-visible')))
 
   const close = () => {
@@ -470,6 +471,31 @@ function updateQty(productId, delta) {
 function formatPrice(price) {
   if (typeof price === 'number') return naira.format(price)
   return price
+}
+
+function productGallery(product) {
+  const images = Array.isArray(product.gallery) && product.gallery.length ? product.gallery : [product.image]
+  return [...new Set(images.filter(Boolean))]
+}
+
+function productGalleryMarkup(product, variant = 'detail') {
+  const gallery = productGallery(product)
+  return `
+    <div class="product-gallery product-gallery-${variant}" aria-label="${esc(product.name)} photos">
+      <div class="product-gallery-track">
+        ${gallery.map((image, index) => `
+          <figure class="product-gallery-slide">
+            <img src="${image}" alt="${esc(product.name)}${gallery.length > 1 ? ` photo ${index + 1}` : ''}" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async">
+          </figure>
+        `).join('')}
+      </div>
+      ${gallery.length > 1 ? `
+        <div class="product-gallery-dots" aria-hidden="true">
+          ${gallery.map((_, index) => `<span class="product-gallery-dot${index === 0 ? ' is-active' : ''}"></span>`).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `
 }
 
 function productCard(product) {
@@ -867,7 +893,7 @@ function productPage(id) {
       <p class="breadcrumb"><a href="#/shop" data-shop-back="${product.id}">&larr; Back to Shop</a></p>
       <div class="two-col story-grid-polished product-detail-grid">
         <div class="story-visual-card product-detail-visual">
-          <img src="${product.image}" alt="${product.name}" loading="eager" decoding="async" width="600" height="720">
+          ${productGalleryMarkup(product, 'detail')}
         </div>
         <div class="about-copy product-detail-copy">
           <p class="product-category">${product.category}</p>
@@ -1633,8 +1659,25 @@ function initRevealObserver() {
   })
 }
 
+function bindProductGalleries(root = document) {
+  root.querySelectorAll('.product-gallery').forEach((gallery) => {
+    const track = gallery.querySelector('.product-gallery-track')
+    const dots = [...gallery.querySelectorAll('.product-gallery-dot')]
+    if (!track || dots.length < 2) return
+
+    const updateDots = () => {
+      const active = Math.round(track.scrollLeft / Math.max(track.clientWidth, 1))
+      dots.forEach((dot, index) => dot.classList.toggle('is-active', index === active))
+    }
+
+    track.addEventListener('scroll', updateDots, { passive: true })
+    updateDots()
+  })
+}
+
 function bindEvents() {
   initRevealObserver()
+  bindProductGalleries()
 
   document.querySelectorAll('[data-product-link]').forEach((link) => {
     link.addEventListener('click', () => rememberShopReturn(link.dataset.productLink))
@@ -1965,7 +2008,7 @@ function injectProductJsonLd() {
           '@type': 'Product',
           name: product.name,
           description: product.description,
-          image: `${SITE_URL}${product.image}`,
+          image: productGallery(product).map((image) => `${SITE_URL}${image}`),
           url: `${SITE_URL}/#/product/${product.id}`,
           brand: { '@type': 'Brand', name: 'Bloomfield Flowers' },
           aggregateRating,

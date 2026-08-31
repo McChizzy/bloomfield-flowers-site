@@ -257,12 +257,14 @@ const storageKey = 'bloomfield-cart'
 const heroStorageKey = 'bloomfield-hero-index'
 const checkoutDraftKey = 'bloomfield-checkout-draft'
 const cartCityKey = 'bloomfield-cart-city'
+const shopViewKey = 'bloomfield-shop-view'
 const shopReturnProductKey = 'bloomfield-shop-return-product'
 const shopReturnScrollKey = 'bloomfield-shop-return-scroll'
 const app = document.querySelector('#app')
 
 let shopSort = 'featured'
 let shopPriceFilter = 'all'
+let shopViewMode = getInitialShopView()
 
 const shopPriceFilters = {
   all: { label: 'All prices', test: () => true },
@@ -277,6 +279,19 @@ const shopSortOptions = {
   'price-asc': { label: 'Price: Low to High', sort: (a, b) => parsePriceValue(a.price) - parsePriceValue(b.price) },
   'price-desc': { label: 'Price: High to Low', sort: (a, b) => parsePriceValue(b.price) - parsePriceValue(a.price) },
   'name-asc': { label: 'Name: A to Z', sort: (a, b) => a.name.localeCompare(b.name) },
+}
+
+function getInitialShopView() {
+  try {
+    return localStorage.getItem(shopViewKey) === 'dense' ? 'dense' : 'roomy'
+  } catch {
+    return 'roomy'
+  }
+}
+
+function saveShopView(mode) {
+  shopViewMode = mode === 'dense' ? 'dense' : 'roomy'
+  try { localStorage.setItem(shopViewKey, shopViewMode) } catch { /* storage unavailable */ }
 }
 
 function getHeroIndex() {
@@ -906,6 +921,10 @@ function shopPage() {
       <div class="shop-toolbar">
         <p>${visible.length === products.length ? `${products.length} bouquets available.` : `Showing ${visible.length} of ${products.length} bouquets.`}</p>
         <div class="shop-filters">
+          <div class="shop-view-toggle" aria-label="Shop view density">
+            <button type="button" class="${shopViewMode === 'roomy' ? 'is-active' : ''}" data-shop-view="roomy">Roomy</button>
+            <button type="button" class="${shopViewMode === 'dense' ? 'is-active' : ''}" data-shop-view="dense">Dense</button>
+          </div>
           <label class="shop-filter-label">
             Price
             <select class="shop-filter-select" data-shop-price-filter>
@@ -932,7 +951,7 @@ function shopPage() {
           <a class="btn btn-primary" href="#/custom-orders">Request a Custom Order</a>
         </div>
       ` : `
-      <div class="product-grid">
+      <div class="product-grid ${shopViewMode === 'dense' ? 'product-grid-dense' : ''}">
         ${visible.map((product) => productCard(product)).join('')}
       </div>
       `}
@@ -1793,6 +1812,13 @@ function bindEvents() {
       renderApp()
     })
   }
+
+  document.querySelectorAll('[data-shop-view]').forEach((button) => {
+    button.addEventListener('click', () => {
+      saveShopView(button.dataset.shopView)
+      renderApp()
+    })
+  })
 
   document.querySelectorAll('[data-qty]').forEach((button) => {
     button.addEventListener('click', () => updateQty(button.dataset.id, button.dataset.qty === 'plus' ? 1 : -1))

@@ -44,9 +44,8 @@ export const products = [
     name: '5 Roses with Fillers',
     category: 'Flowers',
     price: '₦45,000',
-    image: '/images/5_red_roses.jpg',
+    image: '/images/products/five-roses-fillers/five-roses-fillers-01.jpeg',
     gallery: [
-      '/images/5_red_roses.jpg',
       '/images/products/five-roses-fillers/five-roses-fillers-01.jpeg',
     ],
     short: 'Five fresh roses with delicate fillers.',
@@ -68,9 +67,8 @@ export const products = [
     name: 'Roses with Fillers',
     category: 'Flowers',
     price: '₦94,000',
-    image: '/images/roses_with_fillers.jpg',
+    image: '/images/products/roses-with-fillers/roses-with-fillers-01.jpeg',
     gallery: [
-      '/images/roses_with_fillers.jpg',
       '/images/products/roses-with-fillers/roses-with-fillers-01.jpeg',
       '/images/products/roses-with-fillers/roses-with-fillers-02.jpeg',
       '/images/products/roses-with-fillers/roses-with-fillers-03.jpeg',
@@ -84,9 +82,8 @@ export const products = [
     name: 'The Seraphina',
     category: 'Flowers',
     price: '₦55,000',
-    image: '/images/the_seraphina.jpg',
+    image: '/images/products/the-seraphina/the-seraphina-01.jpeg',
     gallery: [
-      '/images/the_seraphina.jpg',
       '/images/products/the-seraphina/the-seraphina-01.jpeg',
     ],
     short: 'Mixed chrysanthemum and rose bouquet.',
@@ -118,9 +115,8 @@ export const products = [
     name: 'Bloom No. 1',
     category: 'Flowers',
     price: '₦170,000',
-    image: '/images/bloom_no_1.jpg',
+    image: '/images/products/bloom-no-1/bloom-no-1-01.jpeg',
     gallery: [
-      '/images/bloom_no_1.jpg',
       '/images/products/bloom-no-1/bloom-no-1-01.jpeg',
       '/images/products/bloom-no-1/bloom-no-1-02.jpeg',
       '/images/products/bloom-no-1/bloom-no-1-03.jpeg',
@@ -135,9 +131,8 @@ export const products = [
     name: 'Bloom No. 2',
     category: 'Flowers',
     price: '₦75,000',
-    image: '/images/bloom_no_2.jpg',
+    image: '/images/products/bloom-no-2/bloom-no-2-01.jpeg',
     gallery: [
-      '/images/bloom_no_2.jpg',
       '/images/products/bloom-no-2/bloom-no-2-01.jpeg',
       '/images/products/bloom-no-2/bloom-no-2-02.jpeg',
     ],
@@ -180,9 +175,8 @@ export const products = [
     name: 'Barbie Deluxe (L)',
     category: 'Flowers',
     price: '₦210,000 - ₦250,000',
-    image: '/images/optimized/pastel-cloud.jpg',
+    image: '/images/products/barbie-deluxe-l/barbie-deluxe-l-01.jpeg',
     gallery: [
-      '/images/optimized/pastel-cloud.jpg',
       '/images/products/barbie-deluxe-l/barbie-deluxe-l-01.jpeg',
       '/images/products/barbie-deluxe-l/barbie-deluxe-l-02.jpeg',
       '/images/products/barbie-deluxe-l/barbie-deluxe-l-03.jpeg',
@@ -196,9 +190,8 @@ export const products = [
     name: 'Barbie Deluxe (S)',
     category: 'Flowers',
     price: '₦100,000',
-    image: '/images/barbie_deluxe_small.jpeg',
+    image: '/images/products/barbie-deluxe-s/barbie-deluxe-s-01.jpeg',
     gallery: [
-      '/images/barbie_deluxe_small.jpeg',
       '/images/products/barbie-deluxe-s/barbie-deluxe-s-01.jpeg',
       '/images/products/barbie-deluxe-s/barbie-deluxe-s-02.jpeg',
     ],
@@ -255,7 +248,7 @@ export const products = [
     image: '/images/products/mixed-chrysanthemum-bouquet/mixed-chrysanthemum-bouquet-01.jpeg',
     gallery: [
       '/images/products/mixed-chrysanthemum-bouquet/mixed-chrysanthemum-bouquet-01.jpeg',
-      '/images/products/mixed-chrysanthemum-bouquet/mixed-chrysanthemum-bouquet-02.png',
+      '/images/products/mixed-chrysanthemum-bouquet/mixed-chrysanthemum-bouquet-02.jpeg',
       '/images/products/mixed-chrysanthemum-bouquet/mixed-chrysanthemum-bouquet-03.jpeg',
       '/images/products/mixed-chrysanthemum-bouquet/mixed-chrysanthemum-bouquet-04.jpeg',
     ],
@@ -312,8 +305,6 @@ export const products = [
     image: '/images/products/sunnyside-bouquet/sunnyside-bouquet-01.jpeg',
     gallery: [
       '/images/products/sunnyside-bouquet/sunnyside-bouquet-01.jpeg',
-      '/images/products/sunnyside-bouquet/sunnyside-bouquet-02.jpeg',
-      '/images/products/sunnyside-bouquet/sunnyside-bouquet-03.jpeg',
     ],
     short: 'Bright mixed blooms with a sunny, celebratory feel.',
     description: 'A colourful mixed bouquet with warm yellow accents, lilies, and soft fillers for cheerful gifting.',
@@ -339,7 +330,6 @@ export const products = [
     image: '/images/products/box-garden-bouquet/box-garden-bouquet-01.jpeg',
     gallery: [
       '/images/products/box-garden-bouquet/box-garden-bouquet-01.jpeg',
-      '/images/products/box-garden-bouquet/box-garden-bouquet-02.jpeg',
     ],
     short: 'A garden-style bouquet presented with premium fullness.',
     description: 'A lush box garden arrangement with layered blooms, soft colour, and a polished gift-ready presentation.',
@@ -366,6 +356,7 @@ export const products = [
     gallery: [
       '/images/products/lily-n-rose/lily-n-rose-01.jpeg',
       '/images/products/lily-n-rose/lily-n-rose-02.jpeg',
+      '/images/products/lily-n-rose/lily-n-rose-03.jpeg',
     ],
     short: 'Lilies and roses in a soft, feminine mix.',
     description: 'A lovely mix of lilies and roses, styled for birthdays, romance, appreciation, and everyday gifting.',
@@ -378,6 +369,7 @@ export const products = [
     image: '/images/products/spray-roses/spray-roses-01.jpeg',
     gallery: [
       '/images/products/spray-roses/spray-roses-01.jpeg',
+      '/images/products/spray-roses/spray-roses-02.jpeg',
     ],
     short: 'A soft spray rose bouquet with a pretty, compact finish.',
     description: 'A charming spray rose bouquet with gentle colour and a neat Bloomfield wrap.',
@@ -429,7 +421,6 @@ export const products = [
     gallery: [
       '/images/products/grand-chrysanthemum/grand-chrysanthemum-01.jpeg',
       '/images/products/grand-chrysanthemum/grand-chrysanthemum-02.jpeg',
-      '/images/products/grand-chrysanthemum/grand-chrysanthemum-03.jpeg',
     ],
     short: 'A grand chrysanthemum bouquet with rich, full texture.',
     description: 'A fuller chrysanthemum arrangement with elegant volume and a soft Bloomfield presentation.',

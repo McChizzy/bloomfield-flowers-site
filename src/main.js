@@ -925,11 +925,11 @@ function shopPage() {
           <div class="shop-view-toggle" aria-label="Shop view">
             <button type="button" class="${shopViewMode === 'standard' ? 'is-active' : ''}" data-shop-view="standard" aria-label="Standard shop view" title="Standard view">
               <span class="view-icon view-icon-standard" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-              <span>Standard</span>
+              <span class="shop-view-label">Standard</span>
             </button>
             <button type="button" class="${shopViewMode === 'compact' ? 'is-active' : ''}" data-shop-view="compact" aria-label="Compact shop view" title="Compact view">
               <span class="view-icon view-icon-compact" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span>
-              <span>Compact</span>
+              <span class="shop-view-label">Compact</span>
             </button>
           </div>
           <label class="shop-filter-label">

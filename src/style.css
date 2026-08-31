@@ -939,26 +939,30 @@ p {
 .shop-view-toggle {
   display: inline-flex;
   gap: 0.28rem;
-  padding: 0.22rem;
+  padding: 0.24rem;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: #fff;
+  align-items: center;
 }
 
 .shop-view-toggle button {
   display: inline-flex;
   align-items: center;
-  gap: 0.42rem;
-  min-width: 6.9rem;
+  justify-content: center;
+  gap: 0.48rem;
+  min-width: 7.35rem;
+  height: 2.68rem;
   border: 0;
-  border-radius: 0.9rem;
-  padding: 0.38rem 0.68rem 0.38rem 0.4rem;
+  border-radius: 1.12rem;
+  padding: 0 0.72rem;
   background: transparent;
   color: var(--muted);
   font: inherit;
   font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
+  line-height: 1;
 }
 
 .shop-view-toggle button.is-active {
@@ -974,7 +978,13 @@ p {
   border: 1px solid currentColor;
   border-radius: 0.46rem;
   background: rgba(255, 255, 255, 0.75);
+  place-content: center;
   place-items: center;
+}
+
+.shop-view-label {
+  line-height: 1;
+  transform: translateY(0.01rem);
 }
 
 .view-icon-standard {

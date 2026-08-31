@@ -223,10 +223,231 @@ export const products = [
     short: 'Bold red and white roses, elegantly finished with gypso.',
     description: 'A bold large bouquet of red and white roses elegantly accented with gypso.',
   },
+  {
+    id: 'sunflower-bouquet',
+    name: 'Sunflower Bouquet',
+    category: 'Flowers',
+    price: { Lagos: 55000 },
+    image: '/images/products/sunflower-bouquet/sunflower-bouquet-01.jpeg',
+    gallery: [
+      '/images/products/sunflower-bouquet/sunflower-bouquet-01.jpeg',
+    ],
+    short: 'A bright sunflower bouquet for warm, cheerful gifting.',
+    description: 'A sunny, cheerful bouquet styled around fresh sunflower tones. Available in Lagos only.',
+  },
+  {
+    id: 'bloom-special-bouquet',
+    name: 'Bloom Special Bouquet',
+    category: 'Flowers',
+    price: { Lagos: 420000, Abuja: 420000, 'Port Harcourt': 420000 },
+    image: '/images/products/bloom-special-bouquet/bloom-special-bouquet-01.jpeg',
+    gallery: [
+      '/images/products/bloom-special-bouquet/bloom-special-bouquet-01.jpeg',
+    ],
+    short: 'A premium full bouquet with soft, romantic volume.',
+    description: 'A lush Bloomfield statement bouquet made for birthdays, romance, and unforgettable gifting moments.',
+  },
+  {
+    id: 'mixed-chrysanthemum-bouquet',
+    name: 'Mixed Chrysanthemum Bouquet',
+    category: 'Flowers',
+    price: { Lagos: 75000, Abuja: 85000, 'Port Harcourt': 75000 },
+    image: '/images/products/mixed-chrysanthemum-bouquet/mixed-chrysanthemum-bouquet-01.jpeg',
+    gallery: [
+      '/images/products/mixed-chrysanthemum-bouquet/mixed-chrysanthemum-bouquet-01.jpeg',
+      '/images/products/mixed-chrysanthemum-bouquet/mixed-chrysanthemum-bouquet-02.png',
+      '/images/products/mixed-chrysanthemum-bouquet/mixed-chrysanthemum-bouquet-03.jpeg',
+      '/images/products/mixed-chrysanthemum-bouquet/mixed-chrysanthemum-bouquet-04.jpeg',
+    ],
+    addOns: [
+      { id: 'ribbon', name: 'Ribbon', price: 5000 },
+    ],
+    short: 'Mixed chrysanthemums with a soft, full finish.',
+    description: 'A sweet mixed chrysanthemum bouquet with fresh colour and a soft gift-ready shape. Ribbon can be added for an extra ₦5,000.',
+  },
+  {
+    id: 'stargirl-bouquet',
+    name: 'Stargirl Bouquet',
+    category: 'Flowers',
+    price: { Lagos: 250000, Abuja: 260000, 'Port Harcourt': 260000 },
+    image: '/images/products/stargirl-bouquet/stargirl-bouquet-01.jpeg',
+    gallery: [
+      '/images/products/stargirl-bouquet/stargirl-bouquet-01.jpeg',
+      '/images/products/stargirl-bouquet/stargirl-bouquet-02.jpeg',
+      '/images/products/stargirl-bouquet/stargirl-bouquet-03.jpeg',
+    ],
+    short: 'A romantic pink rose bouquet with a playful statement feel.',
+    description: 'A bold pink rose bouquet styled for romantic birthdays, apologies, anniversaries, and main-character gifting.',
+  },
+  {
+    id: 'spray-roses-large-150',
+    name: 'Spray Roses Large (150 Roses)',
+    category: 'Flowers',
+    price: { Lagos: 1300000, Abuja: 1400000, 'Port Harcourt': 1400000 },
+    image: '/images/products/spray-roses-large-150/spray-roses-large-150-01.jpeg',
+    gallery: [
+      '/images/products/spray-roses-large-150/spray-roses-large-150-01.jpeg',
+      '/images/products/spray-roses-large-150/spray-roses-large-150-02.jpeg',
+    ],
+    short: 'A grand spray rose statement bouquet with serious presence.',
+    description: 'A luxury 150 spray rose bouquet for milestone gifting, proposals, premium birthdays, and big romantic gestures.',
+  },
+  {
+    id: 'spray-roses-large-100',
+    name: 'Spray Roses Large (100 Roses)',
+    category: 'Flowers',
+    price: { Lagos: 800000, Abuja: 850000, 'Port Harcourt': 850000 },
+    image: '/images/products/spray-roses-large-100/spray-roses-large-100-01.jpeg',
+    gallery: [
+      '/images/products/spray-roses-large-100/spray-roses-large-100-01.jpeg',
+    ],
+    short: 'A lush 100 spray rose bouquet for grand gifting.',
+    description: 'A generous spray rose bouquet with rich colour, full texture, and a polished Bloomfield finish.',
+  },
+  {
+    id: 'sunnyside-bouquet',
+    name: 'Sunnyside Bouquet',
+    category: 'Flowers',
+    price: { Lagos: 150000, Abuja: 170000, 'Port Harcourt': 170000 },
+    image: '/images/products/sunnyside-bouquet/sunnyside-bouquet-01.jpeg',
+    gallery: [
+      '/images/products/sunnyside-bouquet/sunnyside-bouquet-01.jpeg',
+      '/images/products/sunnyside-bouquet/sunnyside-bouquet-02.jpeg',
+      '/images/products/sunnyside-bouquet/sunnyside-bouquet-03.jpeg',
+    ],
+    short: 'Bright mixed blooms with a sunny, celebratory feel.',
+    description: 'A colourful mixed bouquet with warm yellow accents, lilies, and soft fillers for cheerful gifting.',
+  },
+  {
+    id: 'birthday-combo',
+    name: 'Birthday Combo',
+    category: 'Flowers',
+    price: { Lagos: 140000, Abuja: 180000, 'Port Harcourt': 180000 },
+    image: '/images/products/birthday-combo/birthday-combo-01.jpeg',
+    gallery: [
+      '/images/products/birthday-combo/birthday-combo-01.jpeg',
+      '/images/products/birthday-combo/birthday-combo-02.jpeg',
+    ],
+    short: 'A sweet flower-and-gift combo for birthday surprises.',
+    description: 'A thoughtful birthday combo arranged to feel personal, pretty, and ready for a memorable surprise.',
+  },
+  {
+    id: 'box-garden-bouquet',
+    name: 'Box Garden Bouquet',
+    category: 'Flowers',
+    price: { Lagos: 200000, Abuja: 250000, 'Port Harcourt': 250000 },
+    image: '/images/products/box-garden-bouquet/box-garden-bouquet-01.jpeg',
+    gallery: [
+      '/images/products/box-garden-bouquet/box-garden-bouquet-01.jpeg',
+      '/images/products/box-garden-bouquet/box-garden-bouquet-02.jpeg',
+    ],
+    short: 'A garden-style bouquet presented with premium fullness.',
+    description: 'A lush box garden arrangement with layered blooms, soft colour, and a polished gift-ready presentation.',
+  },
+  {
+    id: 'roses-n-greens',
+    name: '40 Roses and Eucalyptus (Roses n Greens)',
+    category: 'Flowers',
+    price: { Lagos: 320000, Abuja: 340000, 'Port Harcourt': 340000 },
+    image: '/images/products/roses-n-greens/roses-n-greens-01.jpeg',
+    gallery: [
+      '/images/products/roses-n-greens/roses-n-greens-01.jpeg',
+      '/images/products/roses-n-greens/roses-n-greens-02.jpeg',
+    ],
+    short: 'Forty roses with fresh greenery for a clean luxury look.',
+    description: 'A refined 40-rose bouquet finished with eucalyptus-inspired greenery for a fresh romantic style.',
+  },
+  {
+    id: 'lily-n-rose',
+    name: 'Lily n Rose',
+    category: 'Flowers',
+    price: { Lagos: 100000, Abuja: 100000, 'Port Harcourt': 100000 },
+    image: '/images/products/lily-n-rose/lily-n-rose-01.jpeg',
+    gallery: [
+      '/images/products/lily-n-rose/lily-n-rose-01.jpeg',
+      '/images/products/lily-n-rose/lily-n-rose-02.jpeg',
+    ],
+    short: 'Lilies and roses in a soft, feminine mix.',
+    description: 'A lovely mix of lilies and roses, styled for birthdays, romance, appreciation, and everyday gifting.',
+  },
+  {
+    id: 'spray-roses',
+    name: 'Spray Roses',
+    category: 'Flowers',
+    price: { Lagos: 130000, Abuja: 150000, 'Port Harcourt': 150000 },
+    image: '/images/products/spray-roses/spray-roses-01.jpeg',
+    gallery: [
+      '/images/products/spray-roses/spray-roses-01.jpeg',
+    ],
+    short: 'A soft spray rose bouquet with a pretty, compact finish.',
+    description: 'A charming spray rose bouquet with gentle colour and a neat Bloomfield wrap.',
+  },
+  {
+    id: 'spray-rose-2',
+    name: 'Spray Rose 2',
+    category: 'Flowers',
+    price: { Lagos: 160000, Abuja: 170000, 'Port Harcourt': 170000 },
+    image: '/images/products/spray-rose-2/spray-rose-2-01.jpeg',
+    gallery: [
+      '/images/products/spray-rose-2/spray-rose-2-01.jpeg',
+    ],
+    short: 'A fuller spray rose style for colourful gifting.',
+    description: 'A fuller spray rose bouquet with playful colour and a gift-ready Bloomfield finish.',
+  },
+  {
+    id: 'pearl-roses-60',
+    name: 'Pearl Roses (60 Roses)',
+    category: 'Flowers',
+    price: { Lagos: 450000, Abuja: 520000, 'Port Harcourt': 520000 },
+    image: '/images/products/pearl-roses-60/pearl-roses-60-01.jpeg',
+    gallery: [
+      '/images/products/pearl-roses-60/pearl-roses-60-01.jpeg',
+      '/images/products/pearl-roses-60/pearl-roses-60-02.jpeg',
+    ],
+    short: 'Sixty soft roses arranged with an elegant pearl-like finish.',
+    description: 'A romantic 60-rose bouquet with a soft premium look, made for polished luxury gifting.',
+  },
+  {
+    id: 'mixed-lily',
+    name: 'Mixed Lily',
+    category: 'Flowers',
+    price: { Lagos: 150000, Abuja: 150000, 'Port Harcourt': 150000 },
+    image: '/images/products/mixed-lily/mixed-lily-01.jpeg',
+    gallery: [
+      '/images/products/mixed-lily/mixed-lily-01.jpeg',
+      '/images/products/mixed-lily/mixed-lily-02.jpeg',
+    ],
+    short: 'Fresh lilies mixed with soft complementary blooms.',
+    description: 'A graceful mixed lily bouquet with soft colours, fresh texture, and a refined gift-ready wrap.',
+  },
+  {
+    id: 'grand-chrysanthemum',
+    name: 'Grand Chrysanthemum',
+    category: 'Flowers',
+    price: { Lagos: 180000, Abuja: 210000, 'Port Harcourt': 180000 },
+    image: '/images/products/grand-chrysanthemum/grand-chrysanthemum-01.jpeg',
+    gallery: [
+      '/images/products/grand-chrysanthemum/grand-chrysanthemum-01.jpeg',
+      '/images/products/grand-chrysanthemum/grand-chrysanthemum-02.jpeg',
+      '/images/products/grand-chrysanthemum/grand-chrysanthemum-03.jpeg',
+    ],
+    short: 'A grand chrysanthemum bouquet with rich, full texture.',
+    description: 'A fuller chrysanthemum arrangement with elegant volume and a soft Bloomfield presentation.',
+  },
 ]
+
+function numericPriceValues(price) {
+  if (!price || typeof price !== 'object') return []
+  return Object.values(price).map(Number).filter((n) => Number.isFinite(n) && n > 0)
+}
 
 export function priceBounds(price) {
   if (typeof price === 'number') return { low: price, high: price }
+  if (price && typeof price === 'object') {
+    const values = numericPriceValues(price)
+    if (values.length === 0) return { low: 0, high: 0 }
+    return { low: Math.min(...values), high: Math.max(...values) }
+  }
   // Remove thousands-separator commas before stripping non-digits, so "390,000" → 390000 not 390
   const cleaned = String(price).replace(/,/g, '').replace(/[^\d]/g, ' ').trim()
   const parts = cleaned.split(/\s+/).map(Number).filter((n) => Number.isFinite(n) && n > 0)
@@ -236,7 +457,20 @@ export function priceBounds(price) {
 }
 
 export function parsePriceValue(price, city = '') {
+  if (typeof price === 'number') return price
+  if (price && typeof price === 'object') {
+    const requested = city || 'Lagos'
+    const value = price[requested]
+    if (Number.isFinite(Number(value))) return Number(value)
+    const fallback = price.Lagos ?? numericPriceValues(price)[0] ?? 0
+    return Number(fallback) || 0
+  }
   const { low, high } = priceBounds(price)
   // Lagos = lower price; Abuja and Port Harcourt use the higher range until city-specific PH prices are added.
   return city === 'Abuja' || city === 'Port Harcourt' ? high : low
+}
+
+export function hasCityPrice(price, city = 'Lagos') {
+  if (!price || typeof price !== 'object') return true
+  return Number.isFinite(Number(price[city || 'Lagos']))
 }

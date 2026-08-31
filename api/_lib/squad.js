@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { products, parsePriceValue } from '../../src/catalog.js'
+import { products, parsePriceValue, hasCityPrice } from '../../src/catalog.js'
 
 const TEST_BASE_URL = 'https://sandbox-api-d.squadco.com'
 const LIVE_BASE_URL = 'https://api-d.squadco.com'
@@ -55,13 +55,25 @@ export function getCartSnapshot(items = [], city = '') {
       const product = products.find((entry) => entry.id === item.id)
       if (!product) return null
       const qty = Math.max(1, Number(item.qty || 0))
-      const unitAmount = parsePriceValue(product.price, city)
+      const addOnIds = new Set(Array.isArray(item.addOns) ? item.addOns : [])
+      const addOns = (product.addOns || [])
+        .filter((addOn) => addOnIds.has(addOn.id))
+        .map((addOn) => ({
+          id: addOn.id,
+          name: addOn.name,
+          unitAmount: parsePriceValue(addOn.price, city),
+        }))
+      const addOnsTotal = addOns.reduce((sum, addOn) => sum + addOn.unitAmount, 0)
+      const unitAmount = parsePriceValue(product.price, city) + addOnsTotal
+      const available = hasCityPrice(product.price, city || 'Lagos')
       return {
         id: product.id,
         name: product.name,
         qty,
+        addOns,
         unitAmount,
-        subtotal: unitAmount * qty,
+        subtotal: available ? unitAmount * qty : 0,
+        available,
       }
     })
     .filter(Boolean)
@@ -74,6 +86,7 @@ export function summarizeOrder(items = [], deliveryFee = 0, city = '') {
   const total = subtotal + normalizedDeliveryFee
   return {
     lineItems,
+    hasUnavailable: lineItems.some((item) => !item.available),
     subtotal,
     deliveryFee: normalizedDeliveryFee,
     total,

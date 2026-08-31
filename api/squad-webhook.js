@@ -33,6 +33,13 @@ function formatDeliveryTime(timeStr) {
   return `${hour - 12}:00 PM`
 }
 
+function itemLabel(item) {
+  const addOns = Array.isArray(item.addOns) && item.addOns.length
+    ? ` + ${item.addOns.map((addOn) => addOn.name).join(', ')}`
+    : ''
+  return `${item.name}${addOns}`
+}
+
 function extractOrderDetails(event, orderRow, verifyData) {
   const body = event?.Body || {}
   const verify = verifyData || {}
@@ -120,7 +127,7 @@ async function sendOrderEmail(details) {
   if (delivery.notes) deliveryRows.push(`<tr><td style="padding:3px 14px 3px 0;color:#888">Notes</td><td>${esc(delivery.notes)}</td></tr>`)
 
   const items = (order.items || [])
-    .map((item) => `  • ${item.name} × ${item.qty} — ₦${Number(item.subtotal || 0).toLocaleString()}`)
+    .map((item) => `  • ${itemLabel(item)} × ${item.qty} — ₦${Number(item.subtotal || 0).toLocaleString()}`)
     .join('\n')
 
   const missingData = !customer.fullName || !delivery.address || !order.items?.length
@@ -187,7 +194,7 @@ ${hasRecipient ? `<h3 style="font-family:sans-serif;font-size:13px;text-transfor
 </table>
 <h3 style="font-family:sans-serif;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:#888;margin:16px 0 6px">Order</h3>
 <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px">
-  ${(order.items || []).map((item) => `<tr><td style="padding:3px 14px 3px 0">${esc(item.name)} × ${Number(item.qty)}</td><td>₦${Number(item.subtotal || 0).toLocaleString()}</td></tr>`).join('')}
+  ${(order.items || []).map((item) => `<tr><td style="padding:3px 14px 3px 0">${esc(itemLabel(item))} × ${Number(item.qty)}</td><td>₦${Number(item.subtotal || 0).toLocaleString()}</td></tr>`).join('')}
   <tr><td colspan="2" style="padding-top:8px;border-top:1px solid #eee"></td></tr>
   <tr><td style="padding:3px 14px 3px 0;color:#888">Subtotal</td><td>₦${Number(order.subtotal || 0).toLocaleString()}</td></tr>
   <tr><td style="padding:3px 14px 3px 0;color:#888">Delivery</td><td>₦${Number(order.deliveryFee || 0).toLocaleString()}</td></tr>
@@ -222,7 +229,7 @@ async function sendCustomerOrderEmail(details) {
           <tr>
             <td style="width:64px">${imageCell}</td>
             <td style="padding-left:14px;vertical-align:middle">
-              <div style="font-weight:600;color:${BRAND_TEXT};font-size:14px">${esc(item.name)}</div>
+              <div style="font-weight:600;color:${BRAND_TEXT};font-size:14px">${esc(itemLabel(item))}</div>
               <div style="color:${BRAND_MUTED};font-size:13px;margin-top:2px">Qty: ${Number(item.qty)}</div>
             </td>
             <td style="text-align:right;vertical-align:middle;white-space:nowrap;font-weight:600;color:${BRAND_TEXT};font-size:14px">
@@ -235,7 +242,7 @@ async function sendCustomerOrderEmail(details) {
   }).join('')
 
   const itemLines = (order.items || [])
-    .map((item) => `  • ${item.name} × ${item.qty} — ₦${Number(item.subtotal || 0).toLocaleString()}`)
+    .map((item) => `  • ${itemLabel(item)} × ${item.qty} — ₦${Number(item.subtotal || 0).toLocaleString()}`)
     .join('\n')
 
   const fulfilmentLines = []

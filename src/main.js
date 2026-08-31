@@ -1,5 +1,5 @@
 import './style.css'
-import { products, parsePriceValue, priceBounds } from './catalog.js'
+import { products, parsePriceValue, priceBounds, hasCityPrice } from './catalog.js'
 import { lookupDeliveryFee } from './delivery-zones.js'
 
 const SITE_URL = 'https://bloomfieldflowers.ng'
@@ -294,7 +294,12 @@ function saveHeroIndex(index) {
 
 function getCart() {
   try {
-    return JSON.parse(localStorage.getItem(storageKey) || '[]')
+    const cart = JSON.parse(localStorage.getItem(storageKey) || '[]')
+    return Array.isArray(cart) ? cart.map((item) => ({
+      ...item,
+      qty: Number(item.qty) || 1,
+      addOns: Array.isArray(item.addOns) ? item.addOns : [],
+    })) : []
   } catch {
     return []
   }
@@ -398,6 +403,7 @@ function showProductQuickView(productId) {
         <h2 id="quick-view-title">${esc(product.name)}</h2>
         <p class="quick-view-price"><strong>${formatPrice(product.price)}</strong></p>
         <p>${esc(product.description || product.short)}</p>
+        ${productAddOnsMarkup(product)}
         <div class="quick-view-actions">
           <button class="btn btn-primary" type="button" data-add="${product.id}" data-quick-view-close>Add to Cart</button>
           <a class="btn btn-secondary" href="#/product/${product.id}" data-product-link="${product.id}" data-quick-view-close>View Details</a>
@@ -428,7 +434,7 @@ function showProductQuickView(productId) {
     link.addEventListener('click', () => rememberShopReturn(link.dataset.productLink))
   })
   backdrop.querySelectorAll('[data-add]').forEach((button) => {
-    button.addEventListener('click', () => addToCart(button.dataset.add))
+    button.addEventListener('click', () => addToCart(button.dataset.add, selectedProductAddOns(button)))
   })
   document.addEventListener('keydown', onKeydown)
 }
@@ -437,32 +443,64 @@ function trackPixelEvent(event, params) {
   if (typeof window.fbq === 'function') window.fbq('track', event, params)
 }
 
-function addToCart(productId) {
+function cartItemKey(item) {
+  return `${item.id}::${[...(item.addOns || [])].sort().join(',')}`
+}
+
+function selectedProductAddOns(button) {
+  const scope = button.closest('.quick-view-body, .product-detail-copy, [data-product-options-scope]')
+  if (!scope) return []
+  return [...scope.querySelectorAll('[data-product-addon]:checked')].map((input) => input.value)
+}
+
+function productAddOnDetails(product, addOns = []) {
+  const selected = new Set(addOns)
+  return (product?.addOns || []).filter((addOn) => selected.has(addOn.id))
+}
+
+function productAddOnsMarkup(product) {
+  if (!Array.isArray(product.addOns) || product.addOns.length === 0) return ''
+  return `
+    <div class="product-addons">
+      <p class="product-addons-title">Add-ons</p>
+      ${product.addOns.map((addOn) => `
+        <label class="product-addon-option">
+          <input type="checkbox" value="${esc(addOn.id)}" data-product-addon>
+          <span>${esc(addOn.name)}</span>
+          <strong>+${formatPrice(addOn.price)}</strong>
+        </label>
+      `).join('')}
+    </div>
+  `
+}
+
+function addToCart(productId, addOns = []) {
   const product = products.find((p) => p.id === productId)
+  if (!product) return
+  const selectedAddOns = Array.isArray(addOns) ? [...new Set(addOns)] : []
   const cart = getCart()
-  const existing = cart.find((item) => item.id === productId)
+  const key = cartItemKey({ id: productId, addOns: selectedAddOns })
+  const existing = cart.find((item) => cartItemKey(item) === key)
   if (existing) {
     existing.qty += 1
   } else {
-    cart.push({ id: productId, qty: 1 })
+    cart.push({ id: productId, qty: 1, addOns: selectedAddOns })
   }
   saveCart(cart)
   renderApp()
   showAddedToCartModal(product)
-  if (product) {
-    trackPixelEvent('AddToCart', {
-      content_ids: [product.id],
-      content_name: product.name,
-      content_type: 'product',
-      value: parsePriceValue(product.price),
-      currency: 'NGN',
-    })
-  }
+  trackPixelEvent('AddToCart', {
+    content_ids: [product.id],
+    content_name: product.name,
+    content_type: 'product',
+    value: parsePriceValue(product.price),
+    currency: 'NGN',
+  })
 }
 
-function updateQty(productId, delta) {
+function updateQty(itemKey, delta) {
   const cart = getCart()
-    .map((item) => item.id === productId ? { ...item, qty: item.qty + delta } : item)
+    .map((item) => cartItemKey(item) === itemKey ? { ...item, qty: item.qty + delta } : item)
     .filter((item) => item.qty > 0)
   saveCart(cart)
   renderApp()
@@ -470,6 +508,21 @@ function updateQty(productId, delta) {
 
 function formatPrice(price) {
   if (typeof price === 'number') return naira.format(price)
+  if (price && typeof price === 'object') {
+    const lagos = price.Lagos
+    const abuja = price.Abuja
+    const ph = price['Port Harcourt']
+    if (Number.isFinite(Number(lagos)) && !Number.isFinite(Number(abuja)) && !Number.isFinite(Number(ph))) {
+      return `${naira.format(lagos)} Lagos only`
+    }
+    if (lagos === abuja && abuja === ph) return naira.format(lagos)
+    if (abuja === ph && lagos !== abuja) return `${naira.format(lagos)} Lagos / ${naira.format(abuja)} Abuja & PH`
+    if (lagos === ph && lagos !== abuja) return `${naira.format(lagos)} Lagos & PH / ${naira.format(abuja)} Abuja`
+    return Object.entries(price)
+      .filter(([, value]) => Number.isFinite(Number(value)))
+      .map(([city, value]) => `${naira.format(value)} ${city === 'Port Harcourt' ? 'PH' : city}`)
+      .join(' / ')
+  }
   return price
 }
 
@@ -490,6 +543,8 @@ function productGalleryMarkup(product, variant = 'detail') {
         `).join('')}
       </div>
       ${gallery.length > 1 ? `
+        <button class="product-gallery-arrow product-gallery-arrow-prev" type="button" data-gallery-nav="prev" aria-label="Previous ${esc(product.name)} photo">‹</button>
+        <button class="product-gallery-arrow product-gallery-arrow-next" type="button" data-gallery-nav="next" aria-label="Next ${esc(product.name)} photo">›</button>
         <div class="product-gallery-dots" aria-hidden="true">
           ${gallery.map((_, index) => `<span class="product-gallery-dot${index === 0 ? ' is-active' : ''}"></span>`).join('')}
         </div>
@@ -622,8 +677,20 @@ function cartDetailed(city = '') {
     .map((item) => {
       const product = products.find((p) => p.id === item.id)
       if (!product) return null
+      const activeCity = city || getCartCity() || 'Lagos'
+      const available = hasCityPrice(product.price, activeCity)
       const basePrice = parsePriceValue(product.price, city)
-      return { ...item, product, subtotal: basePrice * item.qty }
+      const addOns = productAddOnDetails(product, item.addOns)
+      const addOnsTotal = addOns.reduce((sum, addOn) => sum + parsePriceValue(addOn.price, city), 0)
+      return {
+        ...item,
+        key: cartItemKey(item),
+        product,
+        addOns,
+        unitPrice: basePrice + addOnsTotal,
+        subtotal: available ? (basePrice + addOnsTotal) * item.qty : 0,
+        available,
+      }
     })
     .filter(Boolean)
 }
@@ -900,6 +967,7 @@ function productPage(id) {
           <h1>${product.name}</h1>
           <p class="product-detail-price"><strong>${formatPrice(product.price)}</strong></p>
           <p>${product.description}</p>
+          ${productAddOnsMarkup(product)}
           <div class="product-actions product-detail-actions">
             <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
             <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Customize</a>
@@ -1100,14 +1168,15 @@ function cartPage() {
             <div>
               <p class="product-category">${item.product.category}</p>
               <h3>${item.product.name}</h3>
-              <p>${formatPrice(item.product.price)} each</p>
+              <p>${item.available ? `${naira.format(item.unitPrice)} each` : `Not available in ${esc(city)}`}</p>
+              ${item.addOns.length ? `<p class="cart-item-addons">Includes ${item.addOns.map((addOn) => esc(addOn.name)).join(', ')}</p>` : ''}
             </div>
             <div class="qty-controls">
-              <button type="button" data-qty="minus" data-id="${item.id}">−</button>
+              <button type="button" data-qty="minus" data-id="${item.key}">−</button>
               <span>${item.qty}</span>
-              <button type="button" data-qty="plus" data-id="${item.id}">+</button>
+              <button type="button" data-qty="plus" data-id="${item.key}">+</button>
             </div>
-            <strong data-cart-item-total="${item.id}">${naira.format(item.subtotal)}</strong>
+            <strong data-cart-item-total="${item.key}">${item.available ? naira.format(item.subtotal) : '-'}</strong>
           </div>
         `).join('') : '<div class="empty-state"><h3>Your cart is empty</h3><p>Add a bouquet to get started.</p><a class="btn btn-primary" href="#/shop">Continue Shopping</a></div>'}
       </div>
@@ -1201,7 +1270,7 @@ function checkoutPage() {
       </form>
       <aside class="summary-card summary-card-emphasis">
         <h3>Order Summary</h3>
-        ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${esc(item.product.name)} × ${item.qty}</span><strong data-checkout-item-total="${item.id}">${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
+        ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${esc(item.product.name)}${item.addOns.length ? ` + ${item.addOns.map((addOn) => esc(addOn.name)).join(', ')}` : ''} × ${item.qty}</span><strong data-checkout-item-total="${item.key}">${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
         <p class="summary-total">Subtotal: <span data-checkout-subtotal>${naira.format(subtotal)}</span></p>
         <p data-discount-line${appliedDiscount ? '' : ' class="hidden"'} style="color:#C27E8C;font-weight:600">Discount (<span data-discount-code-label>${appliedDiscount?.code || ''}</span>): -<span data-discount-amount>${naira.format(discountAmount())}</span></p>
         <p>Delivery: <span data-checkout-delivery>${renderCheckoutDeliveryText(deliveryFee)}</span></p>
@@ -1398,6 +1467,13 @@ async function handleCheckoutSubmit(event) {
 
   if (!cartCount()) {
     status.textContent = 'Your cart is empty. Add bouquets before checkout.'
+    status.className = 'form-status form-status-error'
+    return
+  }
+
+  const unavailableItems = cartDetailed(draft.city).filter((item) => !item.available)
+  if (unavailableItems.length) {
+    status.textContent = `${unavailableItems.map((item) => item.product.name).join(', ')} ${unavailableItems.length === 1 ? 'is' : 'are'} not available in ${draft.city}. Please update your cart city or remove the item before checkout.`
     status.className = 'form-status form-status-error'
     return
   }
@@ -1663,6 +1739,7 @@ function bindProductGalleries(root = document) {
   root.querySelectorAll('.product-gallery').forEach((gallery) => {
     const track = gallery.querySelector('.product-gallery-track')
     const dots = [...gallery.querySelectorAll('.product-gallery-dot')]
+    const navButtons = [...gallery.querySelectorAll('[data-gallery-nav]')]
     if (!track || dots.length < 2) return
 
     const updateDots = () => {
@@ -1670,6 +1747,12 @@ function bindProductGalleries(root = document) {
       dots.forEach((dot, index) => dot.classList.toggle('is-active', index === active))
     }
 
+    navButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const direction = button.dataset.galleryNav === 'next' ? 1 : -1
+        track.scrollBy({ left: direction * track.clientWidth, behavior: 'smooth' })
+      })
+    })
     track.addEventListener('scroll', updateDots, { passive: true })
     updateDots()
   })
@@ -1688,7 +1771,7 @@ function bindEvents() {
   })
 
   document.querySelectorAll('[data-add]').forEach((button) => {
-    button.addEventListener('click', () => addToCart(button.dataset.add))
+    button.addEventListener('click', () => addToCart(button.dataset.add, selectedProductAddOns(button)))
   })
 
   document.querySelectorAll('[data-quick-view]').forEach((button) => {
@@ -1732,13 +1815,7 @@ function bindEvents() {
     cartCitySelect.addEventListener('change', () => {
       const newCity = cartCitySelect.value
       saveCartCity(newCity)
-      const updatedItems = cartDetailed(newCity)
-      updatedItems.forEach((item) => {
-        const el = document.querySelector(`[data-cart-item-total="${item.id}"]`)
-        if (el) el.textContent = naira.format(item.subtotal)
-      })
-      const subtotalEl = document.querySelector('[data-cart-subtotal]')
-      if (subtotalEl) subtotalEl.textContent = `Subtotal: ${naira.format(cartTotal(newCity))}`
+      renderApp()
     })
   }
 
@@ -1850,7 +1927,7 @@ function bindEvents() {
             }
             if (field.name === 'city') saveCartCity(newDraft.city)
             cartDetailed(newDraft.city).forEach((item) => {
-              const el = document.querySelector(`[data-checkout-item-total="${item.id}"]`)
+              const el = document.querySelector(`[data-checkout-item-total="${item.key}"]`)
               if (el) el.textContent = naira.format(item.subtotal)
             })
             updateCheckoutSummary(newDraft.city || getCartCity() || 'Lagos', newDraft.area || '', pickupActive)

@@ -1,5 +1,5 @@
 import './style.css'
-import { products, parsePriceValue, priceBounds, hasCityPrice } from './catalog.js'
+import { products, parsePriceValue, priceBounds, productPriceValue, isProductAvailable } from './catalog.js'
 import { lookupDeliveryFee } from './delivery-zones.js'
 
 const SITE_URL = 'https://bloomfieldflowers.ng'
@@ -283,14 +283,15 @@ const shopSortOptions = {
 
 function getInitialShopView() {
   try {
-    return localStorage.getItem(shopViewKey) === 'dense' ? 'dense' : 'roomy'
+    const saved = localStorage.getItem(shopViewKey)
+    return saved === 'compact' || saved === 'dense' ? 'compact' : 'standard'
   } catch {
-    return 'roomy'
+    return 'standard'
   }
 }
 
 function saveShopView(mode) {
-  shopViewMode = mode === 'dense' ? 'dense' : 'roomy'
+  shopViewMode = mode === 'compact' || mode === 'dense' ? 'compact' : 'standard'
   try { localStorage.setItem(shopViewKey, shopViewMode) } catch { /* storage unavailable */ }
 }
 
@@ -508,7 +509,7 @@ function addToCart(productId, addOns = []) {
     content_ids: [product.id],
     content_name: product.name,
     content_type: 'product',
-    value: parsePriceValue(product.price),
+    value: productPriceValue(product),
     currency: 'NGN',
   })
 }
@@ -693,8 +694,8 @@ function cartDetailed(city = '') {
       const product = products.find((p) => p.id === item.id)
       if (!product) return null
       const activeCity = city || getCartCity() || 'Lagos'
-      const available = hasCityPrice(product.price, activeCity)
-      const basePrice = parsePriceValue(product.price, city)
+      const available = isProductAvailable(product, activeCity)
+      const basePrice = productPriceValue(product, city)
       const addOns = productAddOnDetails(product, item.addOns)
       const addOnsTotal = addOns.reduce((sum, addOn) => sum + parsePriceValue(addOn.price, city), 0)
       return {
@@ -921,9 +922,15 @@ function shopPage() {
       <div class="shop-toolbar">
         <p>${visible.length === products.length ? `${products.length} bouquets available.` : `Showing ${visible.length} of ${products.length} bouquets.`}</p>
         <div class="shop-filters">
-          <div class="shop-view-toggle" aria-label="Shop view density">
-            <button type="button" class="${shopViewMode === 'roomy' ? 'is-active' : ''}" data-shop-view="roomy">Roomy</button>
-            <button type="button" class="${shopViewMode === 'dense' ? 'is-active' : ''}" data-shop-view="dense">Dense</button>
+          <div class="shop-view-toggle" aria-label="Shop view">
+            <button type="button" class="${shopViewMode === 'standard' ? 'is-active' : ''}" data-shop-view="standard" aria-label="Standard shop view" title="Standard view">
+              <span class="view-icon view-icon-standard" aria-hidden="true"><span></span><span></span><span></span></span>
+              <span>Standard</span>
+            </button>
+            <button type="button" class="${shopViewMode === 'compact' ? 'is-active' : ''}" data-shop-view="compact" aria-label="Compact shop view" title="Compact view">
+              <span class="view-icon view-icon-compact" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+              <span>Compact</span>
+            </button>
           </div>
           <label class="shop-filter-label">
             Price
@@ -951,7 +958,7 @@ function shopPage() {
           <a class="btn btn-primary" href="#/custom-orders">Request a Custom Order</a>
         </div>
       ` : `
-      <div class="product-grid ${shopViewMode === 'dense' ? 'product-grid-dense' : ''}">
+      <div class="product-grid ${shopViewMode === 'compact' ? 'product-grid-compact' : ''}">
         ${visible.map((product) => productCard(product)).join('')}
       </div>
       `}

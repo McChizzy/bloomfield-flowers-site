@@ -1,5 +1,5 @@
 import crypto from 'node:crypto'
-import { products, parsePriceValue, hasCityPrice } from '../../src/catalog.js'
+import { products, parsePriceValue, productPriceValue, isProductAvailable } from '../../src/catalog.js'
 
 const TEST_BASE_URL = 'https://sandbox-api-d.squadco.com'
 const LIVE_BASE_URL = 'https://api-d.squadco.com'
@@ -64,8 +64,8 @@ export function getCartSnapshot(items = [], city = '') {
           unitAmount: parsePriceValue(addOn.price, city),
         }))
       const addOnsTotal = addOns.reduce((sum, addOn) => sum + addOn.unitAmount, 0)
-      const unitAmount = parsePriceValue(product.price, city) + addOnsTotal
-      const available = hasCityPrice(product.price, city || 'Lagos')
+      const unitAmount = productPriceValue(product, city) + addOnsTotal
+      const available = isProductAvailable(product, city || 'Lagos')
       return {
         id: product.id,
         name: product.name,

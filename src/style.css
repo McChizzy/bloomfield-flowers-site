@@ -842,24 +842,24 @@ p {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.product-grid-dense {
+.product-grid-compact {
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
-.product-grid-dense .product-card img {
+.product-grid-compact .product-card img {
   aspect-ratio: 4 / 3.15;
 }
 
-.product-grid-dense .product-body {
+.product-grid-compact .product-body {
   padding: 0.85rem;
 }
 
-.product-grid-dense .product-body h3 {
+.product-grid-compact .product-body h3 {
   margin-bottom: 0.3rem;
   font-size: 0.95rem;
 }
 
-.product-grid-dense .product-body p:not(.product-category) {
+.product-grid-compact .product-body p:not(.product-category) {
   font-size: 0.88rem;
   display: -webkit-box;
   overflow: hidden;
@@ -867,16 +867,16 @@ p {
   -webkit-line-clamp: 2;
 }
 
-.product-grid-dense .product-meta {
+.product-grid-compact .product-meta {
   gap: 0.55rem;
   margin-top: 0.7rem;
 }
 
-.product-grid-dense .product-actions {
+.product-grid-compact .product-actions {
   gap: 0.45rem;
 }
 
-.product-grid-dense .product-actions .btn {
+.product-grid-compact .product-actions .btn {
   min-width: 100%;
   padding-inline: 0.6rem;
 }
@@ -938,17 +938,21 @@ p {
 
 .shop-view-toggle {
   display: inline-flex;
-  padding: 0.18rem;
+  gap: 0.28rem;
+  padding: 0.22rem;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 999px;
   background: #fff;
 }
 
 .shop-view-toggle button {
-  min-width: 4.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  min-width: 6.6rem;
   border: 0;
-  border-radius: 8px;
-  padding: 0.42rem 0.68rem;
+  border-radius: 999px;
+  padding: 0.34rem 0.64rem 0.34rem 0.36rem;
   background: transparent;
   color: var(--muted);
   font: inherit;
@@ -960,6 +964,41 @@ p {
 .shop-view-toggle button.is-active {
   background: var(--primary-dark);
   color: #fff;
+}
+
+.view-icon {
+  display: grid;
+  width: 1.65rem;
+  height: 1.65rem;
+  flex: 0 0 1.65rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  place-items: center;
+}
+
+.view-icon-standard {
+  gap: 0.16rem;
+  padding: 0.34rem;
+}
+
+.view-icon-standard span {
+  width: 100%;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.view-icon-compact {
+  grid-template-columns: repeat(2, 0.36rem);
+  grid-template-rows: repeat(2, 0.36rem);
+  gap: 0.16rem;
+}
+
+.view-icon-compact span {
+  width: 0.36rem;
+  height: 0.36rem;
+  border-radius: 2px;
+  background: currentColor;
 }
 
 .shop-filter-label {

@@ -331,8 +331,8 @@ export const products = [
     gallery: [
       '/images/products/birthday-combo/birthday-combo-01.jpeg',
     ],
-    short: 'A sweet flower-and-gift combo for birthday surprises.',
-    description: 'A thoughtful birthday combo arranged to feel personal, pretty, and ready for a memorable surprise.',
+    short: 'A birthday bouquet paired with a celebratory balloon.',
+    description: 'A sweet birthday package with a fresh bouquet and balloon, made to feel joyful and personal.',
   },
   {
     id: 'box-garden-bouquet',
@@ -385,7 +385,6 @@ export const products = [
     image: '/images/products/spray-roses/spray-roses-01.jpeg',
     gallery: [
       '/images/products/spray-roses/spray-roses-01.jpeg',
-      '/images/products/spray-roses/spray-roses-02.jpeg',
     ],
     short: 'A soft spray rose bouquet with a pretty, compact finish.',
     description: 'A charming spray rose bouquet with gentle colour and a neat Bloomfield wrap.',

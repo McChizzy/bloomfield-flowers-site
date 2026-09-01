@@ -5,7 +5,6 @@ dist
 *.env
 *.zip
 *.xlsx
-/images
 /leads
 /meta backups
 /ph-rollout

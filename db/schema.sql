@@ -103,22 +103,17 @@ create table if not exists discount_codes (
   code                     text unique not null,
   type                     text not null default 'percent', -- 'percent' | 'fixed'
   value                    numeric not null,                -- percent (5) or fixed naira amount
-  free_delivery_threshold  integer,                        -- null = no free delivery; integer = min subtotal (naira) for free delivery
+  free_delivery_threshold  integer,                         -- null = no free delivery; integer = min subtotal (naira) for free delivery
   min_order                integer not null default 0,
-  max_uses                 integer,                        -- null = unlimited
+  max_uses                 integer,                         -- null = unlimited
   uses                     integer not null default 0,
   expires_at               timestamptz,
   active                   boolean not null default true,
   created_at               timestamptz default now()
 );
 
--- Girlfriend's Day campaign code
-insert into discount_codes (code, type, value, free_delivery_threshold, min_order, expires_at, active)
-values ('GFDAY5', 'percent', 5, 250000, 0, '2026-08-02 23:59:59+00', true)
-on conflict (code) do nothing;
-
 -- Migration: add discount columns to existing orders table if not present
-alter table orders add column if not exists discount_code   text;
+alter table orders add column if not exists discount_code text;
 alter table orders add column if not exists discount_amount integer default 0;
 
 -- Atomic increment for discount code usage (called by webhook on confirmed payment)

@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Generated campaign exports
+ph-rollout/*.png
+ph-rollout/assets/*.jpg
+ph-rollout/assets/*.jpeg
+ph-rollout/assets/*.png
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

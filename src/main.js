@@ -1,5 +1,5 @@
 import './style.css'
-import { products, parsePriceValue, priceBounds } from './catalog.js'
+import { products, parsePriceValue, priceBounds, productPriceValue, isProductAvailable } from './catalog.js'
 import { lookupDeliveryFee } from './delivery-zones.js'
 
 const SITE_URL = 'https://bloomfieldflowers.ng'
@@ -10,8 +10,10 @@ const emailAddress = 'houseofbloomfield@gmail.com'
 const phoneNumber = '+234 701 120 3325'
 const whatsappUrl = 'https://wa.me/2347011203325'
 const businessHours = 'Open 24 hours'
-
-const phTickerItems = [
+const deliveryCities = ['Lagos', 'Abuja', 'Port Harcourt']
+const serviceCitiesText = 'Lagos, Abuja, and Port Harcourt'
+const serviceCitiesShortText = 'Lagos · Abuja · Port Harcourt'
+const phLaunchTickerItems = [
   '🌿 Port Harcourt — Bloomfield is coming',
   '📍 PH Town · Old GRA · New GRA',
   '🌺 Eastern Bypass · Trans Amadi · Woji',
@@ -21,23 +23,7 @@ const phTickerItems = [
   '🌿 Same-day delivery for confirmed PH orders',
   '📍 Be first — DM @bloomfieldflowers_ for PH access',
 ]
-
-function phLaunchTicker() {
-  const items = [...phTickerItems, ...phTickerItems]
-    .map((item) => `<span class="promo-ticker-item">${item}</span>`)
-    .join('')
-  return `
-    <div class="ph-launch-banner" aria-label="Port Harcourt launch notice">
-      <span class="ph-launch-badge">Coming Soon</span>
-      <strong>🌿 Port Harcourt — Bloomfield is on the way.</strong>
-      <a class="ph-launch-dm" href="${instagramUrl}" target="_blank" rel="noreferrer">DM for early access →</a>
-    </div>
-    <div class="promo-ticker" aria-label="Port Harcourt launch highlights">
-      <div class="promo-ticker-track">${items}</div>
-    </div>
-  `
-}
-
+let appliedDiscount = null
 // Business hours: Mon–Sat 9am–7pm, Sun 12pm–5pm
 // Delivery slots: 1hr after opening, 1hr before closing
 const WEEKDAY_SLOT_START = 10  // 10 AM
@@ -45,13 +31,31 @@ const WEEKDAY_SLOT_END = 18    // 6 PM
 const SUNDAY_SLOT_START = 13   // 1 PM
 const SUNDAY_SLOT_END = 16     // 4 PM
 const dmPrefill = encodeURIComponent('Hello Bloomfield Flowers. I would like to place an order. We will respond to process your order and confirm flower availability. Thanks for your patronage.')
-
-// Applied discount state — reset on page navigation
-let appliedDiscount = null // { code, discountAmount, freeDelivery, message }
 const customOrderPrefill = encodeURIComponent('Hello Bloomfield Flowers. I would like to request a custom bouquet. We will respond to process your order and confirm flower availability. Thanks for your patronage.')
 
 function esc(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+}
+
+function cityOptions(selected = '') {
+  return deliveryCities.map((city) => `<option value="${city}"${selected === city ? ' selected' : ''}>${city}</option>`).join('')
+}
+
+function phLaunchPromo() {
+  const tickerItems = [...phLaunchTickerItems, ...phLaunchTickerItems]
+    .map((item) => `<span class="promo-ticker-item">${item}</span>`)
+    .join('')
+
+  return `
+    <div class="ph-launch-banner" aria-label="Port Harcourt launch notice">
+      <span class="ph-launch-badge">Coming Soon</span>
+      <strong>🌿 Port Harcourt — Bloomfield is on the way.</strong>
+      <a class="ph-launch-dm" href="${instagramUrl}" target="_blank" rel="noreferrer">DM for early access →</a>
+    </div>
+    <div class="promo-ticker" aria-label="Port Harcourt launch highlights">
+      <div class="promo-ticker-track">${tickerItems}</div>
+    </div>
+  `
 }
 
 // Longest valid Nigerian number: +234 followed by 10 digits
@@ -144,8 +148,8 @@ const testimonials = [
 ]
 
 const reviewAggregate = {
-  ratingValue: 4.8,
-  reviewCount: 12,
+  ratingValue: 4.9,
+  reviewCount: 21,
   bestRating: 5,
 }
 
@@ -212,7 +216,7 @@ const landingShowcaseSlides = [
 
 const heroHighlights = [
   'Same-day delivery',
-  'Abuja & Lagos delivery',
+  `${serviceCitiesShortText} delivery`,
   'Hand-tied premium bouquets',
 ]
 
@@ -221,21 +225,25 @@ const heroScene = {
   alt: 'Bloomfield Flowers signature bouquet',
   eyebrow: 'Bloomfield Flowers',
   title: 'Luxury bouquets for meaningful moments',
-  body: 'Elegant floral gifting in Abuja and Lagos for romance, birthdays, celebrations, and premium everyday surprises.',
+  body: `Elegant floral gifting in ${serviceCitiesText} for romance, birthdays, celebrations, and premium everyday surprises.`,
 }
 
 const careMoments = [
   {
-    title: 'Fresh from the first day',
-    body: 'Trim the stems slightly before arranging your bouquet in clean water so the flowers stay hydrated and lively.',
+    title: 'Cut stems at an angle',
+    body: 'Cut each stem at a 45-degree angle before placing the bouquet in a vase. This helps the flowers take in water more easily.',
   },
   {
-    title: 'Keep the water clean',
-    body: 'Refresh the water every day or two and gently rinse the vase to help your arrangement last longer.',
+    title: 'Keep bacteria down',
+    body: 'Add half a cap of bleach to the vase water to help slow bacteria growth and keep the water cleaner for longer.',
   },
   {
-    title: 'Protect delicate blooms',
-    body: 'Keep flowers away from direct sunlight, heat, and strong wind or air-conditioning for a longer vase life.',
+    title: 'Feed the flowers',
+    body: 'Add 3 tablespoons of sugar to the water to help nourish the flowers after delivery.',
+  },
+  {
+    title: 'Refresh the vase',
+    body: 'Change the water every 2-3 days, rinse the vase, and trim the stems again so the bouquet stays fresh.',
   },
 ]
 
@@ -249,10 +257,14 @@ const storageKey = 'bloomfield-cart'
 const heroStorageKey = 'bloomfield-hero-index'
 const checkoutDraftKey = 'bloomfield-checkout-draft'
 const cartCityKey = 'bloomfield-cart-city'
+const shopViewKey = 'bloomfield-shop-view'
+const shopReturnProductKey = 'bloomfield-shop-return-product'
+const shopReturnScrollKey = 'bloomfield-shop-return-scroll'
 const app = document.querySelector('#app')
 
 let shopSort = 'featured'
 let shopPriceFilter = 'all'
+let shopViewMode = getInitialShopView()
 
 const shopPriceFilters = {
   all: { label: 'All prices', test: () => true },
@@ -267,6 +279,20 @@ const shopSortOptions = {
   'price-asc': { label: 'Price: Low to High', sort: (a, b) => parsePriceValue(a.price) - parsePriceValue(b.price) },
   'price-desc': { label: 'Price: High to Low', sort: (a, b) => parsePriceValue(b.price) - parsePriceValue(a.price) },
   'name-asc': { label: 'Name: A to Z', sort: (a, b) => a.name.localeCompare(b.name) },
+}
+
+function getInitialShopView() {
+  try {
+    const saved = localStorage.getItem(shopViewKey)
+    return saved === 'compact' || saved === 'dense' ? 'compact' : 'standard'
+  } catch {
+    return 'standard'
+  }
+}
+
+function saveShopView(mode) {
+  shopViewMode = mode === 'compact' || mode === 'dense' ? 'compact' : 'standard'
+  try { localStorage.setItem(shopViewKey, shopViewMode) } catch { /* storage unavailable */ }
 }
 
 function getHeroIndex() {
@@ -284,7 +310,12 @@ function saveHeroIndex(index) {
 
 function getCart() {
   try {
-    return JSON.parse(localStorage.getItem(storageKey) || '[]')
+    const cart = JSON.parse(localStorage.getItem(storageKey) || '[]')
+    return Array.isArray(cart) ? cart.map((item) => ({
+      ...item,
+      qty: Number(item.qty) || 1,
+      addOns: Array.isArray(item.addOns) ? item.addOns : [],
+    })) : []
   } catch {
     return []
   }
@@ -299,6 +330,32 @@ function getCartCity() {
 }
 function saveCartCity(city) {
   try { localStorage.setItem(cartCityKey, city) } catch { }
+}
+
+function rememberShopReturn(productId) {
+  if (!productId) return
+  try {
+    sessionStorage.setItem(shopReturnProductKey, productId)
+    sessionStorage.setItem(shopReturnScrollKey, String(window.scrollY || 0))
+  } catch { /* session storage unavailable */ }
+}
+
+function getShopReturn() {
+  try {
+    return {
+      productId: sessionStorage.getItem(shopReturnProductKey) || '',
+      scrollY: Number(sessionStorage.getItem(shopReturnScrollKey) || 0),
+    }
+  } catch {
+    return { productId: '', scrollY: 0 }
+  }
+}
+
+function clearShopReturn() {
+  try {
+    sessionStorage.removeItem(shopReturnProductKey)
+    sessionStorage.removeItem(shopReturnScrollKey)
+  } catch { /* session storage unavailable */ }
 }
 
 function showAddedToCartModal(product) {
@@ -341,36 +398,125 @@ function showAddedToCartModal(product) {
   document.addEventListener('keydown', onKeydown)
 }
 
+function showProductQuickView(productId) {
+  const product = products.find((p) => p.id === productId)
+  if (!product) return
+
+  const prev = document.getElementById('quick-view-sheet')
+  if (prev) prev.remove()
+
+  const backdrop = document.createElement('div')
+  backdrop.id = 'quick-view-sheet'
+  backdrop.className = 'quick-view-backdrop'
+  backdrop.innerHTML = `
+    <div class="quick-view-sheet" role="dialog" aria-modal="true" aria-labelledby="quick-view-title">
+      <button class="quick-view-close" type="button" aria-label="Close quick view" data-quick-view-close>&times;</button>
+      <div class="quick-view-media">
+        ${productGalleryMarkup(product, 'quick-view')}
+      </div>
+      <div class="quick-view-body">
+        <p class="product-category">${esc(product.category)}</p>
+        <h2 id="quick-view-title">${esc(product.name)}</h2>
+        <p class="quick-view-price"><strong>${formatPrice(product.price)}</strong></p>
+        <p>${esc(product.description || product.short)}</p>
+        ${productAddOnsMarkup(product)}
+        <div class="quick-view-actions">
+          <button class="btn btn-primary" type="button" data-add="${product.id}" data-quick-view-close>Add to Cart</button>
+          <a class="btn btn-secondary" href="#/product/${product.id}" data-product-link="${product.id}" data-quick-view-close>View Details</a>
+        </div>
+      </div>
+    </div>
+  `
+  document.body.appendChild(backdrop)
+  bindProductGalleries(backdrop)
+  requestAnimationFrame(() => requestAnimationFrame(() => backdrop.classList.add('is-visible')))
+
+  const close = () => {
+    document.removeEventListener('keydown', onKeydown)
+    backdrop.classList.remove('is-visible')
+    backdrop.addEventListener('transitionend', () => backdrop.remove(), { once: true })
+  }
+  const onKeydown = (event) => {
+    if (event.key === 'Escape') close()
+  }
+
+  backdrop.addEventListener('click', (event) => {
+    if (event.target === backdrop) close()
+  })
+  backdrop.querySelectorAll('[data-quick-view-close]').forEach((el) => {
+    el.addEventListener('click', close)
+  })
+  backdrop.querySelectorAll('[data-product-link]').forEach((link) => {
+    link.addEventListener('click', () => rememberShopReturn(link.dataset.productLink))
+  })
+  backdrop.querySelectorAll('[data-add]').forEach((button) => {
+    button.addEventListener('click', () => addToCart(button.dataset.add, selectedProductAddOns(button)))
+  })
+  document.addEventListener('keydown', onKeydown)
+}
+
 function trackPixelEvent(event, params) {
   if (typeof window.fbq === 'function') window.fbq('track', event, params)
 }
 
-function addToCart(productId) {
+function cartItemKey(item) {
+  return `${item.id}::${[...(item.addOns || [])].sort().join(',')}`
+}
+
+function selectedProductAddOns(button) {
+  const scope = button.closest('.quick-view-body, .product-detail-copy, [data-product-options-scope]')
+  if (!scope) return []
+  return [...scope.querySelectorAll('[data-product-addon]:checked')].map((input) => input.value)
+}
+
+function productAddOnDetails(product, addOns = []) {
+  const selected = new Set(addOns)
+  return (product?.addOns || []).filter((addOn) => selected.has(addOn.id))
+}
+
+function productAddOnsMarkup(product) {
+  if (!Array.isArray(product.addOns) || product.addOns.length === 0) return ''
+  return `
+    <div class="product-addons">
+      <p class="product-addons-title">Add-ons</p>
+      ${product.addOns.map((addOn) => `
+        <label class="product-addon-option">
+          <input type="checkbox" value="${esc(addOn.id)}" data-product-addon>
+          <span>${esc(addOn.name)}</span>
+          <strong>+${formatPrice(addOn.price)}</strong>
+        </label>
+      `).join('')}
+    </div>
+  `
+}
+
+function addToCart(productId, addOns = []) {
   const product = products.find((p) => p.id === productId)
+  if (!product) return
+  const selectedAddOns = Array.isArray(addOns) ? [...new Set(addOns)] : []
   const cart = getCart()
-  const existing = cart.find((item) => item.id === productId)
+  const key = cartItemKey({ id: productId, addOns: selectedAddOns })
+  const existing = cart.find((item) => cartItemKey(item) === key)
   if (existing) {
     existing.qty += 1
   } else {
-    cart.push({ id: productId, qty: 1 })
+    cart.push({ id: productId, qty: 1, addOns: selectedAddOns })
   }
   saveCart(cart)
   renderApp()
   showAddedToCartModal(product)
-  if (product) {
-    trackPixelEvent('AddToCart', {
-      content_ids: [product.id],
-      content_name: product.name,
-      content_type: 'product',
-      value: parsePriceValue(product.price),
-      currency: 'NGN',
-    })
-  }
+  trackPixelEvent('AddToCart', {
+    content_ids: [product.id],
+    content_name: product.name,
+    content_type: 'product',
+    value: productPriceValue(product),
+    currency: 'NGN',
+  })
 }
 
-function updateQty(productId, delta) {
+function updateQty(itemKey, delta) {
   const cart = getCart()
-    .map((item) => item.id === productId ? { ...item, qty: item.qty + delta } : item)
+    .map((item) => cartItemKey(item) === itemKey ? { ...item, qty: item.qty + delta } : item)
     .filter((item) => item.qty > 0)
   saveCart(cart)
   renderApp()
@@ -378,24 +524,67 @@ function updateQty(productId, delta) {
 
 function formatPrice(price) {
   if (typeof price === 'number') return naira.format(price)
+  if (price && typeof price === 'object') {
+    const lagos = price.Lagos
+    const abuja = price.Abuja
+    const ph = price['Port Harcourt']
+    if (Number.isFinite(Number(lagos)) && !Number.isFinite(Number(abuja)) && !Number.isFinite(Number(ph))) {
+      return `${naira.format(lagos)} Lagos only`
+    }
+    if (lagos === abuja && abuja === ph) return naira.format(lagos)
+    if (abuja === ph && lagos !== abuja) return `${naira.format(lagos)} Lagos / ${naira.format(abuja)} Abuja & PH`
+    if (lagos === ph && lagos !== abuja) return `${naira.format(lagos)} Lagos & PH / ${naira.format(abuja)} Abuja`
+    return Object.entries(price)
+      .filter(([, value]) => Number.isFinite(Number(value)))
+      .map(([city, value]) => `${naira.format(value)} ${city === 'Port Harcourt' ? 'PH' : city}`)
+      .join(' / ')
+  }
   return price
+}
+
+function productGallery(product) {
+  const images = Array.isArray(product.gallery) && product.gallery.length ? product.gallery : [product.image]
+  return [...new Set(images.filter(Boolean))]
+}
+
+function productGalleryMarkup(product, variant = 'detail') {
+  const gallery = productGallery(product)
+  return `
+    <div class="product-gallery product-gallery-${variant}" aria-label="${esc(product.name)} photos">
+      <div class="product-gallery-track">
+        ${gallery.map((image, index) => `
+          <figure class="product-gallery-slide">
+            <img src="${image}" alt="${esc(product.name)}${gallery.length > 1 ? ` photo ${index + 1}` : ''}" loading="${index === 0 ? 'eager' : 'lazy'}" decoding="async">
+          </figure>
+        `).join('')}
+      </div>
+      ${gallery.length > 1 ? `
+        <button class="product-gallery-arrow product-gallery-arrow-prev" type="button" data-gallery-nav="prev" aria-label="Previous ${esc(product.name)} photo">‹</button>
+        <button class="product-gallery-arrow product-gallery-arrow-next" type="button" data-gallery-nav="next" aria-label="Next ${esc(product.name)} photo">›</button>
+        <div class="product-gallery-dots" aria-hidden="true">
+          ${gallery.map((_, index) => `<span class="product-gallery-dot${index === 0 ? ' is-active' : ''}"></span>`).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `
 }
 
 function productCard(product) {
   return `
-    <article class="product-card">
-      <a class="product-card-media" href="#/product/${product.id}">
+    <article class="product-card" id="product-${product.id}">
+      <a class="product-card-media" href="#/product/${product.id}" data-product-link="${product.id}">
         <img src="${product.image}" alt="${product.name}" loading="lazy" decoding="async" width="400" height="480">
+        <span class="product-quick-view-hint">Tap for details</span>
       </a>
       <div class="product-body">
         <p class="product-category">${product.category}</p>
-        <h3><a href="#/product/${product.id}">${product.name}</a></h3>
+        <h3><a href="#/product/${product.id}" data-product-link="${product.id}">${product.name}</a></h3>
         <p>${product.short}</p>
         <div class="product-meta">
           <strong>${formatPrice(product.price)}</strong>
           <div class="product-actions">
             <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
-            <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Order</a>
+            <button class="btn btn-secondary" type="button" data-quick-view="${product.id}">Quick View</button>
           </div>
         </div>
       </div>
@@ -418,15 +607,25 @@ function saveCheckoutDraft(draft) {
 function getDeliveryFee() {
   const draft = getCheckoutDraft()
   if ((draft.deliveryMethod || 'delivery') === 'pickup') return 0
-  const { fee } = lookupDeliveryFee(draft.city || 'Abuja', draft.area || '')
+  const { fee } = lookupDeliveryFee(draft.city || getCartCity() || 'Lagos', draft.area || '')
   return fee ?? 0
+}
+
+function deliveryFeeSummary(city, area, isPickup = false) {
+  if (isPickup) return { fee: 0, feeText: naira.format(0), canPay: true }
+  const { fee } = lookupDeliveryFee(city || getCartCity() || 'Lagos', area || '')
+  return {
+    fee: fee ?? 0,
+    feeText: fee ? naira.format(fee) : 'To be confirmed',
+    canPay: Boolean(fee),
+  }
 }
 
 function renderDeliveryFeeContent(city, area) {
   if (!area || !area.trim()) {
     return `<p class="delivery-fee-note">Enter your area above to see the estimated delivery fee.</p>`
   }
-  const { fee, exact } = lookupDeliveryFee(city || 'Abuja', area)
+  const { fee, exact } = lookupDeliveryFee(city || getCartCity() || 'Lagos', area)
   if (!fee) {
     return `<p class="delivery-fee-note">We'll confirm your delivery fee after you place your order.</p>`
   }
@@ -438,6 +637,42 @@ function renderDeliveryFeeContent(city, area) {
 
 function checkoutGrandTotal(city = '') {
   return cartTotal(city) + getDeliveryFee()
+}
+
+function discountAmount() {
+  return Math.max(0, Number(appliedDiscount?.discountAmount || 0))
+}
+
+function renderCheckoutDeliveryText(feeSummary) {
+  if (appliedDiscount?.freeDelivery && feeSummary.canPay) {
+    return `<span style="text-decoration:line-through;color:#aaa">${naira.format(feeSummary.fee)}</span> <strong style="color:#C27E8C">Free</strong>`
+  }
+  return feeSummary.feeText
+}
+
+function renderCheckoutTotalText(subtotal, feeSummary) {
+  const discountedSubtotal = Math.max(0, subtotal - discountAmount())
+  if (!feeSummary.canPay) return `${naira.format(discountedSubtotal)} + delivery`
+  const deliveryFee = appliedDiscount?.freeDelivery ? 0 : feeSummary.fee
+  return naira.format(discountedSubtotal + deliveryFee)
+}
+
+function updateCheckoutSummary(city, area, isPickup) {
+  const feeSummary = deliveryFeeSummary(city, area, isPickup)
+  const subtotal = cartTotal(city)
+  const deliveryEl = document.querySelector('[data-checkout-delivery]')
+  const subtotalEl = document.querySelector('[data-checkout-subtotal]')
+  const totalEl = document.querySelector('[data-checkout-total]')
+  const discountLine = document.querySelector('[data-discount-line]')
+  const codeLabel = document.querySelector('[data-discount-code-label]')
+  const discountAmountEl = document.querySelector('[data-discount-amount]')
+
+  if (subtotalEl) subtotalEl.textContent = naira.format(subtotal)
+  if (deliveryEl) deliveryEl.innerHTML = renderCheckoutDeliveryText(feeSummary)
+  if (totalEl) totalEl.textContent = renderCheckoutTotalText(subtotal, feeSummary)
+  if (discountLine) discountLine.classList.toggle('hidden', !appliedDiscount)
+  if (codeLabel) codeLabel.textContent = appliedDiscount?.code || ''
+  if (discountAmountEl) discountAmountEl.textContent = naira.format(discountAmount())
 }
 
 function getTransactionRefFromUrl() {
@@ -458,8 +693,20 @@ function cartDetailed(city = '') {
     .map((item) => {
       const product = products.find((p) => p.id === item.id)
       if (!product) return null
-      const basePrice = parsePriceValue(product.price, city)
-      return { ...item, product, subtotal: basePrice * item.qty }
+      const activeCity = city || getCartCity() || 'Lagos'
+      const available = isProductAvailable(product, activeCity)
+      const basePrice = productPriceValue(product, city)
+      const addOns = productAddOnDetails(product, item.addOns)
+      const addOnsTotal = addOns.reduce((sum, addOn) => sum + parsePriceValue(addOn.price, city), 0)
+      return {
+        ...item,
+        key: cartItemKey(item),
+        product,
+        addOns,
+        unitPrice: basePrice + addOnsTotal,
+        subtotal: available ? (basePrice + addOnsTotal) * item.qty : 0,
+        available,
+      }
     })
     .filter(Boolean)
 }
@@ -486,7 +733,7 @@ function shell(content, route = '') {
   return `
     <div class="site-shell">
       <header class="site-header">
-        ${phLaunchTicker()}
+        ${phLaunchPromo()}
         <div class="container nav-row">
           <a class="brand" href="#/home">
             <span class="brand-logo-wrap">
@@ -510,7 +757,7 @@ function shell(content, route = '') {
         <div class="container footer-grid">
           <div>
             <h3>Bloomfield Flowers</h3>
-            <p>Luxury bouquets, everyday gifting, romance, celebrations, and custom floral moments, beautifully arranged for Abuja and Lagos.</p>
+            <p>Luxury bouquets, everyday gifting, romance, celebrations, and custom floral moments, beautifully arranged for ${serviceCitiesText}.</p>
           </div>
           <div>
             <h4>Quick Links</h4>
@@ -527,8 +774,8 @@ function shell(content, route = '') {
           </div>
         </div>
         <div class="footer-seo-links">
-          <p>Flower delivery: <a href="/flower-delivery-lagos">Lagos</a> · <a href="/flower-delivery-abuja">Abuja</a></p>
-          <p>Shop by occasion: <a href="/birthday-flowers-lagos">Birthdays</a> · <a href="/anniversary-flowers-lagos">Anniversaries</a> · <a href="/graduation-flowers-lagos">Graduations</a></p>
+          <p>Flower delivery: <a href="/flower-delivery-lagos">Lagos</a> · <a href="/flower-delivery-abuja">Abuja</a> · <a href="/flower-delivery-port-harcourt">Port Harcourt</a></p>
+          <p>Shop by occasion: <a href="/birthday-flowers-lagos">Birthdays</a> · <a href="/anniversary-flowers-lagos">Anniversaries</a> · <a href="/graduation-flowers-lagos">Graduations</a> · <a href="/birthday-flowers-port-harcourt">PH birthdays</a></p>
         </div>
         <div class="footer-legal">
           <p>&copy; ${new Date().getFullYear()} Bloomfield Flowers. All rights reserved.</p>
@@ -609,7 +856,7 @@ function homePage() {
           <div>
             <p class="eyebrow">About Bloomfield Flowers</p>
             <h2>Thoughtfully curated bouquets for life's most meaningful moments</h2>
-            <p>At Bloomfield Flowers, we create arrangements that feel elegant, expressive, and gift-worthy. We serve Abuja and Lagos with premium gifting, custom bouquets, romance flowers, birthday blooms, and same-day delivery for confirmed orders placed before 2pm.</p>
+            <p>At Bloomfield Flowers, we create arrangements that feel elegant, expressive, and gift-worthy. We serve ${serviceCitiesText} with premium gifting, custom bouquets, romance flowers, birthday blooms, and same-day delivery for confirmed orders placed before 2pm.</p>
             <a class="text-link" href="#/about">Learn more about Bloomfield Flowers</a>
           </div>
         </div>
@@ -621,7 +868,7 @@ function homePage() {
           <h2>Why Bloomfield Flowers</h2>
         </div>
         <div class="bullet-grid">
-          ${['Premium bouquet styling with gift-ready presentation', 'Same-day delivery available for confirmed orders before 2pm', 'Serving Abuja and Lagos with elegant bouquets for gifting moments', 'Custom bouquet options for personal requests and special occasions', 'Clear delivery confirmation before payment so expectations stay aligned'].map((item) => `<div class="bullet-card">${item}</div>`).join('')}
+          ${['Premium bouquet styling with gift-ready presentation', 'Same-day delivery available for confirmed orders before 2pm', `Serving ${serviceCitiesText} with elegant bouquets for gifting moments`, 'Custom bouquet options for personal requests and special occasions', 'Clear delivery confirmation before payment so expectations stay aligned'].map((item) => `<div class="bullet-card">${item}</div>`).join('')}
         </div>
       </section>
 
@@ -629,7 +876,7 @@ function homePage() {
         <div class="section-heading section-heading-centered">
           <p class="eyebrow">Customer love</p>
           <h2>What customers are saying about Bloomfield Flowers</h2>
-          <p>${reviewAggregate.ratingValue} out of 5 from ${reviewAggregate.reviewCount} Google reviews — real feedback from people who have received Bloomfield bouquets.</p>
+          <p>${reviewAggregate.ratingValue} out of 5 from over 20 Google reviews — real feedback from people who have received Bloomfield bouquets.</p>
         </div>
         <div class="review-grid">
           ${testimonials.map((review) => `
@@ -642,20 +889,6 @@ function homePage() {
               </div>
             </article>
           `).join('')}
-        </div>
-      </section>
-
-      <section class="section container instagram-feed-section">
-        <div class="section-heading section-heading-centered">
-          <p class="eyebrow">Fresh from our studio</p>
-          <h2>Follow us on Instagram</h2>
-          <p>See our latest arrangements as they happen — <a href="${instagramUrl}" target="_blank" rel="noreferrer" class="ig-handle-link">@${instagramHandle}</a></p>
-        </div>
-        <div class="ig-grid" data-instagram-feed>
-          ${Array(9).fill(0).map(() => '<div class="ig-placeholder"></div>').join('')}
-        </div>
-        <div style="text-align:center;margin-top:1.75rem">
-          <a class="btn btn-secondary" href="${instagramUrl}" target="_blank" rel="noreferrer">Follow @${instagramHandle}</a>
         </div>
       </section>
 
@@ -689,6 +922,16 @@ function shopPage() {
       <div class="shop-toolbar">
         <p>${visible.length === products.length ? `${products.length} bouquets available.` : `Showing ${visible.length} of ${products.length} bouquets.`}</p>
         <div class="shop-filters">
+          <div class="shop-view-toggle" aria-label="Shop view">
+            <button type="button" class="${shopViewMode === 'standard' ? 'is-active' : ''}" data-shop-view="standard" aria-label="Standard shop view" title="Standard view">
+              <span class="view-icon view-icon-standard" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+              <span class="shop-view-label">Standard</span>
+            </button>
+            <button type="button" class="${shopViewMode === 'compact' ? 'is-active' : ''}" data-shop-view="compact" aria-label="Compact shop view" title="Compact view">
+              <span class="view-icon view-icon-compact" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span>
+              <span class="shop-view-label">Compact</span>
+            </button>
+          </div>
           <label class="shop-filter-label">
             Price
             <select class="shop-filter-select" data-shop-price-filter>
@@ -715,7 +958,7 @@ function shopPage() {
           <a class="btn btn-primary" href="#/custom-orders">Request a Custom Order</a>
         </div>
       ` : `
-      <div class="product-grid">
+      <div class="product-grid ${shopViewMode === 'compact' ? 'product-grid-compact' : ''}">
         ${visible.map((product) => productCard(product)).join('')}
       </div>
       `}
@@ -740,19 +983,20 @@ function productPage(id) {
 
   return shell(`
     <main class="section container">
-      <p class="breadcrumb"><a href="#/shop">&larr; Back to Shop</a></p>
+      <p class="breadcrumb"><a href="#/shop" data-shop-back="${product.id}">&larr; Back to Shop</a></p>
       <div class="two-col story-grid-polished product-detail-grid">
         <div class="story-visual-card product-detail-visual">
-          <img src="${product.image}" alt="${product.name}" loading="eager" decoding="async" width="600" height="720">
+          ${productGalleryMarkup(product, 'detail')}
         </div>
         <div class="about-copy product-detail-copy">
           <p class="product-category">${product.category}</p>
           <h1>${product.name}</h1>
           <p class="product-detail-price"><strong>${formatPrice(product.price)}</strong></p>
           <p>${product.description}</p>
+          ${productAddOnsMarkup(product)}
           <div class="product-actions product-detail-actions">
             <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
-            <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Order</a>
+            <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Customize</a>
           </div>
           <p>Need a custom size or colour palette? <a class="text-link" href="#/custom-orders">Request a custom bouquet</a>.</p>
         </div>
@@ -771,7 +1015,7 @@ function aboutPage() {
         <div class="about-copy">
           <p class="eyebrow">About</p>
           <h1>We make gifting feel like a moment</h1>
-          <p>Bloomfield Flowers is a Nigeria-based floral studio creating beautifully curated bouquets for meaningful moments across Abuja and Lagos. We believe flowers are more than gifts — they are expressions of love, care, celebration, and thoughtfulness.</p>
+          <p>Bloomfield Flowers is a Nigeria-based floral studio creating beautifully curated bouquets for meaningful moments across ${serviceCitiesText}. We believe flowers are more than gifts — they are expressions of love, care, celebration, and thoughtfulness.</p>
           <p>Every arrangement is carefully styled, elegantly presented, and easy to order. We work closely with each customer to make sure the bouquet feels personal, gift-ready, and exactly right for the moment.</p>
           <a class="btn btn-primary" href="#/shop">Shop Bouquets</a>
         </div>
@@ -788,7 +1032,7 @@ function aboutPage() {
               ['Elegant presentation', 'Gift-ready from the first look — packaging that matches the flowers.'],
               ['Personal gifting', 'We treat every order like it matters, because to someone it does.'],
               ['Warm experience', 'Secure online checkout with delivery details confirmed every step of the way.'],
-              ['Abuja & Lagos delivery', 'Same-day delivery for confirmed orders placed before 2pm.'],
+              [`${serviceCitiesShortText} delivery`, 'Same-day delivery for confirmed orders placed before 2pm.'],
             ].map(([title, body]) => `
               <div class="bullet-card about-value-card">
                 <h3>${title}</h3>
@@ -813,7 +1057,7 @@ function customOrdersPage() {
         <div class="contact-list">
           <p><strong>Instagram DM:</strong> <a href="${instagramUrl}" target="_blank" rel="noreferrer">@${instagramHandle}</a></p>
           <p><strong>Phone:</strong> ${phoneNumber}</p>
-          <p><strong>Delivery:</strong> Abuja and Lagos, same day for confirmed orders before 2pm</p>
+          <p><strong>Delivery:</strong> ${serviceCitiesText}, same day for confirmed orders before 2pm</p>
         </div>
       </div>
       <form class="form-card" data-contact-form data-form-type="custom-order">
@@ -841,7 +1085,8 @@ function deliveryPage() {
       <h1>Delivery Information</h1>
       <p>We want your flowers to arrive beautifully and on time. Please review our delivery guidance before placing your order.</p>
       <div class="info-list">
-        <div class="info-card"><h3>Locations Served</h3><p>Bloomfield Flowers currently serves Abuja and Lagos, Nigeria.</p></div>
+        <div class="info-card"><h3>Locations Served</h3><p>Bloomfield Flowers currently serves ${serviceCitiesText}, Nigeria.</p></div>
+        <div class="info-card"><h3>Port Harcourt Delivery</h3><p>PH town, Old GRA, Eastern Bypass, Trans Amadi, Woji, and selected nearby areas are part of the Port Harcourt launch flow. Outskirts are confirmed before payment.</p></div>
         <div class="info-card"><h3>Same-Day Delivery</h3><p>Same-day delivery is available for confirmed orders placed before 2pm. Orders after that may roll into the next delivery window.</p></div>
         <div class="info-card"><h3>Delivery Confirmation</h3><p>Delivery details and fees are confirmed before payment. Standard delivery cutoff is 7pm.</p></div>
       </div>
@@ -900,7 +1145,7 @@ function flowerCarePage() {
           </div>
           <div class="bullet-grid">
             <div class="bullet-card">Remove leaves below the water line to help prevent bacteria buildup.</div>
-            <div class="bullet-card">Mist delicate blooms lightly if needed, especially in dry indoor spaces.</div>
+            <div class="bullet-card">Keep your bouquet away from direct sunlight, heat, and strong wind or air-conditioning.</div>
             <div class="bullet-card">Contact Bloomfield Flowers on Instagram if you want bouquet-specific care advice.</div>
           </div>
         </div>
@@ -949,14 +1194,15 @@ function cartPage() {
             <div>
               <p class="product-category">${item.product.category}</p>
               <h3>${item.product.name}</h3>
-              <p>${formatPrice(item.product.price)} each</p>
+              <p>${item.available ? `${naira.format(item.unitPrice)} each` : `Not available in ${esc(city)}`}</p>
+              ${item.addOns.length ? `<p class="cart-item-addons">Includes ${item.addOns.map((addOn) => esc(addOn.name)).join(', ')}</p>` : ''}
             </div>
             <div class="qty-controls">
-              <button type="button" data-qty="minus" data-id="${item.id}">−</button>
+              <button type="button" data-qty="minus" data-id="${item.key}">−</button>
               <span>${item.qty}</span>
-              <button type="button" data-qty="plus" data-id="${item.id}">+</button>
+              <button type="button" data-qty="plus" data-id="${item.key}">+</button>
             </div>
-            <strong data-cart-item-total="${item.id}">${naira.format(item.subtotal)}</strong>
+            <strong data-cart-item-total="${item.key}">${item.available ? naira.format(item.subtotal) : '-'}</strong>
           </div>
         `).join('') : '<div class="empty-state"><h3>Your cart is empty</h3><p>Add a bouquet to get started.</p><a class="btn btn-primary" href="#/shop">Continue Shopping</a></div>'}
       </div>
@@ -965,8 +1211,7 @@ function cartPage() {
         <div class="cart-city-row">
           <label class="cart-city-label" for="cart-city-select">Delivery city</label>
           <select id="cart-city-select" data-cart-city class="cart-city-select">
-            <option value="Lagos"${city === 'Lagos' ? ' selected' : ''}>Lagos</option>
-            <option value="Abuja"${city === 'Abuja' ? ' selected' : ''}>Abuja</option>
+            ${cityOptions(city)}
           </select>
         </div>
         <p>Items: ${cartCount()}</p>
@@ -986,7 +1231,8 @@ function checkoutPage() {
   const isPickup = (draft.deliveryMethod || 'delivery') === 'pickup'
   const city = draft.city || getCartCity() || 'Lagos'
   const items = cartDetailed(city)
-  const deliveryFee = isPickup ? 0 : getDeliveryFee()
+  const deliveryFee = deliveryFeeSummary(city, draft.area, isPickup)
+  const subtotal = cartTotal(city)
   return shell(`
     <main class="section container split-page">
       <form class="form-card checkout-form-card" data-checkout-form>
@@ -1012,10 +1258,10 @@ function checkoutPage() {
             <span>Pick up</span>
           </label>
         </div>
-        <label>City<select name="city" required><option value="Abuja"${city === 'Abuja' ? ' selected' : ''}>Abuja</option><option value="Lagos"${city === 'Lagos' ? ' selected' : ''}>Lagos</option></select></label>
+        <label>City<select name="city" required>${cityOptions(city)}</select></label>
         <div data-delivery-fields${isPickup ? ' class="hidden"' : ''}>
           <label>Delivery address<input name="address" type="text" placeholder="Street address" value="${esc(draft.address || '')}" required ${isPickup ? 'disabled' : ''}></label>
-          <label>Area / district<input name="area" type="text" placeholder="e.g. Maitama, Lekki Phase 1, Victoria Island" value="${esc(draft.area || '')}" required ${isPickup ? 'disabled' : ''}></label>
+          <label>Area / district<input name="area" type="text" placeholder="e.g. Old GRA, Eastern Bypass, Lekki Phase 1" value="${esc(draft.area || '')}" required ${isPickup ? 'disabled' : ''}></label>
           <div class="delivery-fee-display" data-delivery-fee-display>
             ${renderDeliveryFeeContent(draft.city, draft.area)}
           </div>
@@ -1032,10 +1278,10 @@ function checkoutPage() {
         <label>Preferred time<select name="deliveryTime" data-delivery-time-select required><option value="" disabled${!draft.deliveryTime ? ' selected' : ''}>Select a time</option>${deliveryTimeOptions(draft.deliveryTime || '', draft.deliveryDate || '')}</select></label>
         <label>Card message<textarea name="cardMessage" rows="3" placeholder="Add a note for the recipient" maxlength="500">${esc(draft.cardMessage || '')}</textarea></label>
         <div class="coupon-row">
-          <input name="couponCode" type="text" placeholder="Promo code (e.g. GFDAY5)" data-coupon-input autocomplete="off" style="text-transform:uppercase" value="${esc(appliedDiscount?.code || '')}">
+          <input name="couponCode" type="text" placeholder="Promo code" data-coupon-input autocomplete="off" style="text-transform:uppercase">
           <button type="button" class="btn btn-secondary btn-sm" data-apply-coupon>Apply</button>
         </div>
-        <div class="coupon-status${appliedDiscount ? ' coupon-status-success' : ''}" data-coupon-status aria-live="polite">${appliedDiscount ? esc(appliedDiscount.message || `${appliedDiscount.code} applied`) : ''}</div>
+        <div class="coupon-status" data-coupon-status aria-live="polite"></div>
         <div class="form-status" data-checkout-status aria-live="polite"></div>
         <div class="checkout-actions">
           <button class="btn btn-primary btn-pay" type="submit" data-checkout-submit>${items.length ? 'Pay Securely' : 'Add items to continue'}</button>
@@ -1050,11 +1296,11 @@ function checkoutPage() {
       </form>
       <aside class="summary-card summary-card-emphasis">
         <h3>Order Summary</h3>
-        ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${esc(item.product.name)} × ${item.qty}</span><strong>${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
-        <p class="summary-total">Subtotal: ${naira.format(cartTotal(city))}</p>
-        <p data-discount-line${appliedDiscount ? '' : ' class="hidden"'} style="color:#C27E8C;font-weight:600">Discount (<span data-discount-code-label>${appliedDiscount?.code || ''}</span>): −<span data-discount-amount>${naira.format(appliedDiscount?.discountAmount || 0)}</span></p>
-        <p>Delivery: <span data-checkout-delivery>${appliedDiscount?.freeDelivery ? '<span style="text-decoration:line-through;color:#aaa">' + naira.format(deliveryFee) + '</span> <strong style="color:#C27E8C">Free</strong>' : naira.format(deliveryFee)}</span></p>
-        <p class="summary-total">Total: <span data-checkout-total>${naira.format(isPickup ? cartTotal(city) - (appliedDiscount?.discountAmount || 0) : checkoutGrandTotal(city) - (appliedDiscount?.discountAmount || 0) - (appliedDiscount?.freeDelivery ? deliveryFee : 0))}</span></p>
+        ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${esc(item.product.name)}${item.addOns.length ? ` + ${item.addOns.map((addOn) => esc(addOn.name)).join(', ')}` : ''} × ${item.qty}</span><strong data-checkout-item-total="${item.key}">${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
+        <p class="summary-total">Subtotal: <span data-checkout-subtotal>${naira.format(subtotal)}</span></p>
+        <p data-discount-line${appliedDiscount ? '' : ' class="hidden"'} style="color:#C27E8C;font-weight:600">Discount (<span data-discount-code-label>${appliedDiscount?.code || ''}</span>): -<span data-discount-amount>${naira.format(discountAmount())}</span></p>
+        <p>Delivery: <span data-checkout-delivery>${renderCheckoutDeliveryText(deliveryFee)}</span></p>
+        <p class="summary-total">Total: <span data-checkout-total>${renderCheckoutTotalText(subtotal, deliveryFee)}</span></p>
         <p class="summary-note">You'll be redirected to a secure payment page. Once payment is confirmed, we'll contact you to ${isPickup ? 'arrange your pickup' : 'arrange delivery'}.</p>
       </aside>
     </main>
@@ -1100,21 +1346,21 @@ function termsPage() {
       <p class="legal-intro">Please read these terms carefully before placing an order with Bloomfield Flowers. By completing a purchase you confirm that you have read, understood, and agreed to the following.</p>
 
       <h2>1. About Bloomfield Flowers</h2>
-      <p>Bloomfield Flowers is a luxury floral gifting brand based in Nigeria, serving Abuja and Lagos. We create bespoke bouquets and floral arrangements for romance, birthdays, anniversaries, and celebrations.</p>
+      <p>Bloomfield Flowers is a luxury floral gifting brand based in Nigeria, serving ${serviceCitiesText}. We create bespoke bouquets and floral arrangements for romance, birthdays, anniversaries, and celebrations.</p>
 
       <h2>2. Orders</h2>
       <p>All orders are subject to flower availability. Placing an order and completing payment does not constitute a guaranteed acceptance until we have confirmed availability with you. We will contact you via WhatsApp or Instagram within a reasonable time after your order is placed to confirm details.</p>
       <p>We reserve the right to cancel any order and issue a full refund if we are unable to fulfil it due to stock unavailability or circumstances beyond our control.</p>
 
       <h2>3. Pricing</h2>
-      <p>All prices are displayed in Nigerian Naira (₦) and are inclusive of applicable taxes. Delivery fees are calculated at checkout based on your delivery location. Prices may vary by city — Lagos and Abuja pricing may differ for the same arrangement.</p>
+      <p>All prices are displayed in Nigerian Naira (₦) and are inclusive of applicable taxes. Delivery fees are calculated at checkout based on your delivery location. Prices may vary by city — Lagos, Abuja, and Port Harcourt pricing may differ for the same arrangement.</p>
       <p>We reserve the right to update prices at any time. The price displayed at the time of checkout is the price you will be charged.</p>
 
       <h2>4. Payment</h2>
       <p>Payment is processed securely via Squad (a PCI-compliant payment platform). We accept card payments, bank transfers, and USSD. Payment must be completed in full before your order is prepared.</p>
 
       <h2>5. Delivery</h2>
-      <p><strong>Delivery method:</strong> We use third-party dispatch riders (including but not limited to Bolt and Uber) for deliveries across Abuja and Lagos. Delivery is kerbside — our rider will bring your order to the front of the delivery address. We are unable to enter gated communities, office blocks, or residential buildings without prior arrangement.</p>
+      <p><strong>Delivery method:</strong> We use third-party dispatch riders (including but not limited to Bolt and Uber) for deliveries across ${serviceCitiesText}. Delivery is kerbside — our rider will bring your order to the front of the delivery address. We are unable to enter gated communities, office blocks, or residential buildings without prior arrangement.</p>
       <p><strong>Kerbside delivery:</strong> The recipient or a designated person must be available at the kerbside to receive the order at the agreed time. Bloomfield Flowers is not responsible for delays arising from the recipient being unavailable.</p>
       <p><strong>Delivery window:</strong> Deliveries are made Monday–Saturday between 10am and 6pm, and on Sundays between 1pm and 4pm. Same-day delivery is available for orders confirmed before 2pm (subject to availability). Delivery times are estimates and may be affected by traffic or unforeseen circumstances.</p>
       <p><strong>Customer responsibility:</strong> It is your responsibility to ensure that the recipient's address, phone number, and availability are correct. Bloomfield Flowers is not liable for failed deliveries caused by incorrect information provided by the customer.</p>
@@ -1251,6 +1497,13 @@ async function handleCheckoutSubmit(event) {
     return
   }
 
+  const unavailableItems = cartDetailed(draft.city).filter((item) => !item.available)
+  if (unavailableItems.length) {
+    status.textContent = `${unavailableItems.map((item) => item.product.name).join(', ')} ${unavailableItems.length === 1 ? 'is' : 'are'} not available in ${draft.city}. Please update your cart city or remove the item before checkout.`
+    status.className = 'form-status form-status-error'
+    return
+  }
+
   if (!isValidNigerianPhone(draft.phone)) {
     status.textContent = 'Please enter a valid Nigerian phone number (11 digits, e.g. 0801 234 5678, or +234 followed by 10 digits).'
     status.className = 'form-status form-status-error'
@@ -1259,6 +1512,15 @@ async function handleCheckoutSubmit(event) {
 
   if (draft.recipientPhone && !isValidNigerianPhone(draft.recipientPhone)) {
     status.textContent = 'Please enter a valid Nigerian recipient phone number (11 digits, e.g. 0801 234 5678, or +234 followed by 10 digits).'
+    status.className = 'form-status form-status-error'
+    return
+  }
+
+  const feeCheck = draft.deliveryMethod === 'pickup'
+    ? { fee: 0 }
+    : lookupDeliveryFee(draft.city, draft.area)
+  if (draft.deliveryMethod !== 'pickup' && !feeCheck.fee) {
+    status.textContent = "We'll confirm the delivery fee for this area before payment. Please message us on Instagram or WhatsApp to complete this order."
     status.className = 'form-status form-status-error'
     return
   }
@@ -1292,7 +1554,7 @@ async function handleCheckoutSubmit(event) {
   // Reuse an existing checkout session if it was created in the last 5 minutes
   const existingDraft = getCheckoutDraft()
   const pending = existingDraft._pendingCheckout
-  if (pending?.url && pending?.ts && (Date.now() - pending.ts) < 5 * 60 * 1000) {
+  if (pending?.url && pending?.ts && pending.discountCode === (appliedDiscount?.code || null) && (Date.now() - pending.ts) < 5 * 60 * 1000) {
     status.textContent = 'Redirecting to payment page…'
     window.location.href = pending.url
     return
@@ -1319,7 +1581,7 @@ async function handleCheckoutSubmit(event) {
     }
 
     // Store the checkout URL so re-clicks reuse it instead of creating a new transaction
-    saveCheckoutDraft({ ...getCheckoutDraft(), _pendingCheckout: { url: result.checkoutUrl, ref: result.transactionRef, ts: Date.now() } })
+    saveCheckoutDraft({ ...getCheckoutDraft(), _pendingCheckout: { url: result.checkoutUrl, ref: result.transactionRef, discountCode: appliedDiscount?.code || null, ts: Date.now() } })
     status.textContent = 'Redirecting to payment page…'
     window.location.href = result.checkoutUrl
   } catch (error) {
@@ -1482,9 +1744,64 @@ function goToHero(index) {
   updateSliderDOM(index)
 }
 
+function initRevealObserver() {
+  const cards = document.querySelectorAll('.product-card')
+  if (!cards.length) return
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible')
+        io.unobserve(entry.target)
+      }
+    })
+  }, { threshold: 0.06 })
+  cards.forEach((card, i) => {
+    card.style.setProperty('--reveal-delay', `${i * 55}ms`)
+    io.observe(card)
+  })
+}
+
+function bindProductGalleries(root = document) {
+  root.querySelectorAll('.product-gallery').forEach((gallery) => {
+    const track = gallery.querySelector('.product-gallery-track')
+    const dots = [...gallery.querySelectorAll('.product-gallery-dot')]
+    const navButtons = [...gallery.querySelectorAll('[data-gallery-nav]')]
+    if (!track || dots.length < 2) return
+
+    const updateDots = () => {
+      const active = Math.round(track.scrollLeft / Math.max(track.clientWidth, 1))
+      dots.forEach((dot, index) => dot.classList.toggle('is-active', index === active))
+    }
+
+    navButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const direction = button.dataset.galleryNav === 'next' ? 1 : -1
+        track.scrollBy({ left: direction * track.clientWidth, behavior: 'smooth' })
+      })
+    })
+    track.addEventListener('scroll', updateDots, { passive: true })
+    updateDots()
+  })
+}
+
 function bindEvents() {
+  initRevealObserver()
+  bindProductGalleries()
+
+  document.querySelectorAll('[data-product-link]').forEach((link) => {
+    link.addEventListener('click', () => rememberShopReturn(link.dataset.productLink))
+  })
+
+  document.querySelectorAll('[data-shop-back]').forEach((link) => {
+    link.addEventListener('click', () => rememberShopReturn(link.dataset.shopBack))
+  })
+
   document.querySelectorAll('[data-add]').forEach((button) => {
-    button.addEventListener('click', () => addToCart(button.dataset.add))
+    button.addEventListener('click', () => addToCart(button.dataset.add, selectedProductAddOns(button)))
+  })
+
+  document.querySelectorAll('[data-quick-view]').forEach((button) => {
+    button.addEventListener('click', () => showProductQuickView(button.dataset.quickView))
   })
 
   const shopPriceFilterSelect = document.querySelector('[data-shop-price-filter]')
@@ -1502,6 +1819,13 @@ function bindEvents() {
       renderApp()
     })
   }
+
+  document.querySelectorAll('[data-shop-view]').forEach((button) => {
+    button.addEventListener('click', () => {
+      saveShopView(button.dataset.shopView)
+      renderApp()
+    })
+  })
 
   document.querySelectorAll('[data-qty]').forEach((button) => {
     button.addEventListener('click', () => updateQty(button.dataset.id, button.dataset.qty === 'plus' ? 1 : -1))
@@ -1524,13 +1848,7 @@ function bindEvents() {
     cartCitySelect.addEventListener('change', () => {
       const newCity = cartCitySelect.value
       saveCartCity(newCity)
-      const updatedItems = cartDetailed(newCity)
-      updatedItems.forEach((item) => {
-        const el = document.querySelector(`[data-cart-item-total="${item.id}"]`)
-        if (el) el.textContent = naira.format(item.subtotal)
-      })
-      const subtotalEl = document.querySelector('[data-cart-subtotal]')
-      if (subtotalEl) subtotalEl.textContent = `Subtotal: ${naira.format(cartTotal(newCity))}`
+      renderApp()
     })
   }
 
@@ -1543,8 +1861,11 @@ function bindEvents() {
       if (!code) return
 
       applyCouponBtn.disabled = true
-      applyCouponBtn.textContent = '…'
-      if (statusEl) { statusEl.textContent = ''; statusEl.className = 'coupon-status' }
+      applyCouponBtn.textContent = '...'
+      if (statusEl) {
+        statusEl.textContent = ''
+        statusEl.className = 'coupon-status'
+      }
 
       const draft = getCheckoutDraft()
       const city = draft.city || getCartCity() || 'Lagos'
@@ -1560,30 +1881,29 @@ function bindEvents() {
 
         if (!res.ok || !result.valid) {
           appliedDiscount = null
-          if (statusEl) { statusEl.textContent = result.error || 'Invalid code'; statusEl.className = 'coupon-status coupon-status-error' }
+          if (statusEl) {
+            statusEl.textContent = result.error || 'Invalid code'
+            statusEl.className = 'coupon-status coupon-status-error'
+          }
         } else {
-          appliedDiscount = { code: result.code, discountAmount: result.discountAmount, freeDelivery: result.freeDelivery, message: result.message }
-          if (statusEl) { statusEl.textContent = result.message; statusEl.className = 'coupon-status coupon-status-success' }
-
-          // Update summary UI
-          const discountLine = document.querySelector('[data-discount-line]')
-          const codeLabel = document.querySelector('[data-discount-code-label]')
-          const discountAmountEl = document.querySelector('[data-discount-amount]')
-          if (discountLine) discountLine.classList.remove('hidden')
-          if (codeLabel) codeLabel.textContent = result.code
-          if (discountAmountEl) discountAmountEl.textContent = naira.format(result.discountAmount)
-
-          const isPickupNow = (draft.deliveryMethod || 'delivery') === 'pickup'
-          const effectiveFee = result.freeDelivery ? 0 : (isPickupNow ? 0 : (lookupDeliveryFee(city, draft.area || '').fee ?? 0))
-          const deliveryEl = document.querySelector('[data-checkout-delivery]')
-          const totalEl = document.querySelector('[data-checkout-total]')
-          if (deliveryEl) deliveryEl.innerHTML = result.freeDelivery
-            ? `<span style="text-decoration:line-through;color:#aaa">${naira.format(lookupDeliveryFee(city, draft.area || '').fee ?? 0)}</span> <strong style="color:#C27E8C">Free</strong>`
-            : naira.format(effectiveFee)
-          if (totalEl) totalEl.textContent = naira.format(Math.max(0, subtotal - result.discountAmount + effectiveFee))
+          appliedDiscount = {
+            code: result.code,
+            discountAmount: result.discountAmount,
+            freeDelivery: result.freeDelivery,
+            message: result.message,
+          }
+          if (statusEl) {
+            statusEl.textContent = result.message
+            statusEl.className = 'coupon-status coupon-status-success'
+          }
         }
+
+        updateCheckoutSummary(city, draft.area || '', (draft.deliveryMethod || 'delivery') === 'pickup')
       } catch {
-        if (statusEl) { statusEl.textContent = 'Could not apply code. Please try again.'; statusEl.className = 'coupon-status coupon-status-error' }
+        if (statusEl) {
+          statusEl.textContent = 'Could not apply code. Please try again.'
+          statusEl.className = 'coupon-status coupon-status-error'
+        }
       } finally {
         applyCouponBtn.disabled = false
         applyCouponBtn.textContent = 'Apply'
@@ -1610,11 +1930,7 @@ function bindEvents() {
         })
         const currentCity = checkoutForm.querySelector('[name="city"]')?.value || getCartCity() || 'Lagos'
         const currentArea = checkoutForm.querySelector('[name="area"]')?.value || ''
-        const effectiveFee = pickup ? 0 : (lookupDeliveryFee(currentCity, currentArea).fee ?? 0)
-        const deliveryEl = document.querySelector('[data-checkout-delivery]')
-        const totalEl = document.querySelector('[data-checkout-total]')
-        if (deliveryEl) deliveryEl.textContent = naira.format(effectiveFee)
-        if (totalEl) totalEl.textContent = naira.format(cartTotal(currentCity) + effectiveFee)
+        updateCheckoutSummary(currentCity, currentArea, pickup)
       })
     })
 
@@ -1642,11 +1958,12 @@ function bindEvents() {
               const feeDisplay = document.querySelector('[data-delivery-fee-display]')
               if (feeDisplay) feeDisplay.innerHTML = renderDeliveryFeeContent(newDraft.city, newDraft.area)
             }
-            const effectiveFee = pickupActive ? 0 : (lookupDeliveryFee(newDraft.city || 'Abuja', newDraft.area || '').fee ?? 0)
-            const deliveryEl = document.querySelector('[data-checkout-delivery]')
-            const totalEl = document.querySelector('[data-checkout-total]')
-            if (deliveryEl) deliveryEl.textContent = naira.format(effectiveFee)
-            if (totalEl) totalEl.textContent = naira.format(cartTotal(newDraft.city) + effectiveFee)
+            if (field.name === 'city') saveCartCity(newDraft.city)
+            cartDetailed(newDraft.city).forEach((item) => {
+              const el = document.querySelector(`[data-checkout-item-total="${item.key}"]`)
+              if (el) el.textContent = naira.format(item.subtotal)
+            })
+            updateCheckoutSummary(newDraft.city || getCartCity() || 'Lagos', newDraft.area || '', pickupActive)
           }, 350)
         }
 
@@ -1697,48 +2014,38 @@ function bindEvents() {
   }
 }
 
-async function loadInstagramFeed() {
-  const grid = document.querySelector('[data-instagram-feed]')
-  if (!grid) return
-  try {
-    const res = await fetch('/api/instagram-feed')
-    if (!res.ok) { grid.closest('section')?.remove(); return }
-    const { posts } = await res.json()
-    if (!posts?.length) { grid.closest('section')?.remove(); return }
-    grid.innerHTML = posts.map((post) => {
-      const img = post.media_type === 'VIDEO' ? (post.thumbnail_url || post.media_url) : post.media_url
-      if (!img) return ''
-      const caption = post.caption ? post.caption.replace(/\n/g, ' ').substring(0, 80) : 'Bloomfield Flowers bouquet'
-      return `<a class="ig-post" href="${esc(post.permalink)}" target="_blank" rel="noreferrer" aria-label="${esc(caption)}">
-        <img src="${esc(img)}" alt="${esc(caption)}" loading="lazy" decoding="async">
-        <div class="ig-post-overlay"></div>
-      </a>`
-    }).join('')
-  } catch {
-    document.querySelector('[data-instagram-feed]')?.closest('section')?.remove()
-  }
-}
-
 let lastRenderedRoute = ''
 
 function renderApp() {
   try {
     const route = checkoutResultState()
     const shouldResetScroll = route !== lastRenderedRoute
-    if (shouldResetScroll && route !== 'checkout') appliedDiscount = null
     const currentScrollX = window.scrollX
     const currentScrollY = window.scrollY
+    const shopReturn = getShopReturn()
+    const shouldRestoreShopPosition = route === 'shop' && Boolean(shopReturn.productId || shopReturn.scrollY)
 
     app.innerHTML = router(route)
 
-    if (shouldResetScroll) {
+    if (shouldRestoreShopPosition) {
+      requestAnimationFrame(() => {
+        const target = shopReturn.productId ? document.getElementById(`product-${shopReturn.productId}`) : null
+        if (target) {
+          target.scrollIntoView({ block: 'center', behavior: 'auto' })
+          target.classList.add('is-return-target')
+          setTimeout(() => target.classList.remove('is-return-target'), 1800)
+        } else if (shopReturn.scrollY) {
+          window.scrollTo({ top: shopReturn.scrollY, left: 0, behavior: 'auto' })
+        }
+        clearShopReturn()
+      })
+    } else if (shouldResetScroll) {
       window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
     } else {
       window.scrollTo({ top: currentScrollY, left: currentScrollX, behavior: 'auto' })
     }
 
     bindEvents()
-    if (route === 'home') loadInstagramFeed()
     if (route === 'checkout-complete') verifyReturnedPayment()
     lastRenderedRoute = route
   } catch (err) {
@@ -1775,6 +2082,12 @@ function injectProductJsonLd() {
       shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'NG', addressRegion: 'Abuja' },
       deliveryTime: shippingDeliveryTime,
     },
+    {
+      '@type': 'OfferShippingDetails',
+      shippingRate: { '@type': 'MonetaryAmount', value: 5000, currency: 'NGN' },
+      shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'NG', addressRegion: 'Port Harcourt' },
+      deliveryTime: shippingDeliveryTime,
+    },
   ]
 
   const aggregateRating = {
@@ -1796,7 +2109,7 @@ function injectProductJsonLd() {
       const { low, high } = priceBounds(product.price)
       const offers = low === high
         ? { '@type': 'Offer', priceCurrency: 'NGN', price: low, availability: 'https://schema.org/InStock', url: `${SITE_URL}/#/product/${product.id}`, hasMerchantReturnPolicy: merchantReturnPolicy, shippingDetails }
-        : { '@type': 'AggregateOffer', priceCurrency: 'NGN', lowPrice: low, highPrice: high, offerCount: 2, availability: 'https://schema.org/InStock', url: `${SITE_URL}/#/product/${product.id}`, hasMerchantReturnPolicy: merchantReturnPolicy, shippingDetails }
+        : { '@type': 'AggregateOffer', priceCurrency: 'NGN', lowPrice: low, highPrice: high, offerCount: 3, availability: 'https://schema.org/InStock', url: `${SITE_URL}/#/product/${product.id}`, hasMerchantReturnPolicy: merchantReturnPolicy, shippingDetails }
 
       return {
         '@type': 'ListItem',
@@ -1805,7 +2118,7 @@ function injectProductJsonLd() {
           '@type': 'Product',
           name: product.name,
           description: product.description,
-          image: `${SITE_URL}${product.image}`,
+          image: productGallery(product).map((image) => `${SITE_URL}${image}`),
           url: `${SITE_URL}/#/product/${product.id}`,
           brand: { '@type': 'Brand', name: 'Bloomfield Flowers' },
           aggregateRating,

@@ -1,9 +1,12 @@
 node_modules
 dist
 .git
-meta backups
+.env
+*.env
 *.zip
 *.xlsx
-leads
-scripts
+/leads
+/meta backups
+/ph-rollout
+/scripts
 BOUQUET_BUILDER_PLAN.md

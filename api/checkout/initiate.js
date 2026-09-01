@@ -39,45 +39,54 @@ export default async function handler(req, res) {
     return json(res, 400, { error: 'Delivery address and area are required.' })
   }
 
+  if (!isPickup && zoneDeliveryFee === null) {
+    return json(res, 400, { error: 'Delivery fee for this area needs to be confirmed before payment.' })
+  }
+
+  if (order.hasUnavailable) {
+    const unavailable = order.lineItems.filter((item) => !item.available).map((item) => item.name).join(', ')
+    return json(res, 400, { error: `${unavailable} is not available in ${delivery.city}.` })
+  }
+
   if (!order.lineItems.length || order.total <= 0) {
     return json(res, 400, { error: 'Your cart is empty.' })
   }
 
-  // Server-side discount validation
   let discountAmount = 0
   let freeDelivery = false
   let validatedCode = null
 
   if (discountCode) {
     const supabase = getSupabase()
-    if (!supabase) {
-      return json(res, 503, { error: 'Our discount service is temporarily unavailable. Please try again in a moment, or proceed without the code.' })
+    if (!supabase) return json(res, 503, { error: 'Discount service temporarily unavailable.' })
+
+    const { data: codeRow, error } = await supabaseQuery(() =>
+      supabase
+        .from('discount_codes')
+        .select('*')
+        .eq('code', String(discountCode).toUpperCase().trim())
+        .eq('active', true)
+        .single()
+    )
+
+    if (
+      error ||
+      !codeRow ||
+      (codeRow.expires_at && new Date(codeRow.expires_at) < new Date()) ||
+      (codeRow.max_uses !== null && codeRow.uses >= codeRow.max_uses) ||
+      order.subtotal < (codeRow.min_order || 0)
+    ) {
+      return json(res, 400, { error: 'Discount code could not be applied.' })
     }
-    if (supabase) {
-      const { data: codeRow } = await supabaseQuery(() =>
-        supabase
-          .from('discount_codes')
-          .select('*')
-          .eq('code', String(discountCode).toUpperCase().trim())
-          .eq('active', true)
-          .single()
-      )
-      if (
-        codeRow &&
-        (!codeRow.expires_at || new Date(codeRow.expires_at) >= new Date()) &&
-        (codeRow.max_uses === null || codeRow.uses < codeRow.max_uses) &&
-        order.subtotal >= (codeRow.min_order || 0)
-      ) {
-        validatedCode = codeRow.code
-        if (codeRow.type === 'percent') discountAmount = Math.round(order.subtotal * codeRow.value / 100)
-        else if (codeRow.type === 'fixed') discountAmount = Math.min(codeRow.value, order.subtotal)
-        freeDelivery = codeRow.free_delivery_threshold !== null && order.subtotal >= codeRow.free_delivery_threshold
-      }
-    }
+
+    validatedCode = codeRow.code
+    if (codeRow.type === 'percent') discountAmount = Math.round(order.subtotal * codeRow.value / 100)
+    else if (codeRow.type === 'fixed') discountAmount = Math.min(codeRow.value, order.subtotal)
+    freeDelivery = codeRow.free_delivery_threshold !== null && order.subtotal >= codeRow.free_delivery_threshold
   }
 
   const effectiveDeliveryFee = freeDelivery ? 0 : order.deliveryFee
-  const effectiveTotal = order.subtotal - discountAmount + effectiveDeliveryFee
+  const effectiveTotal = Math.max(0, order.subtotal - discountAmount + effectiveDeliveryFee)
 
   try {
     const secretKey = getEnv('SQUAD_SECRET_KEY')
@@ -85,7 +94,7 @@ export default async function handler(req, res) {
     const transactionRef = generateTransactionRef()
 
     const squadPayload = {
-      amount: Math.max(effectiveTotal, 0) * 100,
+      amount: effectiveTotal * 100,
       email: customer.email,
       currency: 'NGN',
       initiate_type: 'inline',

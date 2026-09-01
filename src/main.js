@@ -10,18 +10,21 @@ const emailAddress = 'houseofbloomfield@gmail.com'
 const phoneNumber = '+234 701 120 3325'
 const whatsappUrl = 'https://wa.me/2347011203325'
 const businessHours = 'Open 24 hours'
+const igIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.5"/><circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none"/></svg>`
+const waIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>`
+const emailIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/></svg>`
 const deliveryCities = ['Lagos', 'Abuja', 'Port Harcourt']
 const serviceCitiesText = 'Lagos, Abuja, and Port Harcourt'
 const serviceCitiesShortText = 'Lagos · Abuja · Port Harcourt'
 const phLaunchTickerItems = [
-  '🌿 Port Harcourt — Bloomfield is coming',
+  '🌿 Port Harcourt — Bloomfield is now open',
   '📍 PH Town · Old GRA · New GRA',
   '🌺 Eastern Bypass · Trans Amadi · Woji',
   '🌸 Stadium Road · Rumuola · Rumuomasi',
   '📩 Outer PH areas? DM us to confirm delivery',
-  '💐 Premium bouquets, now reaching Rivers State',
+  '💐 Premium bouquets, now in Rivers State',
   '🌿 Same-day delivery for confirmed PH orders',
-  '📍 Be first — DM @bloomfieldflowers_ for PH access',
+  '🛒 Order now — shop online or DM @bloomfieldflowers_',
 ]
 let appliedDiscount = null
 // Business hours: Mon–Sat 9am–7pm, Sun 12pm–5pm
@@ -48,9 +51,9 @@ function phLaunchPromo() {
 
   return `
     <div class="ph-launch-banner" aria-label="Port Harcourt launch notice">
-      <span class="ph-launch-badge">Coming Soon</span>
-      <strong>🌿 Port Harcourt — Bloomfield is on the way.</strong>
-      <a class="ph-launch-dm" href="${instagramUrl}" target="_blank" rel="noreferrer">DM for early access →</a>
+      <span class="ph-launch-badge">Now Open</span>
+      <strong>🌿 Port Harcourt — Bloomfield is now delivering.</strong>
+      <a class="ph-launch-dm" href="#/shop" rel="noreferrer">Order in PH →</a>
     </div>
     <div class="promo-ticker" aria-label="Port Harcourt launch highlights">
       <div class="promo-ticker-track">${tickerItems}</div>
@@ -768,9 +771,11 @@ function shell(content, route = '') {
           </div>
           <div>
             <h4>Order & contact</h4>
-            <p><a href="${instagramUrl}" target="_blank" rel="noreferrer">Connect with us on Instagram</a></p>
-            <p><a href="mailto:${emailAddress}">${emailAddress}</a></p>
-            <p>${phoneNumber} · <a href="${whatsappUrl}" target="_blank" rel="noreferrer">WhatsApp</a></p>
+            <div class="social-btn-group">
+              <a class="social-btn" href="${instagramUrl}" target="_blank" rel="noreferrer">${igIcon} @${instagramHandle}</a>
+              <a class="social-btn" href="${whatsappUrl}" target="_blank" rel="noreferrer">${waIcon} WhatsApp us</a>
+              <a class="social-btn" href="mailto:${emailAddress}">${emailIcon} ${emailAddress}</a>
+            </div>
           </div>
         </div>
         <div class="footer-seo-links">
@@ -1055,7 +1060,10 @@ function customOrdersPage() {
         <p>Looking for something more personal? We create custom bouquets tailored to your occasion, style, and budget.</p>
         <p>Tell us what you're celebrating, the color palette you prefer, and the mood you want the arrangement to capture. We'll build something beautifully curated for your moment.</p>
         <div class="contact-list">
-          <p><strong>Instagram DM:</strong> <a href="${instagramUrl}" target="_blank" rel="noreferrer">@${instagramHandle}</a></p>
+          <div class="social-btn-group">
+            <a class="social-btn" href="${instagramUrl}" target="_blank" rel="noreferrer">${igIcon} DM us on Instagram</a>
+            <a class="social-btn" href="${whatsappUrl}" target="_blank" rel="noreferrer">${waIcon} WhatsApp us</a>
+          </div>
           <p><strong>Phone:</strong> ${phoneNumber}</p>
           <p><strong>Delivery:</strong> ${serviceCitiesText}, same day for confirmed orders before 2pm</p>
         </div>
@@ -1162,10 +1170,12 @@ function contactPage() {
         <h1>Contact Bloomfield Flowers</h1>
         <p>We'd love to help you find the perfect bouquet for your moment. Reach out for questions, custom orders, or delivery inquiries.</p>
         <div class="contact-list">
-          <p><strong>Email:</strong> <a href="mailto:${emailAddress}">${emailAddress}</a></p>
-          <p><strong>Instagram:</strong> <a href="${instagramUrl}" target="_blank" rel="noreferrer">@${instagramHandle}</a></p>
-          <p><strong>Phone / WhatsApp:</strong> <a href="${whatsappUrl}" target="_blank" rel="noreferrer">${phoneNumber}</a></p>
-          <p><strong>Business Hours:</strong> ${businessHours}</p>
+          <div class="social-btn-group">
+            <a class="social-btn" href="mailto:${emailAddress}">${emailIcon} ${emailAddress}</a>
+            <a class="social-btn" href="${instagramUrl}" target="_blank" rel="noreferrer">${igIcon} @${instagramHandle}</a>
+            <a class="social-btn" href="${whatsappUrl}" target="_blank" rel="noreferrer">${waIcon} ${phoneNumber}</a>
+          </div>
+          <p class="contact-hours"><strong>Business Hours:</strong> ${businessHours}</p>
         </div>
       </div>
       <form class="form-card" data-contact-form>

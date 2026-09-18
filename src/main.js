@@ -16,15 +16,15 @@ const emailIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" s
 const deliveryCities = ['Lagos', 'Abuja', 'Port Harcourt']
 const serviceCitiesText = 'Lagos, Abuja, and Port Harcourt'
 const serviceCitiesShortText = 'Lagos · Abuja · Port Harcourt'
-const phLaunchTickerItems = [
-  '🌿 Port Harcourt — Bloomfield is now open',
-  '📍 PH Town · Old GRA · New GRA',
-  '🌺 Eastern Bypass · Trans Amadi · Woji',
-  '🌸 Stadium Road · Rumuola · Rumuomasi',
-  '📩 Outer PH areas? DM us to confirm delivery',
-  '💐 Premium bouquets, now in Rivers State',
-  '🌿 Same-day delivery for confirmed PH orders',
-  '🛒 Order now — shop online or DM @bloomfieldflowers_',
+const promoTickerItems = [
+  '💐 Premium bouquets for every occasion',
+  '🌿 Fresh flowers, beautifully arranged',
+  '🎁 Same-day delivery in Lagos · Abuja · Port Harcourt',
+  '🌺 Birthdays · Anniversaries · Celebrations · Romance',
+  '✨ Custom bouquets tailored to your moment',
+  '🛒 Order online or DM @bloomfieldflowers_',
+  '🌸 Gift wrapping included on every order',
+  '📩 Questions? We respond quickly on WhatsApp & Instagram',
 ]
 let appliedDiscount = null
 // Business hours: Mon–Sat 9am–7pm, Sun 12pm–5pm
@@ -44,18 +44,13 @@ function cityOptions(selected = '') {
   return deliveryCities.map((city) => `<option value="${city}"${selected === city ? ' selected' : ''}>${city}</option>`).join('')
 }
 
-function phLaunchPromo() {
-  const tickerItems = [...phLaunchTickerItems, ...phLaunchTickerItems]
+function promoTicker() {
+  const tickerItems = [...promoTickerItems, ...promoTickerItems]
     .map((item) => `<span class="promo-ticker-item">${item}</span>`)
     .join('')
 
   return `
-    <div class="ph-launch-banner" aria-label="Port Harcourt launch notice">
-      <span class="ph-launch-badge">Now Open</span>
-      <strong>🌿 Port Harcourt — Bloomfield is now delivering.</strong>
-      <a class="ph-launch-dm" href="#/shop" rel="noreferrer">Order in PH →</a>
-    </div>
-    <div class="promo-ticker" aria-label="Port Harcourt launch highlights">
+    <div class="promo-ticker" aria-label="Bloomfield Flowers highlights">
       <div class="promo-ticker-track">${tickerItems}</div>
     </div>
   `
@@ -736,7 +731,7 @@ function shell(content, route = '') {
   return `
     <div class="site-shell">
       <header class="site-header">
-        ${phLaunchPromo()}
+        ${promoTicker()}
         <div class="container nav-row">
           <a class="brand" href="#/home">
             <span class="brand-logo-wrap">

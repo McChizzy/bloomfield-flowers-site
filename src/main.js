@@ -902,6 +902,20 @@ function homePage() {
         </div>
       </section>
 
+      <section class="section container ig-feed-section" id="ig-feed-section">
+        <div class="section-heading section-heading-centered">
+          <p class="eyebrow">Follow us on Instagram</p>
+          <h2>@${instagramHandle}</h2>
+          <p>Fresh arrangements, behind-the-scenes, and gifting inspiration straight from our studio.</p>
+        </div>
+        <div class="ig-feed-grid" id="ig-feed-grid">
+          ${Array.from({ length: 6 }, () => '<div class="ig-post-skeleton"></div>').join('')}
+        </div>
+        <div class="ig-feed-footer">
+          <a class="btn btn-secondary" href="${instagramUrl}" target="_blank" rel="noreferrer">${igIcon} Follow @${instagramHandle}</a>
+        </div>
+      </section>
+
       <section class="section container cta-band cta-band-polished section-tight-bottom">
         <div>
           <p class="eyebrow">Custom bouquets</p>
@@ -1848,7 +1862,35 @@ function bindProductGalleries(root = document) {
   })
 }
 
+async function loadInstagramFeed() {
+  const grid = document.getElementById('ig-feed-grid')
+  if (!grid) return
+
+  try {
+    const res = await fetch('/api/instagram-feed')
+    if (!res.ok) throw new Error('unavailable')
+    const { posts = [] } = await res.json()
+
+    const items = posts.slice(0, 6).filter((p) => p.media_type !== 'VIDEO' ? p.media_url : p.thumbnail_url)
+    if (!items.length) throw new Error('no posts')
+
+    grid.innerHTML = items.map((post) => {
+      const img = post.media_type === 'VIDEO' ? post.thumbnail_url : post.media_url
+      const caption = post.caption ? esc(post.caption.slice(0, 80)) : 'Bloomfield Flowers on Instagram'
+      return `
+        <a class="ig-post" href="${esc(post.permalink)}" target="_blank" rel="noreferrer" aria-label="${caption}">
+          <img src="${esc(img)}" alt="${caption}" loading="lazy" decoding="async">
+          <span class="ig-post-overlay" aria-hidden="true">${igIcon}</span>
+        </a>
+      `
+    }).join('')
+  } catch {
+    document.getElementById('ig-feed-section')?.remove()
+  }
+}
+
 function bindEvents() {
+  loadInstagramFeed()
   initRevealObserver()
   bindProductGalleries()
 

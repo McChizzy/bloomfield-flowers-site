@@ -25,5 +25,4 @@ npm run build && npm run preview
 All work on `preview/*` or `claude/*` branches → user approves → merge to `main`.
 
 ## TODOs
-- Product detail page (`#/product/:id`) not yet built.
 - `HOMEPAGE_REDESIGN_PLAN.md` has design batch notes.

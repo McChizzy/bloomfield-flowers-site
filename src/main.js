@@ -263,6 +263,16 @@ const app = document.querySelector('#app')
 let shopSort = 'featured'
 let shopPriceFilter = 'all'
 let shopViewMode = getInitialShopView()
+let shopOccasionFilter = 'all'
+
+const shopOccasionTabs = [
+  { value: 'all', label: 'All' },
+  { value: 'birthday', label: 'Birthday' },
+  { value: 'romance', label: 'Romance' },
+  { value: 'anniversary', label: 'Anniversaries' },
+  { value: 'celebration', label: 'Celebrations' },
+  { value: 'sympathy', label: 'Sympathy' },
+]
 
 const shopPriceFilters = {
   all: { label: 'All prices', test: () => true },
@@ -908,9 +918,15 @@ function homePage() {
 }
 
 function shopPage() {
-  const filtered = products.filter((product) => shopPriceFilters[shopPriceFilter].test(parsePriceValue(product.price)))
+  const priceFiltered = products.filter((product) => shopPriceFilters[shopPriceFilter].test(parsePriceValue(product.price)))
+  const occasionFiltered = shopOccasionFilter === 'all'
+    ? priceFiltered
+    : priceFiltered.filter((p) => p.tags && p.tags.includes(shopOccasionFilter))
   const sortFn = shopSortOptions[shopSort].sort
-  const visible = sortFn ? [...filtered].sort(sortFn) : filtered
+  const visible = sortFn ? [...occasionFiltered].sort(sortFn) : occasionFiltered
+
+  const occasionLabel = shopOccasionTabs.find((t) => t.value === shopOccasionFilter)?.label || 'All'
+  const isFiltered = visible.length !== products.length
 
   return shell(`
     <main class="section container">
@@ -919,8 +935,13 @@ function shopPage() {
         <h1>Elegant florals designed for gifting</h1>
         <p>Explore beautifully curated bouquets for birthdays, anniversaries, romantic gestures, celebrations, and everyday surprises.</p>
       </div>
+      <div class="shop-occasion-tabs" role="tablist" aria-label="Filter by occasion">
+        ${shopOccasionTabs.map(({ value, label }) => `
+          <button type="button" role="tab" class="shop-occasion-tab${shopOccasionFilter === value ? ' is-active' : ''}" data-occasion-tab="${value}" aria-selected="${shopOccasionFilter === value}">${label}</button>
+        `).join('')}
+      </div>
       <div class="shop-toolbar">
-        <p>${visible.length === products.length ? `${products.length} bouquets available.` : `Showing ${visible.length} of ${products.length} bouquets.`}</p>
+        <p>${isFiltered ? `Showing ${visible.length} of ${products.length} bouquets${shopOccasionFilter !== 'all' ? ` for ${occasionLabel}` : ''}.` : `${products.length} bouquets available.`}</p>
         <div class="shop-filters">
           <div class="shop-view-toggle" aria-label="Shop view">
             <button type="button" class="${shopViewMode === 'standard' ? 'is-active' : ''}" data-shop-view="standard" aria-label="Standard shop view" title="Standard view">
@@ -953,8 +974,8 @@ function shopPage() {
       </div>
       ${visible.length === 0 ? `
         <div class="empty-state">
-          <h3>No bouquets in this price range</h3>
-          <p>Try a different price filter, or get in touch for a custom arrangement.</p>
+          <h3>No bouquets match your filters</h3>
+          <p>Try a different occasion or price filter, or get in touch for a custom arrangement.</p>
           <a class="btn btn-primary" href="#/custom-orders">Request a Custom Order</a>
         </div>
       ` : `
@@ -1466,22 +1487,60 @@ function privacyPage() {
   `, 'privacy')
 }
 
+function setPageMeta(title, description) {
+  document.title = title ? `${title} | Bloomfield Flowers` : 'Bloomfield Flowers — Premium Bouquets in Nigeria'
+  const ogTitle = document.querySelector('meta[property="og:title"]')
+  const ogDesc = document.querySelector('meta[property="og:description"]')
+  if (ogTitle) ogTitle.setAttribute('content', document.title)
+  if (description && ogDesc) ogDesc.setAttribute('content', description)
+}
+
 function router(route = checkoutResultState()) {
-  if (route.startsWith('product/')) return productPage(route.slice('product/'.length))
+  if (route.startsWith('product/')) {
+    const pid = route.slice('product/'.length)
+    const p = products.find((x) => x.id === pid)
+    if (p) setPageMeta(p.name, p.description)
+    else setPageMeta('Bouquet Not Found')
+    return productPage(pid)
+  }
 
   switch (route) {
-    case 'shop': return shopPage()
-    case 'about': return aboutPage()
-    case 'custom-orders': return customOrdersPage()
-    case 'delivery': return deliveryPage()
-    case 'flower-care': return flowerCarePage()
-    case 'contact': return contactPage()
-    case 'cart': return cartPage()
-    case 'checkout': return checkoutPage()
-    case 'checkout-complete': return checkoutCompletePage()
-    case 'terms': return termsPage()
-    case 'privacy': return privacyPage()
-    default: return homePage()
+    case 'shop':
+      setPageMeta('Shop Bouquets', 'Explore beautifully curated bouquets for birthdays, anniversaries, romantic gestures, and celebrations.')
+      return shopPage()
+    case 'about':
+      setPageMeta('About Us', 'Bloomfield Flowers is a Nigeria-based floral studio creating beautifully curated bouquets for meaningful moments across Lagos, Abuja, and Port Harcourt.')
+      return aboutPage()
+    case 'custom-orders':
+      setPageMeta('Custom Orders', 'Request a bespoke bouquet tailored to your special moment — any colour, size, or style.')
+      return customOrdersPage()
+    case 'delivery':
+      setPageMeta('Delivery Information', 'Delivery zones, fees, and timing for Lagos, Abuja, and Port Harcourt.')
+      return deliveryPage()
+    case 'flower-care':
+      setPageMeta('Flower Care Tips', 'How to care for your Bloomfield bouquet and keep it looking fresh for longer.')
+      return flowerCarePage()
+    case 'contact':
+      setPageMeta('Contact Us', 'Reach Bloomfield Flowers via WhatsApp, Instagram, or email.')
+      return contactPage()
+    case 'cart':
+      setPageMeta('Your Cart')
+      return cartPage()
+    case 'checkout':
+      setPageMeta('Checkout')
+      return checkoutPage()
+    case 'checkout-complete':
+      setPageMeta('Order Confirmed')
+      return checkoutCompletePage()
+    case 'terms':
+      setPageMeta('Terms & Conditions')
+      return termsPage()
+    case 'privacy':
+      setPageMeta('Privacy Policy')
+      return privacyPage()
+    default:
+      setPageMeta(null, 'Premium bouquets delivered in Lagos, Abuja, and Port Harcourt. Order online for birthdays, anniversaries, romance, and every special moment.')
+      return homePage()
   }
 }
 
@@ -1828,6 +1887,13 @@ function bindEvents() {
   document.querySelectorAll('[data-shop-view]').forEach((button) => {
     button.addEventListener('click', () => {
       saveShopView(button.dataset.shopView)
+      renderApp()
+    })
+  })
+
+  document.querySelectorAll('[data-occasion-tab]').forEach((button) => {
+    button.addEventListener('click', () => {
+      shopOccasionFilter = button.dataset.occasionTab
       renderApp()
     })
   })

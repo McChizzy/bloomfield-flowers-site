@@ -986,6 +986,37 @@ p {
   cursor: pointer;
 }
 
+.shop-occasion-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.shop-occasion-tab {
+  border: 1.5px solid var(--line);
+  border-radius: 100px;
+  background: #fff;
+  color: var(--muted);
+  padding: 0.4rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 180ms ease, color 180ms ease, border-color 180ms ease;
+  line-height: 1.4;
+}
+
+.shop-occasion-tab:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.shop-occasion-tab.is-active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
 .product-card {
   overflow: hidden;
   position: relative;

@@ -3,7 +3,7 @@ import { products, parsePriceValue, priceBounds, productPriceValue, isProductAva
 import { lookupDeliveryFee } from './delivery-zones.js'
 
 const SITE_URL = 'https://bloomfieldflowers.ng'
-const primaryLogo = '/images/bff logo-p.jpeg'
+const primaryLogo = '/images/bff logo-p.webp'
 const instagramHandle = 'bloomfieldflowers_'
 const instagramUrl = 'https://www.instagram.com/bloomfieldflowers_/'
 const emailAddress = 'houseofbloomfield@gmail.com'
@@ -111,37 +111,37 @@ const testimonials = [
     name: 'Tosan A.',
     rating: 5,
     text: 'I rate the customer service a 10/10. I called their attention to my delivery and they made sure they got it fixed even when I asked them not to bother. It changed my whole experience with them and I will recommend them to my friends.',
-    image: '/images/5_red_roses.jpg',
+    image: '/images/5_red_roses.webp',
   },
   {
     name: 'Adaeze J.',
     rating: 5,
     text: 'Excellent service, very prompt delivery and beautiful flowers. I recommend.',
-    image: '/images/roses_with_fillers.jpg',
+    image: '/images/roses_with_fillers.webp',
   },
   {
     name: 'Oluwadamilola O.',
     rating: 5,
     text: 'The flowers were fresh, beautiful and arrived on time. Love the service.',
-    image: '/images/optimized/barbie-deluxe.jpg',
+    image: '/images/optimized/barbie-deluxe.webp',
   },
   {
     name: 'Ngozi N.',
     rating: 5,
     text: 'Very quick response, exceptional customer service. Bouquet came very fresh.',
-    image: '/images/the_seraphina.jpg',
+    image: '/images/the_seraphina.webp',
   },
   {
     name: 'Tems K.',
     rating: 5,
     text: 'Very lovely flowers, swift responses and very polite and reliable.',
-    image: '/images/bloom_no_2.jpg',
+    image: '/images/bloom_no_2.webp',
   },
   {
     name: 'Mudah A.',
     rating: 5,
     text: "Very fast and reliable! Try them out, you won't regret it!",
-    image: '/images/bloom_no_1.jpg',
+    image: '/images/bloom_no_1.webp',
   },
 ]
 
@@ -154,59 +154,59 @@ const reviewAggregate = {
 const featuredCollections = [
   {
     name: 'Romantic Bouquets',
-    image: '/images/optimized/pink-bouquet.jpg',
+    image: '/images/optimized/pink-bouquet.webp',
   },
   {
     name: 'Birthday Blooms',
-    image: '/images/optimized/chrysanthemum-bouquet.jpg',
+    image: '/images/optimized/chrysanthemum-bouquet.webp',
   },
   {
     name: 'Celebration Flowers',
-    image: '/images/optimized/celebration-flowers.jpg',
+    image: '/images/optimized/celebration-flowers.webp',
   },
   {
     name: 'Luxury Arrangements',
-    image: '/images/optimized/luxury-arrangements.jpg',
+    image: '/images/optimized/luxury-arrangements.webp',
   },
   {
     name: 'Just Because',
-    image: '/images/optimized/just-because.jpg',
+    image: '/images/optimized/just-because.webp',
   },
 ]
 
 const landingShowcaseSlides = [
   {
-    image: '/images/hero1.jpeg',
+    image: '/images/hero1.webp',
     title: 'Signature Collection',
     caption: 'Statement bouquets crafted for the moments that matter most.',
   },
   {
-    image: '/images/optimized/hero2.jpg',
+    image: '/images/optimized/hero2.webp',
     title: 'Premium Gifting',
     caption: 'Because some feelings are best expressed in flowers.',
   },
   {
-    image: '/images/optimized/pink-bouquet.jpg',
+    image: '/images/optimized/pink-bouquet.webp',
     title: 'Romantic Bouquets',
     caption: 'Soft pinks and blush tones for the most romantic moments.',
   },
   {
-    image: '/images/optimized/chrysanthemum-bouquet.jpg',
+    image: '/images/optimized/chrysanthemum-bouquet.webp',
     title: 'Birthday Blooms',
     caption: 'Make their birthday unforgettable with a bouquet they\'ll always remember.',
   },
   {
-    image: '/images/optimized/celebration-flowers.jpg',
+    image: '/images/optimized/celebration-flowers.webp',
     title: 'Celebration Flowers',
     caption: 'Every milestone deserves a bouquet as special as the moment.',
   },
   {
-    image: '/images/optimized/luxury-arrangements.jpg',
+    image: '/images/optimized/luxury-arrangements.webp',
     title: 'Luxury Arrangements',
     caption: 'Premium blooms, artfully arranged for those who appreciate the finest things.',
   },
   {
-    image: '/images/optimized/just-because.jpg',
+    image: '/images/optimized/just-because.webp',
     title: 'Just Because',
     caption: 'Sometimes you don\'t need a reason — just the right flowers.',
   },
@@ -219,7 +219,7 @@ const heroHighlights = [
 ]
 
 const heroScene = {
-  bouquetImage: '/images/optimized/hero-bouquet-softcut.png',
+  bouquetImage: '/images/optimized/hero-bouquet-softcut.webp',
   alt: 'Bloomfield Flowers signature bouquet',
   eyebrow: 'Bloomfield Flowers',
   title: 'Luxury bouquets for meaningful moments',
@@ -861,7 +861,7 @@ function homePage() {
       <section class="section section-soft section-story-band">
         <div class="container two-col story-grid story-grid-polished">
           <div class="story-visual-card">
-            <img src="/images/optimized/just-because.jpg" alt="Bloomfield Flowers arrangement detail" loading="lazy" decoding="async">
+            <img src="/images/optimized/just-because.webp" alt="Bloomfield Flowers arrangement detail" loading="lazy" decoding="async">
           </div>
           <div>
             <p class="eyebrow">About Bloomfield Flowers</p>
@@ -1045,7 +1045,7 @@ function aboutPage() {
     <main>
       <section class="section container two-col story-grid-polished">
         <div class="story-visual-card">
-          <img src="/images/optimized/century-of-roses.jpg" alt="Bloomfield century of roses arrangement" loading="lazy" decoding="async">
+          <img src="/images/optimized/century-of-roses.webp" alt="Bloomfield century of roses arrangement" loading="lazy" decoding="async">
         </div>
         <div class="about-copy">
           <p class="eyebrow">About</p>
@@ -1157,7 +1157,7 @@ function flowerCarePage() {
             </div>
           </div>
           <div class="flower-care-hero-card flower-care-hero-card-polished">
-            <img src="/images/optimized/flower-care.jpg" alt="Bloomfield bouquet care inspiration" loading="lazy" decoding="async">
+            <img src="/images/optimized/flower-care.webp" alt="Bloomfield bouquet care inspiration" loading="lazy" decoding="async">
           </div>
         </div>
       </section>

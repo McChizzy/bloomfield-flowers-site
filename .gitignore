@@ -30,3 +30,4 @@ ph-rollout/assets/*.png
 *.sw?
 .vercel
 dist-pdfs/
+images/*.webp

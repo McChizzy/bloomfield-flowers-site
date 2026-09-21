@@ -123,7 +123,7 @@ const testimonials = [
     name: 'Oluwadamilola O.',
     rating: 5,
     text: 'The flowers were fresh, beautiful and arrived on time. Love the service.',
-    image: '/images/optimized/barbie-deluxe.webp',
+    image: '/images/optimized/barbie-deluxe.jpg',
   },
   {
     name: 'Ngozi N.',
@@ -154,23 +154,23 @@ const reviewAggregate = {
 const featuredCollections = [
   {
     name: 'Romantic Bouquets',
-    image: '/images/optimized/pink-bouquet.webp',
+    image: '/images/optimized/pink-bouquet.jpg',
   },
   {
     name: 'Birthday Blooms',
-    image: '/images/optimized/chrysanthemum-bouquet.webp',
+    image: '/images/optimized/chrysanthemum-bouquet.jpg',
   },
   {
     name: 'Celebration Flowers',
-    image: '/images/optimized/celebration-flowers.webp',
+    image: '/images/optimized/celebration-flowers.jpg',
   },
   {
     name: 'Luxury Arrangements',
-    image: '/images/optimized/luxury-arrangements.webp',
+    image: '/images/optimized/luxury-arrangements.jpg',
   },
   {
     name: 'Just Because',
-    image: '/images/optimized/just-because.webp',
+    image: '/images/optimized/just-because.jpg',
   },
 ]
 
@@ -181,32 +181,32 @@ const landingShowcaseSlides = [
     caption: 'Statement bouquets crafted for the moments that matter most.',
   },
   {
-    image: '/images/optimized/hero2.webp',
+    image: '/images/optimized/hero2.jpg',
     title: 'Premium Gifting',
     caption: 'Because some feelings are best expressed in flowers.',
   },
   {
-    image: '/images/optimized/pink-bouquet.webp',
+    image: '/images/optimized/pink-bouquet.jpg',
     title: 'Romantic Bouquets',
     caption: 'Soft pinks and blush tones for the most romantic moments.',
   },
   {
-    image: '/images/optimized/chrysanthemum-bouquet.webp',
+    image: '/images/optimized/chrysanthemum-bouquet.jpg',
     title: 'Birthday Blooms',
     caption: 'Make their birthday unforgettable with a bouquet they\'ll always remember.',
   },
   {
-    image: '/images/optimized/celebration-flowers.webp',
+    image: '/images/optimized/celebration-flowers.jpg',
     title: 'Celebration Flowers',
     caption: 'Every milestone deserves a bouquet as special as the moment.',
   },
   {
-    image: '/images/optimized/luxury-arrangements.webp',
+    image: '/images/optimized/luxury-arrangements.jpg',
     title: 'Luxury Arrangements',
     caption: 'Premium blooms, artfully arranged for those who appreciate the finest things.',
   },
   {
-    image: '/images/optimized/just-because.webp',
+    image: '/images/optimized/just-because.jpg',
     title: 'Just Because',
     caption: 'Sometimes you don\'t need a reason — just the right flowers.',
   },
@@ -219,7 +219,7 @@ const heroHighlights = [
 ]
 
 const heroScene = {
-  bouquetImage: '/images/optimized/hero-bouquet-softcut.webp',
+  bouquetImage: '/images/optimized/hero-bouquet-softcut.png',
   alt: 'Bloomfield Flowers signature bouquet',
   eyebrow: 'Bloomfield Flowers',
   title: 'Luxury bouquets for meaningful moments',
@@ -861,7 +861,7 @@ function homePage() {
       <section class="section section-soft section-story-band">
         <div class="container two-col story-grid story-grid-polished">
           <div class="story-visual-card">
-            <img src="/images/optimized/just-because.webp" alt="Bloomfield Flowers arrangement detail" loading="lazy" decoding="async">
+            <img src="/images/optimized/just-because.jpg" alt="Bloomfield Flowers arrangement detail" loading="lazy" decoding="async">
           </div>
           <div>
             <p class="eyebrow">About Bloomfield Flowers</p>
@@ -1045,7 +1045,7 @@ function aboutPage() {
     <main>
       <section class="section container two-col story-grid-polished">
         <div class="story-visual-card">
-          <img src="/images/optimized/century-of-roses.webp" alt="Bloomfield century of roses arrangement" loading="lazy" decoding="async">
+          <img src="/images/optimized/century-of-roses.jpg" alt="Bloomfield century of roses arrangement" loading="lazy" decoding="async">
         </div>
         <div class="about-copy">
           <p class="eyebrow">About</p>
@@ -1157,7 +1157,7 @@ function flowerCarePage() {
             </div>
           </div>
           <div class="flower-care-hero-card flower-care-hero-card-polished">
-            <img src="/images/optimized/flower-care.webp" alt="Bloomfield bouquet care inspiration" loading="lazy" decoding="async">
+            <img src="/images/optimized/flower-care.jpg" alt="Bloomfield bouquet care inspiration" loading="lazy" decoding="async">
           </div>
         </div>
       </section>

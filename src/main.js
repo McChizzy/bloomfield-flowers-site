@@ -3,7 +3,7 @@ import { products, parsePriceValue, priceBounds, productPriceValue, isProductAva
 import { lookupDeliveryFee } from './delivery-zones.js'
 
 const SITE_URL = 'https://bloomfieldflowers.ng'
-const primaryLogo = '/images/bff logo-p.webp'
+const primaryLogo = '/images/bff logo-p.jpeg'
 const instagramHandle = 'bloomfieldflowers_'
 const instagramUrl = 'https://www.instagram.com/bloomfieldflowers_/'
 const emailAddress = 'houseofbloomfield@gmail.com'
@@ -111,13 +111,13 @@ const testimonials = [
     name: 'Tosan A.',
     rating: 5,
     text: 'I rate the customer service a 10/10. I called their attention to my delivery and they made sure they got it fixed even when I asked them not to bother. It changed my whole experience with them and I will recommend them to my friends.',
-    image: '/images/5_red_roses.webp',
+    image: '/images/5_red_roses.jpg',
   },
   {
     name: 'Adaeze J.',
     rating: 5,
     text: 'Excellent service, very prompt delivery and beautiful flowers. I recommend.',
-    image: '/images/roses_with_fillers.webp',
+    image: '/images/roses_with_fillers.jpg',
   },
   {
     name: 'Oluwadamilola O.',
@@ -129,19 +129,19 @@ const testimonials = [
     name: 'Ngozi N.',
     rating: 5,
     text: 'Very quick response, exceptional customer service. Bouquet came very fresh.',
-    image: '/images/the_seraphina.webp',
+    image: '/images/the_seraphina.jpg',
   },
   {
     name: 'Tems K.',
     rating: 5,
     text: 'Very lovely flowers, swift responses and very polite and reliable.',
-    image: '/images/bloom_no_2.webp',
+    image: '/images/bloom_no_2.jpg',
   },
   {
     name: 'Mudah A.',
     rating: 5,
     text: "Very fast and reliable! Try them out, you won't regret it!",
-    image: '/images/bloom_no_1.webp',
+    image: '/images/bloom_no_1.jpg',
   },
 ]
 
@@ -176,7 +176,7 @@ const featuredCollections = [
 
 const landingShowcaseSlides = [
   {
-    image: '/images/hero1.webp',
+    image: '/images/hero1.jpeg',
     title: 'Signature Collection',
     caption: 'Statement bouquets crafted for the moments that matter most.',
   },

@@ -3,10 +3,35 @@ import { products, parsePriceValue, priceBounds, productPriceValue, isProductAva
 import { deliveryAreaSuggestions, lookupDeliveryFee } from './delivery-zones.js'
 import { inject as injectVercelAnalytics, pageview as vercelPageview } from '@vercel/analytics'
 
-// Vercel Web Analytics. Routes live in the hash (#/shop), which the default tracker can't see,
-// so page views are sent manually from renderApp as /shop, /product/<id>, etc.
+// Vercel Web Analytics. Page views are sent from renderApp (one per route change, query strings
+// stripped) so re-renders and old #/ links never double-count.
 injectVercelAnalytics({ disableAutoTrack: true })
 let lastAnalyticsPath = null
+
+// Optional Google Analytics 4 and Microsoft Clarity: set VITE_GA4_ID (G-XXXXXXX) and/or VITE_CLARITY_ID
+// in Vercel > Settings > Environment Variables and redeploy. Unset = not loaded. Their domains are in the CSP.
+const GA4_ID = import.meta.env.VITE_GA4_ID || ''
+const CLARITY_ID = import.meta.env.VITE_CLARITY_ID || ''
+
+function loadExternalScript(src) {
+  const script = document.createElement('script')
+  script.async = true
+  script.src = src
+  document.head.appendChild(script)
+}
+
+if (/^G-[A-Z0-9]+$/.test(GA4_ID)) {
+  window.dataLayer = window.dataLayer || []
+  window.gtag = function gtag() { window.dataLayer.push(arguments) }
+  window.gtag('js', new Date())
+  window.gtag('config', GA4_ID, { send_page_view: false, currency: 'NGN' })
+  loadExternalScript(`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`)
+}
+
+if (/^[a-z0-9]+$/i.test(CLARITY_ID)) {
+  window.clarity = window.clarity || function clarity() { (window.clarity.q = window.clarity.q || []).push(arguments) }
+  loadExternalScript(`https://www.clarity.ms/tag/${CLARITY_ID}`)
+}
 
 function trackPageView(route) {
   const clean = String(route || 'home').split('?')[0].replace(/\/+$/, '') || 'home'
@@ -14,6 +39,9 @@ function trackPageView(route) {
   if (path === lastAnalyticsPath) return
   lastAnalyticsPath = path
   vercelPageview({ path, route: clean.startsWith('product/') ? '/product/[id]' : path })
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', 'page_view', { page_path: path, page_location: location.origin + path, page_title: document.title })
+  }
 }
 
 const SITE_URL = 'https://bloomfieldflowers.ng'
@@ -394,7 +422,7 @@ function showAddedToCartModal(product) {
       <h3 id="cart-popup-title">Added to your cart</h3>
       <p><strong>${esc(product?.name || 'Item')}</strong> has been added to your cart.</p>
       <div class="cart-popup-actions">
-        <a class="btn btn-primary" href="#/cart" data-cart-popup-close>View Cart</a>
+        <a class="btn btn-primary" href="/cart" data-cart-popup-close>View Cart</a>
         <button class="btn btn-secondary" type="button" data-cart-popup-close>Keep Shopping</button>
       </div>
     </div>
@@ -444,7 +472,7 @@ function showProductQuickView(productId) {
         ${productAddOnsMarkup(product)}
         <div class="quick-view-actions">
           <button class="btn btn-primary" type="button" data-add="${product.id}" data-quick-view-close>Add to Cart</button>
-          <a class="btn btn-secondary" href="#/product/${product.id}" data-product-link="${product.id}" data-quick-view-close>View Details</a>
+          <a class="btn btn-secondary" href="/product/${product.id}" data-product-link="${product.id}" data-quick-view-close>View Details</a>
         </div>
       </div>
     </div>
@@ -477,8 +505,17 @@ function showProductQuickView(productId) {
   document.addEventListener('keydown', onKeydown)
 }
 
+const GA4_EVENT_NAMES = { AddToCart: 'add_to_cart', InitiateCheckout: 'begin_checkout', Purchase: 'purchase', ViewContent: 'view_item' }
+
 function trackPixelEvent(event, params) {
   if (typeof window.fbq === 'function') window.fbq('track', event, params)
+  if (typeof window.gtag === 'function' && GA4_EVENT_NAMES[event]) {
+    window.gtag('event', GA4_EVENT_NAMES[event], {
+      currency: params?.currency || 'NGN',
+      value: params?.value,
+      items: (params?.content_ids || []).map((id) => ({ item_id: id })),
+    })
+  }
 }
 
 function cartItemKey(item) {
@@ -594,13 +631,13 @@ function productGalleryMarkup(product, variant = 'detail') {
 function productCard(product) {
   return `
     <article class="product-card" id="product-${product.id}">
-      <a class="product-card-media" href="#/product/${product.id}" data-product-link="${product.id}">
+      <a class="product-card-media" href="/product/${product.id}" data-product-link="${product.id}">
         <img src="${product.image}" alt="${product.name}" loading="lazy" decoding="async" width="400" height="480">
         <span class="product-quick-view-hint">Tap for details</span>
       </a>
       <div class="product-body">
         <p class="product-category">${product.category}</p>
-        <h3><a href="#/product/${product.id}" data-product-link="${product.id}">${product.name}</a></h3>
+        <h3><a href="/product/${product.id}" data-product-link="${product.id}">${product.name}</a></h3>
         <p>${product.short}</p>
         <div class="product-meta">
           <strong>${formatPrice(product.price)}</strong>
@@ -709,12 +746,38 @@ function getTransactionRefFromUrl() {
   return params.get('transaction_ref') || params.get('reference') || ''
 }
 
+// Pages the app renders itself (everything else, e.g. /birthday-flowers-lagos, is a static page).
+const APP_ROUTES = new Set(['home', 'shop', 'about', 'custom-orders', 'delivery', 'flower-care', 'contact', 'cart', 'checkout', 'checkout-complete', 'terms', 'privacy'])
+
+function routePath(route) {
+  return !route || route === 'home' ? '/' : `/${route}`
+}
+
+// Old links used #/ addresses (bloomfieldflowers.ng/#/shop). Move them to the clean path without a reload.
+function migrateLegacyHashRoute() {
+  if (!location.hash.startsWith('#/')) return false
+  const legacy = location.hash.slice(2)
+  const [route, query = ''] = legacy.split('?')
+  const search = [location.search.slice(1), query].filter(Boolean).join('&')
+  history.replaceState(null, '', routePath(route) + (search ? `?${search}` : ''))
+  return true
+}
+
 function checkoutResultState() {
-  const hashRoute = location.hash.replace('#/', '')
-  if (hashRoute) return hashRoute
   const path = window.location.pathname.replace(/^\/+|\/+$/g, '')
-  if (path === 'checkout-complete') return 'checkout-complete'
-  return 'home'
+  if (!path || path === 'index.html') return 'home'
+  return path
+}
+
+function isAppPath(pathname) {
+  const route = pathname.replace(/^\/+|\/+$/g, '') || 'home'
+  return APP_ROUTES.has(route) || /^product\/[\w-]+$/.test(route)
+}
+
+function navigateTo(path) {
+  if (path === location.pathname + location.search) return
+  history.pushState(null, '', path)
+  renderApp()
 }
 
 function cartDetailed(city = '') {
@@ -764,7 +827,7 @@ function shell(content, route = '') {
       <header class="site-header">
         ${promoTicker()}
         <div class="container nav-row">
-          <a class="brand" href="#/home">
+          <a class="brand" href="/">
             <span class="brand-logo-wrap">
               <img class="brand-logo-static" src="${primaryLogo}" alt="Bloomfield Flowers logo">
             </span>
@@ -775,8 +838,8 @@ function shell(content, route = '') {
               <span></span><span></span><span></span>
             </button>
             <nav class="nav-links" data-nav-panel aria-label="Primary navigation">
-              ${navItems.map(([key, label]) => `<a href="#/${key}" class="${route === key ? 'is-active' : ''}">${label}</a>`).join('')}
-              <a href="#/cart" class="cart-link ${route === 'cart' ? 'is-active-cart' : ''}"><span>Cart</span> <span class="cart-badge">${route === 'checkout-complete' ? '' : cartCount()}</span></a>
+              ${navItems.map(([key, label]) => `<a href="${routePath(key)}" class="${route === key ? 'is-active' : ''}">${label}</a>`).join('')}
+              <a href="/cart" class="cart-link ${route === 'cart' ? 'is-active-cart' : ''}"><span>Cart</span> <span class="cart-badge">${route === 'checkout-complete' ? '' : cartCount()}</span></a>
             </nav>
           </div>
         </div>
@@ -790,10 +853,10 @@ function shell(content, route = '') {
           </div>
           <div>
             <h4>Quick Links</h4>
-            <a href="#/shop">Shop</a>
-            <a href="#/custom-orders">Custom Orders</a>
-            <a href="#/delivery">Delivery Info</a>
-            <a href="#/flower-care">Flower Care</a>
+            <a href="/shop">Shop</a>
+            <a href="/custom-orders">Custom Orders</a>
+            <a href="/delivery">Delivery Info</a>
+            <a href="/flower-care">Flower Care</a>
           </div>
           <div>
             <h4>Order & contact</h4>
@@ -811,7 +874,7 @@ function shell(content, route = '') {
         </div>
         <div class="footer-legal">
           <p>&copy; ${new Date().getFullYear()} Bloomfield Flowers. All rights reserved.</p>
-          <p><a href="#/terms">Terms &amp; Conditions</a> · <a href="#/privacy">Privacy Policy</a></p>
+          <p><a href="/terms">Terms &amp; Conditions</a> · <a href="/privacy">Privacy Policy</a></p>
         </div>
       </footer>
     </div>
@@ -828,8 +891,8 @@ function homePage() {
             <h1>${heroScene.title}</h1>
             <p class="hero-copy">${heroScene.body}</p>
             <div class="hero-actions hero-actions-final">
-              <a class="btn btn-primary" href="#/shop">Shop Bouquets</a>
-              <a class="btn btn-secondary" href="#/custom-orders">Request Custom Order</a>
+              <a class="btn btn-primary" href="/shop">Shop Bouquets</a>
+              <a class="btn btn-secondary" href="/custom-orders">Request Custom Order</a>
             </div>
             <div class="hero-highlights hero-highlights-trust">
               ${heroHighlights.map((item) => `<div class="hero-highlight-pill hero-highlight-pill-trust">${item}</div>`).join('')}
@@ -889,7 +952,7 @@ function homePage() {
             <p class="eyebrow">About Bloomfield Flowers</p>
             <h2>Thoughtfully curated bouquets for life's most meaningful moments</h2>
             <p>At Bloomfield Flowers, we create arrangements that feel elegant, expressive, and gift-worthy. We serve ${serviceCitiesText} with premium gifting, custom bouquets, romance flowers, birthday blooms, and same-day delivery for confirmed orders placed before 2pm.</p>
-            <a class="text-link" href="#/about">Learn more about Bloomfield Flowers</a>
+            <a class="text-link" href="/about">Learn more about Bloomfield Flowers</a>
           </div>
         </div>
       </section>
@@ -945,7 +1008,7 @@ function homePage() {
           <p>Create a bouquet that feels uniquely made for your moment. Tell us your style, color palette, and occasion, and we'll craft something beautiful for you, then confirm flower availability before payment.</p>
         </div>
         <div class="cta-actions-stack">
-          <a class="btn btn-primary" href="#/custom-orders">Request a Custom Bouquet</a>
+          <a class="btn btn-primary" href="/custom-orders">Request a Custom Bouquet</a>
           <a class="btn btn-secondary" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Message us on Instagram</a>
         </div>
       </section>
@@ -1006,13 +1069,13 @@ function shopPage() {
             </select>
           </label>
         </div>
-        <a class="btn btn-secondary" href="#/custom-orders">Need a custom bouquet?</a>
+        <a class="btn btn-secondary" href="/custom-orders">Need a custom bouquet?</a>
       </div>
       ${visible.length === 0 ? `
         <div class="empty-state">
           <h3>No bouquets match your filters</h3>
           <p>Try a different occasion or price filter, or get in touch for a custom arrangement.</p>
-          <a class="btn btn-primary" href="#/custom-orders">Request a Custom Order</a>
+          <a class="btn btn-primary" href="/custom-orders">Request a Custom Order</a>
         </div>
       ` : `
       <div class="product-grid ${shopViewMode === 'compact' ? 'product-grid-compact' : ''}">
@@ -1032,7 +1095,7 @@ function productPage(id) {
         <div class="empty-state">
           <h3>Bouquet not found</h3>
           <p>This bouquet may have been renamed or is no longer available.</p>
-          <a class="btn btn-primary" href="#/shop">Back to Shop</a>
+          <a class="btn btn-primary" href="/shop">Back to Shop</a>
         </div>
       </main>
     `, 'shop')
@@ -1040,7 +1103,7 @@ function productPage(id) {
 
   return shell(`
     <main class="section container">
-      <p class="breadcrumb"><a href="#/shop" data-shop-back="${product.id}">&larr; Back to Shop</a></p>
+      <p class="breadcrumb"><a href="/shop" data-shop-back="${product.id}">&larr; Back to Shop</a></p>
       <div class="two-col story-grid-polished product-detail-grid">
         <div class="story-visual-card product-detail-visual">
           ${productGalleryMarkup(product, 'detail')}
@@ -1055,7 +1118,7 @@ function productPage(id) {
             <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
             <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Customize</a>
           </div>
-          <p>Need a custom size or colour palette? <a class="text-link" href="#/custom-orders">Request a custom bouquet</a>.</p>
+          <p>Need a custom size or colour palette? <a class="text-link" href="/custom-orders">Request a custom bouquet</a>.</p>
         </div>
       </div>
     </main>
@@ -1074,7 +1137,7 @@ function aboutPage() {
           <h1>We make gifting feel like a moment</h1>
           <p>Bloomfield Flowers is a Nigeria-based floral studio creating beautifully curated bouquets for meaningful moments across ${serviceCitiesText}. We believe flowers are more than gifts — they are expressions of love, care, celebration, and thoughtfulness.</p>
           <p>Every arrangement is carefully styled, elegantly presented, and easy to order. We work closely with each customer to make sure the bouquet feels personal, gift-ready, and exactly right for the moment.</p>
-          <a class="btn btn-primary" href="#/shop">Shop Bouquets</a>
+          <a class="btn btn-primary" href="/shop">Shop Bouquets</a>
         </div>
       </section>
       <section class="section section-soft">
@@ -1266,7 +1329,7 @@ function cartPage() {
             </div>
             <strong data-cart-item-total="${item.key}">${item.available ? naira.format(item.subtotal) : '-'}</strong>
           </div>
-        `).join('') : '<div class="empty-state"><h3>Your cart is empty</h3><p>Add a bouquet to get started.</p><a class="btn btn-primary" href="#/shop">Continue Shopping</a></div>'}
+        `).join('') : '<div class="empty-state"><h3>Your cart is empty</h3><p>Add a bouquet to get started.</p><a class="btn btn-primary" href="/shop">Continue Shopping</a></div>'}
       </div>
       <aside class="summary-card summary-card-emphasis">
         <h3>Order Summary</h3>
@@ -1280,7 +1343,7 @@ function cartPage() {
         <p class="summary-total" data-cart-subtotal>Subtotal: ${naira.format(cartTotal(city))}</p>
         <p class="summary-note">Delivery fee is calculated at checkout based on your area.</p>
         <div class="summary-actions">
-          <a class="btn btn-primary" href="#/checkout">Proceed to Checkout</a>
+          <a class="btn btn-primary" href="/checkout">Proceed to Checkout</a>
         </div>
         <p class="form-note cart-dm-note">Have a question before ordering? <a href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">Message us on Instagram</a></p>
       </aside>
@@ -1348,7 +1411,7 @@ function checkoutPage() {
         <div class="form-status" data-checkout-status aria-live="polite"></div>
         <div class="checkout-actions">
           <button class="btn btn-primary btn-pay" type="submit" data-checkout-submit>${items.length ? 'Pay Securely' : 'Add items to continue'}</button>
-          <a class="btn btn-secondary" href="#/cart">Back to Cart</a>
+          <a class="btn btn-secondary" href="/cart">Back to Cart</a>
         </div>
         <div class="payment-methods-strip">
           <span class="payment-method-badge">Card</span>
@@ -1384,7 +1447,7 @@ function checkoutCompletePage() {
         </div>
         ${transactionRef ? `<p class="form-note">Reference: <strong>${esc(transactionRef)}</strong></p>` : ''}
         <div class="checkout-actions">
-          <a class="btn btn-primary" href="#/shop">Continue Shopping</a>
+          <a class="btn btn-primary" href="/shop">Continue Shopping</a>
           <a class="btn btn-secondary" href="${whatsappUrl}" target="_blank" rel="noreferrer">WhatsApp us</a>
         </div>
       </section>
@@ -1448,7 +1511,7 @@ function termsPage() {
       <p>All content on the Bloomfield Flowers website — including images, text, designs, and branding — is the intellectual property of Bloomfield Flowers. You may not reproduce, distribute, or use our content without prior written permission.</p>
 
       <h2>12. Data &amp; Privacy</h2>
-      <p>We collect and use personal data (name, email, phone, delivery address) solely for the purpose of fulfilling your order and communicating with you about it. We comply with the Nigeria Data Protection Regulation (NDPR). Please see our <a href="#/privacy">Privacy Policy</a> for full details.</p>
+      <p>We collect and use personal data (name, email, phone, delivery address) solely for the purpose of fulfilling your order and communicating with you about it. We comply with the Nigeria Data Protection Regulation (NDPR). Please see our <a href="/privacy">Privacy Policy</a> for full details.</p>
 
       <h2>13. Governing Law</h2>
       <p>These terms are governed by the laws of the Federal Republic of Nigeria. Any disputes shall be subject to the exclusive jurisdiction of Nigerian courts.</p>
@@ -1530,6 +1593,11 @@ function setPageMeta(title, description) {
   const ogDesc = document.querySelector('meta[property="og:description"]')
   if (ogTitle) ogTitle.setAttribute('content', document.title)
   if (description && ogDesc) ogDesc.setAttribute('content', description)
+  const url = SITE_URL + (location.pathname === '/' ? '' : location.pathname.replace(/\/+$/, ''))
+  document.querySelector('link[rel="canonical"]')?.setAttribute('href', url)
+  document.querySelector('meta[property="og:url"]')?.setAttribute('content', url)
+  const privatePage = ['cart', 'checkout', 'checkout-complete'].includes(checkoutResultState())
+  document.querySelector('meta[name="robots"]')?.setAttribute('content', privatePage ? 'noindex, follow' : 'index, follow, noarchive')
 }
 
 function router(route = checkoutResultState()) {
@@ -2244,8 +2312,8 @@ function injectProductJsonLd() {
     .map((product, index) => {
       const { low, high } = priceBounds(product.price)
       const offers = low === high
-        ? { '@type': 'Offer', priceCurrency: 'NGN', price: low, availability: 'https://schema.org/InStock', url: `${SITE_URL}/#/product/${product.id}`, hasMerchantReturnPolicy: merchantReturnPolicy, shippingDetails }
-        : { '@type': 'AggregateOffer', priceCurrency: 'NGN', lowPrice: low, highPrice: high, offerCount: 3, availability: 'https://schema.org/InStock', url: `${SITE_URL}/#/product/${product.id}`, hasMerchantReturnPolicy: merchantReturnPolicy, shippingDetails }
+        ? { '@type': 'Offer', priceCurrency: 'NGN', price: low, availability: 'https://schema.org/InStock', url: `${SITE_URL}/product/${product.id}`, hasMerchantReturnPolicy: merchantReturnPolicy, shippingDetails }
+        : { '@type': 'AggregateOffer', priceCurrency: 'NGN', lowPrice: low, highPrice: high, offerCount: 3, availability: 'https://schema.org/InStock', url: `${SITE_URL}/product/${product.id}`, hasMerchantReturnPolicy: merchantReturnPolicy, shippingDetails }
 
       return {
         '@type': 'ListItem',
@@ -2255,7 +2323,7 @@ function injectProductJsonLd() {
           name: product.name,
           description: product.description,
           image: productGallery(product).map((image) => `${SITE_URL}${image}`),
-          url: `${SITE_URL}/#/product/${product.id}`,
+          url: `${SITE_URL}/product/${product.id}`,
           brand: { '@type': 'Brand', name: 'Bloomfield Flowers' },
           aggregateRating,
           review,
@@ -2277,5 +2345,16 @@ function injectProductJsonLd() {
 }
 
 injectProductJsonLd()
-window.addEventListener('hashchange', renderApp)
+window.addEventListener('popstate', renderApp)
+window.addEventListener('hashchange', () => { if (migrateLegacyHashRoute()) renderApp() })
+document.addEventListener('click', (event) => {
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+  const link = event.target.closest('a[href]')
+  if (!link || link.target === '_blank' || link.hasAttribute('download')) return
+  const url = new URL(link.getAttribute('href'), location.href)
+  if (url.origin !== location.origin || !isAppPath(url.pathname)) return
+  event.preventDefault()
+  navigateTo(url.pathname + url.search)
+})
+migrateLegacyHashRoute()
 renderApp()

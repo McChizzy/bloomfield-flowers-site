@@ -7,19 +7,43 @@
     <lastmod>2026-10-19</lastmod>
   </url>
   <url>
-    <loc>https://bloomfieldflowers.ng/flower-delivery-lagos</loc>
-    <changefreq>monthly</changefreq>
+    <loc>https://bloomfieldflowers.ng/shop</loc>
+    <changefreq>weekly</changefreq>
     <priority>0.9</priority>
     <lastmod>2026-10-19</lastmod>
   </url>
   <url>
-    <loc>https://bloomfieldflowers.ng/flower-delivery-abuja</loc>
+    <loc>https://bloomfieldflowers.ng/custom-orders</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
+    <priority>0.7</priority>
     <lastmod>2026-10-19</lastmod>
   </url>
   <url>
-    <loc>https://bloomfieldflowers.ng/birthday-flowers-lagos</loc>
+    <loc>https://bloomfieldflowers.ng/delivery</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/about</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/flower-care</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/anniversary-flowers-abuja</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <lastmod>2026-10-19</lastmod>
@@ -31,7 +55,7 @@
     <lastmod>2026-10-19</lastmod>
   </url>
   <url>
-    <loc>https://bloomfieldflowers.ng/graduation-flowers-lagos</loc>
+    <loc>https://bloomfieldflowers.ng/anniversary-flowers-port-harcourt</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <lastmod>2026-10-19</lastmod>
@@ -43,21 +67,9 @@
     <lastmod>2026-10-19</lastmod>
   </url>
   <url>
-    <loc>https://bloomfieldflowers.ng/anniversary-flowers-abuja</loc>
+    <loc>https://bloomfieldflowers.ng/birthday-flowers-lagos</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2026-10-19</lastmod>
-  </url>
-  <url>
-    <loc>https://bloomfieldflowers.ng/graduation-flowers-abuja</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-    <lastmod>2026-10-19</lastmod>
-  </url>
-  <url>
-    <loc>https://bloomfieldflowers.ng/flower-delivery-port-harcourt</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
     <lastmod>2026-10-19</lastmod>
   </url>
   <url>
@@ -67,7 +79,31 @@
     <lastmod>2026-10-19</lastmod>
   </url>
   <url>
-    <loc>https://bloomfieldflowers.ng/anniversary-flowers-port-harcourt</loc>
+    <loc>https://bloomfieldflowers.ng/flower-delivery-abuja</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/flower-delivery-lagos</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/flower-delivery-port-harcourt</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/graduation-flowers-abuja</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/graduation-flowers-lagos</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
     <lastmod>2026-10-19</lastmod>
@@ -76,6 +112,216 @@
     <loc>https://bloomfieldflowers.ng/graduation-flowers-port-harcourt</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/pastel-cloud-s</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/century-of-roses</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/bff-collection</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/the-radiant-garden</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/five-roses-fillers</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/fifty-red-roses</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/roses-with-fillers</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/the-seraphina</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/pastel-cloud-l</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/mixed-box-bouquet</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/bloom-no-1</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/bloom-no-2</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/condolence-bouquet</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/rose-royale</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/two-fifty-premium-roses</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/barbie-deluxe-l</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/barbie-deluxe-s</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/mixed-sprayroses-l</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/scarlet-and-snow</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/sunflower-bouquet</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/bloom-special-bouquet</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/mixed-chrysanthemum-bouquet</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/stargirl-bouquet</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/spray-roses-large-150</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/spray-roses-large-100</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/sunnyside-bouquet</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/birthday-combo</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/box-garden-bouquet</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/roses-n-greens</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/lily-n-rose</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/spray-roses</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/spray-rose-2</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/pearl-roses-60</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/mixed-lily</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-10-19</lastmod>
+  </url>
+  <url>
+    <loc>https://bloomfieldflowers.ng/product/grand-chrysanthemum</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
     <lastmod>2026-10-19</lastmod>
   </url>
 </urlset>

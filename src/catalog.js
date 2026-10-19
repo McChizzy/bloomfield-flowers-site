@@ -74,7 +74,8 @@ export const products = [
     name: 'Roses with Fillers',
     category: 'Flowers',
     tags: ['romance', 'birthday'],
-    price: '₦94,000',
+    cityPrices: { Lagos: 94000, Abuja: 106000, 'Port Harcourt': 108000 },
+    price: '₦94,000 - ₦108,000',
     image: '/images/roses_with_fillers.webp',
     gallery: [
       '/images/roses_with_fillers.webp',

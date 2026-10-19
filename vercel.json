@@ -9,9 +9,9 @@
   ],
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "www.bloomfieldflowers.ng" }],
-      "destination": "https://bloomfieldflowers.ng/:path*",
+      "destination": "https://bloomfieldflowers.ng/$1",
       "permanent": true
     }
   ],

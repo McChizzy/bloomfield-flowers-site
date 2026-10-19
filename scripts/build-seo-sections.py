@@ -28,8 +28,8 @@ OCCASIONS = {  # slug prefix -> (label, plural noun used in links)
 # delivery-zones.js keeps spelling variants for matching customer input; show one name per place
 ALIASES = {
     'vi', 'lekki 1', 'lekki 2', 'victoria garden city', 'anthony', 'ojodu berger', 'gra ikeja',
-    'wuse ii', 'wuse2', 'gwarimpa', 'banana island abuja',
-    'apo mechanical village', 'apo primary school', 'kubwa f01', 'kubwa fo1',
+    'wuse ii', 'wuse2', 'gwarimpa', 'banana island abuja', 'a y a', 'a.y.a', 'maraba',
+    'apo mechanical village', 'apo primary school', 'idu industrial',
     'port harcourt', 'ph', 'town', 'ph town', 'old g.r.a', 'new g.r.a', 'gra', 'd line', 'peter odili',
 }
 DISPLAY = {
@@ -37,6 +37,7 @@ DISPLAY = {
     'port harcourt town': 'Port Harcourt Town (Old Township)', 'uniport': 'Uniport', 'wuse 2': 'Wuse 2',
     'central business district': 'Central Business District', 'abraham adesanya': 'Abraham Adesanya',
     'ojodu': 'Ojodu / Berger', 'kings court': "King's Court", 'mile 12': 'Mile 12',
+    'aya': 'AYA', 'naf valley': 'NAF Valley',
 }
 
 INTROS = {

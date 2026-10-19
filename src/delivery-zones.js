@@ -2,51 +2,61 @@ const ABUJA_ZONES = [
   {
     fee: 3500,
     areas: [
-      'katampe extension', 'aso drive', 'diplomatic zone', 'kings court',
-      'ministers hill', 'banana island abuja',
-    ],
-  },
-  {
-    fee: 4000,
-    areas: [
-      'wuse', 'mabushi',
+      'diplomatic zone', 'kings court', 'ministers hill', 'banana island abuja',
     ],
   },
   {
     fee: 5000,
     areas: [
-      'wuse 2', 'wuse ii', 'wuse2', 'central business district', 'utako',
-      'gudu', 'lugbe', 'kado', 'dawaki', 'lokogoma', 'jahi', 'idu', 'galadimawa',
-      'dakibiyu', 'gosa', 'games village', 'wuye', 'dutse', 'byazhin',
-      'airport road', 'nyanya', 'karu', 'nbgoje', 'karmo',
-      'katampe', 'maitama', 'apo resettlement',
+      'wuse', 'wuse 2', 'wuse ii', 'wuse2', 'central business district', 'utako',
+      'gudu', 'kado', 'dawaki', 'jahi', 'dakibiyu', 'gosa', 'games village',
+      'wuye', 'dutse', 'byazhin', 'airport road', 'nbgoje', 'karmo',
     ],
   },
   {
     fee: 6000,
     areas: [
-      'garki', 'jabi', 'durumi', 'gwarinpa', 'gwarimpa', 'life camp',
+      'garki', 'jabi', 'durumi', 'katampe', 'mabushi',
+      'aso drive', 'lokogoma', 'galadimawa', 'karu', 'nyanya',
+      'aya', 'a y a', 'a.y.a', 'naf valley',
     ],
   },
   {
     fee: 6500,
     areas: [
-      'kabusa',
+      'kabusa', 'katampe extension',
     ],
   },
   {
     fee: 7000,
     areas: [
-      'guzape', 'asokoro',
-      'apo', 'apo mechanic village', 'apo mechanical village', 'apo primary school',
-      'kubwa', 'kubwa f01', 'kubwa fo1',
+      'maitama', 'guzape', 'gwarinpa', 'gwarimpa', 'asokoro', 'lugbe', 'idu', 'idu industrial',
+    ],
+  },
+  {
+    fee: 7500,
+    areas: [
+      'life camp',
     ],
   },
   {
     fee: 8000,
     areas: [
+      'apo', 'apo resettlement', 'apo mechanic village', 'apo mechanical village', 'apo primary school',
       'bwari', 'gwagwalada', 'kuje', 'abaji', 'pyakasa', 'karshi', 'zuba',
       'mpape', 'orozo', 'abucoch',
+    ],
+  },
+  {
+    fee: 9000,
+    areas: [
+      'kubwa',
+    ],
+  },
+  {
+    fee: 10000,
+    areas: [
+      'mararaba', 'maraba', 'masaka',
     ],
   },
 ]

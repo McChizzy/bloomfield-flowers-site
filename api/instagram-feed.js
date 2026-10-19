@@ -4,6 +4,10 @@ import { getSupabase, supabaseQuery } from './_lib/supabase.js'
 const GRAPH = 'https://graph.facebook.com/v20.0'
 let memCache = { data: null, at: 0 }
 const CACHE_TTL = 5 * 60 * 1000
+// Token errors from the Graph API: 10/200 = missing permission, 190 = expired/invalid token.
+const TOKEN_ERROR_CODES = new Set([10, 190, 200])
+const REBOOT_INTERVAL = 10 * 60 * 1000
+let lastRebootstrapAt = 0
 
 async function gget(path, token) {
   const sep = path.includes('?') ? '&' : '?'
@@ -30,20 +34,24 @@ async function bootstrap(supabase) {
 
   // Get linked Facebook Pages
   console.log('[ig:4] fetching pages...')
-  const pages = await gget('/me/accounts', longToken)
-  console.log('[ig:5] pages result:', JSON.stringify(pages).substring(0, 300))
+  const pages = await gget('/me/accounts?fields=id,name,access_token,instagram_business_account', longToken)
+  console.log('[ig:5] pages found:', (pages.data || []).map((p) => p.name).join(', ') || JSON.stringify(pages).substring(0, 300))
   if (!pages.data?.length) { console.error('[ig] no Facebook Pages found'); return null }
 
-  const page = pages.data[0]
+  // Prefer a Page with a linked Instagram account, and the Bloomfield one if there are several.
+  const withIg = pages.data.filter((p) => p.instagram_business_account?.id)
+  const page = withIg.find((p) => /bloomfield/i.test(p.name || '')) || withIg[0] || pages.data[0]
   const pageToken = page.access_token
   const pageId = page.id
-  console.log('[ig:6] page found:', pageId, page.name)
+  console.log('[ig:6] page chosen:', pageId, page.name)
 
-  // Get Instagram Business Account linked to this page
-  console.log('[ig:7] fetching Instagram account...')
-  const igData = await gget(`/${pageId}?fields=instagram_business_account`, pageToken)
-  console.log('[ig:8] IG account result:', JSON.stringify(igData).substring(0, 300))
-  const igUserId = igData.instagram_business_account?.id
+  let igUserId = page.instagram_business_account?.id
+  if (!igUserId) {
+    console.log('[ig:7] fetching Instagram account...')
+    const igData = await gget(`/${pageId}?fields=instagram_business_account`, pageToken)
+    console.log('[ig:8] IG account result:', JSON.stringify(igData).substring(0, 300))
+    igUserId = igData.instagram_business_account?.id
+  }
   if (!igUserId) {
     console.error('[ig] no Instagram Business Account linked to this Page — ensure Instagram is set to Business/Creator in app settings and linked to the Facebook Page')
     return null
@@ -88,10 +96,17 @@ export default async function handler(req, res) {
       igUserId = boot.igUserId
     }
 
-    const media = await gget(
-      `/${igUserId}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&limit=9`,
-      pageToken
-    )
+    const mediaPath = (id) => `/${id}/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&limit=9`
+    let media = await gget(mediaPath(igUserId), pageToken)
+
+    // The cached token was rejected (e.g. stored before INSTAGRAM_TOKEN was replaced): rebuild it from
+    // INSTAGRAM_TOKEN once, at most every 10 minutes so a bad env token can't hammer the Graph API.
+    if (media.error && TOKEN_ERROR_CODES.has(media.error.code) && Date.now() - lastRebootstrapAt > REBOOT_INTERVAL) {
+      lastRebootstrapAt = Date.now()
+      console.warn('[ig] cached token rejected (code', media.error.code + ') — re-bootstrapping from INSTAGRAM_TOKEN')
+      const boot = await bootstrap(supabase)
+      if (boot) media = await gget(mediaPath(boot.igUserId), boot.pageToken)
+    }
 
     if (media.error) {
       console.error('Instagram API error:', JSON.stringify(media.error))

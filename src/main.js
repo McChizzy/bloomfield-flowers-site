@@ -1,6 +1,20 @@
 import './style.css'
 import { products, parsePriceValue, priceBounds, productPriceValue, isProductAvailable } from './catalog.js'
 import { deliveryAreaSuggestions, lookupDeliveryFee } from './delivery-zones.js'
+import { inject as injectVercelAnalytics, pageview as vercelPageview } from '@vercel/analytics'
+
+// Vercel Web Analytics. Routes live in the hash (#/shop), which the default tracker can't see,
+// so page views are sent manually from renderApp as /shop, /product/<id>, etc.
+injectVercelAnalytics({ disableAutoTrack: true })
+let lastAnalyticsPath = null
+
+function trackPageView(route) {
+  const clean = String(route || 'home').split('?')[0].replace(/\/+$/, '') || 'home'
+  const path = clean === 'home' ? '/' : `/${clean}`
+  if (path === lastAnalyticsPath) return
+  lastAnalyticsPath = path
+  vercelPageview({ path, route: clean.startsWith('product/') ? '/product/[id]' : path })
+}
 
 const SITE_URL = 'https://bloomfieldflowers.ng'
 const primaryLogo = '/images/bff logo-p.webp'
@@ -2147,6 +2161,7 @@ function renderApp() {
     const shouldRestoreShopPosition = route === 'shop' && Boolean(shopReturn.productId || shopReturn.scrollY)
 
     app.innerHTML = router(route)
+    trackPageView(route)
 
     if (shouldRestoreShopPosition) {
       requestAnimationFrame(() => {

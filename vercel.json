@@ -7,6 +7,14 @@
       "schedule": "0 9 * * *"
     }
   ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.bloomfieldflowers.ng" }],
+      "destination": "https://bloomfieldflowers.ng/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/birthday-flowers-lagos", "destination": "/birthday-flowers-lagos.html" },
     { "source": "/birthday-flowers-abuja", "destination": "/birthday-flowers-abuja.html" },

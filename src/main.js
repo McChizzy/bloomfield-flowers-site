@@ -784,8 +784,9 @@ function shell(content, route = '') {
           </div>
         </div>
         <div class="footer-seo-links">
-          <p>Flower delivery: <a href="/flower-delivery-lagos">Lagos</a> · <a href="/flower-delivery-abuja">Abuja</a> · <a href="/flower-delivery-port-harcourt">Port Harcourt</a></p>
-          <p>Shop by occasion: <a href="/birthday-flowers-lagos">Birthdays</a> · <a href="/anniversary-flowers-lagos">Anniversaries</a> · <a href="/graduation-flowers-lagos">Graduations</a> · <a href="/birthday-flowers-port-harcourt">PH birthdays</a></p>
+          <p>Lagos: <a href="/flower-delivery-lagos">Flower delivery</a> · <a href="/birthday-flowers-lagos">Birthday flowers</a> · <a href="/anniversary-flowers-lagos">Anniversary flowers</a> · <a href="/graduation-flowers-lagos">Graduation flowers</a></p>
+          <p>Abuja: <a href="/flower-delivery-abuja">Flower delivery</a> · <a href="/birthday-flowers-abuja">Birthday flowers</a> · <a href="/anniversary-flowers-abuja">Anniversary flowers</a> · <a href="/graduation-flowers-abuja">Graduation flowers</a></p>
+          <p>Port Harcourt: <a href="/flower-delivery-port-harcourt">Flower delivery</a> · <a href="/birthday-flowers-port-harcourt">Birthday flowers</a> · <a href="/anniversary-flowers-port-harcourt">Anniversary flowers</a> · <a href="/graduation-flowers-port-harcourt">Graduation flowers</a></p>
         </div>
         <div class="footer-legal">
           <p>&copy; ${new Date().getFullYear()} Bloomfield Flowers. All rights reserved.</p>

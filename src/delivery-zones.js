@@ -7,18 +7,25 @@ const ABUJA_ZONES = [
     ],
   },
   {
+    fee: 4000,
+    areas: [
+      'wuse', 'mabushi',
+    ],
+  },
+  {
     fee: 5000,
     areas: [
-      'wuse', 'wuse 2', 'wuse ii', 'wuse2', 'central business district', 'utako',
+      'wuse 2', 'wuse ii', 'wuse2', 'central business district', 'utako',
       'gudu', 'lugbe', 'kado', 'dawaki', 'lokogoma', 'jahi', 'idu', 'galadimawa',
       'dakibiyu', 'gosa', 'games village', 'wuye', 'dutse', 'byazhin',
       'airport road', 'nyanya', 'karu', 'nbgoje', 'karmo',
+      'katampe', 'maitama', 'apo resettlement',
     ],
   },
   {
     fee: 6000,
     areas: [
-      'garki', 'jabi', 'durumi', 'katampe', 'mabushi',
+      'garki', 'jabi', 'durumi', 'gwarinpa', 'gwarimpa', 'life camp',
     ],
   },
   {
@@ -30,26 +37,16 @@ const ABUJA_ZONES = [
   {
     fee: 7000,
     areas: [
-      'maitama', 'guzape', 'gwarinpa', 'gwarimpa', 'asokoro',
-    ],
-  },
-  {
-    fee: 7500,
-    areas: [
-      'life camp',
+      'guzape', 'asokoro',
+      'apo', 'apo mechanic village', 'apo mechanical village', 'apo primary school',
+      'kubwa', 'kubwa f01', 'kubwa fo1',
     ],
   },
   {
     fee: 8000,
     areas: [
-      'apo', 'bwari', 'gwagwalada', 'kuje', 'abaji', 'pyakasa', 'karshi', 'zuba',
+      'bwari', 'gwagwalada', 'kuje', 'abaji', 'pyakasa', 'karshi', 'zuba',
       'mpape', 'orozo', 'abucoch',
-    ],
-  },
-  {
-    fee: 9000,
-    areas: [
-      'kubwa',
     ],
   },
 ]

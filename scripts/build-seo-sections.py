@@ -29,6 +29,7 @@ OCCASIONS = {  # slug prefix -> (label, plural noun used in links)
 ALIASES = {
     'vi', 'lekki 1', 'lekki 2', 'victoria garden city', 'anthony', 'ojodu berger', 'gra ikeja',
     'wuse ii', 'wuse2', 'gwarimpa', 'banana island abuja',
+    'apo mechanical village', 'apo primary school', 'kubwa f01', 'kubwa fo1',
     'port harcourt', 'ph', 'town', 'ph town', 'old g.r.a', 'new g.r.a', 'gra', 'd line', 'peter odili',
 }
 DISPLAY = {

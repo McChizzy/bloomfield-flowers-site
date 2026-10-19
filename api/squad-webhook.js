@@ -2,6 +2,7 @@ import { getEnv, json, squadRequest, verifyWebhookSignature } from './_lib/squad
 import { getSupabase, supabaseQuery } from './_lib/supabase.js'
 import { sendMail } from './_lib/mailer.js'
 import { products } from '../src/catalog.js'
+import { lookupDeliveryFee } from '../src/delivery-zones.js'
 
 const SITE_URL = 'https://bloomfieldflowers.ng'
 const INSTAGRAM_URL = 'https://www.instagram.com/bloomfieldflowers_/'
@@ -89,12 +90,20 @@ function extractOrderDetails(event, orderRow, verifyData) {
 
   const isPickup = delivery.area === 'pickup' || delivery.address === 'PICKUP'
   const hasRecipient = Boolean(recipient.name || recipient.phone)
+  // Area not on the delivery list: the customer paid for the bouquet only; delivery is quoted afterwards.
+  const areaUnlisted = !isPickup && Boolean(delivery.area) && lookupDeliveryFee(delivery.city, delivery.area).fee === null
+  const deliveryFeePending = !isPickup && (typeof metaOrder.deliveryFeePending === 'boolean'
+    ? metaOrder.deliveryFeePending
+    : (orderRow ? orderRow.delivery_fee === null && areaUnlisted : areaUnlisted))
+  order.deliveryFeePending = deliveryFeePending
 
-  return { body, ref, amountNaira, customer, recipient, delivery, order, isPickup, hasRecipient }
+  return { body, ref, amountNaira, customer, recipient, delivery, order, isPickup, hasRecipient, areaUnlisted }
 }
 
 async function sendOrderEmail(details) {
-  const { ref, amountNaira, customer, recipient, delivery, order, isPickup, hasRecipient, body } = details
+  const { ref, amountNaira, customer, recipient, delivery, order, isPickup, hasRecipient, body, areaUnlisted } = details
+  const feePending = Boolean(order.deliveryFeePending)
+  const deliveryFeeText = feePending ? 'TO CONFIRM — not charged' : `₦${Number(order.deliveryFee || 0).toLocaleString()}`
 
   const recipientLines = []
   if (recipient.name) recipientLines.push(`Name: ${recipient.name}`)
@@ -153,9 +162,14 @@ ${deliveryLines.join('\n')}
 ORDER
 ${items || '  (details not captured)'}
 Subtotal: ₦${Number(order.subtotal || 0).toLocaleString()}
-${order.discountCode ? `Discount (${order.discountCode}): −₦${Number(order.discountAmount || 0).toLocaleString()}\n` : ''}Delivery fee: ₦${Number(order.deliveryFee || 0).toLocaleString()}
-Total: ₦${Number(order.total || 0).toLocaleString()}
-${missingData ? `
+${order.discountCode ? `Discount (${order.discountCode}): −₦${Number(order.discountAmount || 0).toLocaleString()}\n` : ''}Delivery fee: ${deliveryFeeText}
+Total: ₦${Number(order.total || 0).toLocaleString()}${feePending ? ' (bouquet only)' : ''}
+${feePending ? `
+ACTION NEEDED: "${delivery.area || '—'}, ${delivery.city || '—'}" is not on the delivery list. The customer paid for the bouquet only.
+Confirm we can deliver there, then send the delivery fee to ${customer.phone || customer.email || 'the customer'} before dispatch.
+` : areaUnlisted ? `
+NOTE: "${delivery.area || '—'}, ${delivery.city || '—'}" is not on the delivery list (free-delivery code applied). Check the location before dispatch.
+` : ''}${missingData ? `
 ---
 ⚠️  SOME FIELDS ARE MISSING. Squad raw data below — look up the transaction in your dashboard to get full details.
 Squad dashboard: ${squadDashboardUrl}
@@ -173,6 +187,12 @@ ${missingData ? `<div style="background:#fff3cd;border:1px solid #ffc107;border-
   <strong>⚠️ Some order fields are missing</strong> — Supabase may have been paused when this order was placed.<br>
   Raw Squad fields below. <a href="${squadDashboardUrl}" style="color:#7a2e5a">Look up ref ${esc(ref)} in your Squad dashboard</a> for full details.<br>
   <em>Name: ${esc(body.name || '—')} &nbsp;|&nbsp; Email: ${esc(body.email || '—')} &nbsp;|&nbsp; Mobile: ${esc(body.customer_mobile || '—')}</em>
+</div>` : ''}
+${feePending ? `<div style="background:#fdeef3;border:1px solid #c45c7e;border-radius:6px;padding:12px 16px;margin-bottom:16px;font-family:sans-serif;font-size:14px">
+  <strong>🚚 Delivery fee to confirm.</strong> &ldquo;${esc(delivery.area || '—')}, ${esc(delivery.city || '—')}&rdquo; is not on the delivery list, so the customer paid for the bouquet only.<br>
+  Confirm we can deliver there, then send the delivery fee to ${esc(customer.phone || customer.email || 'the customer')} before dispatch.
+</div>` : areaUnlisted ? `<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:12px 16px;margin-bottom:16px;font-family:sans-serif;font-size:14px">
+  <strong>Check location.</strong> &ldquo;${esc(delivery.area || '—')}, ${esc(delivery.city || '—')}&rdquo; is not on the delivery list (free-delivery code applied).
 </div>` : ''}
 <h2 style="color:#7a2e5a;font-family:serif">New paid order — Bloomfield Flowers</h2>
 <table style="border-collapse:collapse;font-family:sans-serif;font-size:14px;margin-bottom:16px">
@@ -200,19 +220,23 @@ ${hasRecipient ? `<h3 style="font-family:sans-serif;font-size:13px;text-transfor
   <tr><td colspan="2" style="padding-top:8px;border-top:1px solid #eee"></td></tr>
   <tr><td style="padding:3px 14px 3px 0;color:#888">Subtotal</td><td>₦${Number(order.subtotal || 0).toLocaleString()}</td></tr>
   ${order.discountCode ? `<tr><td style="padding:3px 14px 3px 0;color:#C27E8C">Discount (${esc(order.discountCode)})</td><td style="color:#C27E8C">−₦${Number(order.discountAmount || 0).toLocaleString()}</td></tr>` : ''}
-  <tr><td style="padding:3px 14px 3px 0;color:#888">Delivery</td><td>₦${Number(order.deliveryFee || 0).toLocaleString()}</td></tr>
-  <tr><td style="padding:3px 14px 3px 0;font-weight:700">Total</td><td style="font-weight:700">₦${Number(order.total || 0).toLocaleString()}</td></tr>
+  <tr><td style="padding:3px 14px 3px 0;color:#888">Delivery</td><td${feePending ? ' style="color:#c45c7e;font-weight:700"' : ''}>${esc(deliveryFeeText)}</td></tr>
+  <tr><td style="padding:3px 14px 3px 0;font-weight:700">Total${feePending ? ' (bouquet only)' : ''}</td><td style="font-weight:700">₦${Number(order.total || 0).toLocaleString()}</td></tr>
 </table>
 `
 
   const subject = missingData
     ? `⚠️ New order ${ref} — INCOMPLETE DATA — Bloomfield Flowers`
-    : `New order ${ref} — Bloomfield Flowers`
+    : feePending
+      ? `🚚 New order ${ref} — DELIVERY FEE TO CONFIRM — Bloomfield Flowers`
+      : `New order ${ref} — Bloomfield Flowers`
   await sendMail({ to: 'houseofbloomfield@gmail.com', subject, text, html })
 }
 
 async function sendCustomerOrderEmail(details) {
   const { ref, customer, recipient, delivery, order, isPickup, hasRecipient } = details
+  const feePending = Boolean(order.deliveryFeePending)
+  const pendingNote = `Your delivery area (${delivery.area || 'your area'}, ${delivery.city || ''}) isn't on our standard delivery list, so you've paid for your bouquet only. We'll contact you on ${customer.phone || 'your phone'} to confirm the delivery fee before we dispatch.`
 
   if (!customer.email) return
 
@@ -294,9 +318,9 @@ ORDER REFERENCE: ${ref}
 YOUR ORDER
 ${itemLines || '  (details not captured)'}
 Subtotal: ₦${Number(order.subtotal || 0).toLocaleString()}
-${order.discountCode ? `Discount (${order.discountCode}): −₦${Number(order.discountAmount || 0).toLocaleString()}\n` : ''}Delivery fee: ₦${Number(order.deliveryFee || 0).toLocaleString()}
-Total: ₦${Number(order.total || 0).toLocaleString()}
-
+${order.discountCode ? `Discount (${order.discountCode}): −₦${Number(order.discountAmount || 0).toLocaleString()}\n` : ''}Delivery fee: ${feePending ? 'To be confirmed' : `₦${Number(order.deliveryFee || 0).toLocaleString()}`}
+${feePending ? 'Total paid (bouquet only)' : 'Total'}: ₦${Number(order.total || 0).toLocaleString()}
+${feePending ? `\nDELIVERY FEE\n${pendingNote}\n` : ''}
 ${isPickup ? 'PICKUP DETAILS' : 'DELIVERY DETAILS'}
 ${fulfilmentLines.join('\n')}
 
@@ -334,9 +358,10 @@ Questions about your order? Message us on Instagram: ${INSTAGRAM_URL}
         <table role="presentation" width="100%" style="border-collapse:collapse;font-size:14px;margin-bottom:24px">
           <tr><td style="padding:3px 0;color:${BRAND_MUTED}">Subtotal</td><td style="text-align:right">₦${Number(order.subtotal || 0).toLocaleString()}</td></tr>
           ${order.discountCode ? `<tr><td style="padding:3px 0;color:#C27E8C">Discount (${esc(order.discountCode)})</td><td style="text-align:right;color:#C27E8C">−₦${Number(order.discountAmount || 0).toLocaleString()}</td></tr>` : ''}
-          <tr><td style="padding:3px 0;color:${BRAND_MUTED}">Delivery fee</td><td style="text-align:right">₦${Number(order.deliveryFee || 0).toLocaleString()}</td></tr>
-          <tr><td style="padding:6px 0 0;font-weight:700;color:${BRAND_TEXT};border-top:1px solid ${BRAND_LINE}">Total</td><td style="text-align:right;padding-top:6px;font-weight:700;color:${BRAND_TEXT};border-top:1px solid ${BRAND_LINE}">₦${Number(order.total || 0).toLocaleString()}</td></tr>
+          <tr><td style="padding:3px 0;color:${BRAND_MUTED}">Delivery fee</td><td style="text-align:right">${feePending ? 'To be confirmed' : `₦${Number(order.deliveryFee || 0).toLocaleString()}`}</td></tr>
+          <tr><td style="padding:6px 0 0;font-weight:700;color:${BRAND_TEXT};border-top:1px solid ${BRAND_LINE}">${feePending ? 'Total paid (bouquet only)' : 'Total'}</td><td style="text-align:right;padding-top:6px;font-weight:700;color:${BRAND_TEXT};border-top:1px solid ${BRAND_LINE}">₦${Number(order.total || 0).toLocaleString()}</td></tr>
         </table>
+        ${feePending ? `<div style="background:${BRAND_SURFACE_SOFT};border-left:4px solid ${BRAND_PRIMARY};border-radius:8px;padding:14px 16px;margin:0 0 24px;font-size:14px;line-height:1.6;color:${BRAND_TEXT}"><strong style="color:${BRAND_PRIMARY_DARK}">Delivery fee to be confirmed.</strong> ${esc(pendingNote)}</div>` : ''}
 
         <h2 style="margin:0 0 8px;font-family:Georgia,'Times New Roman',serif;font-size:16px;color:${BRAND_PRIMARY_DARK};border-bottom:1px solid ${BRAND_LINE};padding-bottom:8px">${isPickup ? 'Pickup details' : 'Delivery details'}</h2>
         <table role="presentation" style="border-collapse:collapse;font-size:14px;color:${BRAND_TEXT};margin-bottom:24px">

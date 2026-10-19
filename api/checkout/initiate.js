@@ -39,10 +39,6 @@ export default async function handler(req, res) {
     return json(res, 400, { error: 'Delivery address and area are required.' })
   }
 
-  if (!isPickup && zoneDeliveryFee === null) {
-    return json(res, 400, { error: 'Delivery fee for this area needs to be confirmed before payment.' })
-  }
-
   if (order.hasUnavailable) {
     const unavailable = order.lineItems.filter((item) => !item.available).map((item) => item.name).join(', ')
     return json(res, 400, { error: `${unavailable} is not available in ${delivery.city}.` })
@@ -85,6 +81,8 @@ export default async function handler(req, res) {
     freeDelivery = codeRow.free_delivery_threshold !== null && order.subtotal >= codeRow.free_delivery_threshold
   }
 
+  // Area not on the delivery list: charge for the bouquet only and confirm delivery with the customer after.
+  const deliveryFeePending = !isPickup && zoneDeliveryFee === null && !freeDelivery
   const effectiveDeliveryFee = freeDelivery ? 0 : order.deliveryFee
   const effectiveTotal = Math.max(0, order.subtotal - discountAmount + effectiveDeliveryFee)
 
@@ -108,7 +106,8 @@ export default async function handler(req, res) {
         delivery,
         order: {
           subtotal: order.subtotal,
-          deliveryFee: effectiveDeliveryFee,
+          deliveryFee: deliveryFeePending ? null : effectiveDeliveryFee,
+          deliveryFeePending,
           discountCode: validatedCode,
           discountAmount,
           total: effectiveTotal,
@@ -150,7 +149,7 @@ export default async function handler(req, res) {
           card_message: delivery.cardMessage || null,
           delivery_notes: delivery.deliveryNotes || null,
           subtotal: order.subtotal,
-          delivery_fee: effectiveDeliveryFee,
+          delivery_fee: deliveryFeePending ? null : effectiveDeliveryFee,
           discount_code: validatedCode,
           discount_amount: discountAmount,
           total: effectiveTotal,
@@ -168,6 +167,7 @@ export default async function handler(req, res) {
       amount: effectiveTotal,
       subtotal: order.subtotal,
       deliveryFee: effectiveDeliveryFee,
+      deliveryFeePending,
       discountCode: validatedCode,
       discountAmount,
     })

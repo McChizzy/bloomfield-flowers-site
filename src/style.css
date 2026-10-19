@@ -2103,6 +2103,15 @@ p {
   margin: 0;
 }
 
+.delivery-fee-pending {
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.delivery-fee-pending strong {
+  color: var(--primary-dark);
+}
+
 /* Payment methods trust strip */
 .payment-methods-strip {
   display: flex;

@@ -1,6 +1,6 @@
 import './style.css'
 import { products, parsePriceValue, priceBounds, productPriceValue, isProductAvailable } from './catalog.js'
-import { lookupDeliveryFee } from './delivery-zones.js'
+import { deliveryAreaSuggestions, lookupDeliveryFee } from './delivery-zones.js'
 
 const SITE_URL = 'https://bloomfieldflowers.ng'
 const primaryLogo = '/images/bff logo-p.webp'
@@ -620,13 +620,19 @@ function getDeliveryFee() {
 }
 
 function deliveryFeeSummary(city, area, isPickup = false) {
-  if (isPickup) return { fee: 0, feeText: naira.format(0), canPay: true }
+  if (isPickup) return { fee: 0, feeText: naira.format(0), canPay: true, pending: false }
   const { fee } = lookupDeliveryFee(city || getCartCity() || 'Lagos', area || '')
+  const pending = Boolean(area && area.trim()) && !fee
   return {
     fee: fee ?? 0,
     feeText: fee ? naira.format(fee) : 'To be confirmed',
-    canPay: Boolean(fee),
+    canPay: Boolean(fee) || pending,
+    pending,
   }
+}
+
+function areaSuggestionOptions(city) {
+  return deliveryAreaSuggestions(city || getCartCity() || 'Lagos').map((name) => `<option value="${esc(name)}"></option>`).join('')
 }
 
 function renderDeliveryFeeContent(city, area) {
@@ -635,7 +641,7 @@ function renderDeliveryFeeContent(city, area) {
   }
   const { fee, exact } = lookupDeliveryFee(city || getCartCity() || 'Lagos', area)
   if (!fee) {
-    return `<p class="delivery-fee-note">We'll confirm your delivery fee after you place your order.</p>`
+    return `<p class="delivery-fee-note delivery-fee-pending"><strong>Delivery fee to be confirmed.</strong> This area isn't on our standard delivery list, so you'll pay for your bouquet only now. We'll contact you to confirm the delivery fee (and that we can deliver there) before we dispatch.</p>`
   }
   return `
     <div class="delivery-fee-amount">${naira.format(fee)}</div>
@@ -652,7 +658,7 @@ function discountAmount() {
 }
 
 function renderCheckoutDeliveryText(feeSummary) {
-  if (appliedDiscount?.freeDelivery && feeSummary.canPay) {
+  if (appliedDiscount?.freeDelivery && feeSummary.canPay && !feeSummary.pending) {
     return `<span style="text-decoration:line-through;color:#aaa">${naira.format(feeSummary.fee)}</span> <strong style="color:#C27E8C">Free</strong>`
   }
   return feeSummary.feeText
@@ -661,6 +667,7 @@ function renderCheckoutDeliveryText(feeSummary) {
 function renderCheckoutTotalText(subtotal, feeSummary) {
   const discountedSubtotal = Math.max(0, subtotal - discountAmount())
   if (!feeSummary.canPay) return `${naira.format(discountedSubtotal)} + delivery`
+  if (feeSummary.pending && !appliedDiscount?.freeDelivery) return `${naira.format(discountedSubtotal)} + delivery (to be confirmed)`
   const deliveryFee = appliedDiscount?.freeDelivery ? 0 : feeSummary.fee
   return naira.format(discountedSubtotal + deliveryFee)
 }
@@ -1302,7 +1309,8 @@ function checkoutPage() {
         <label>City<select name="city" required>${cityOptions(city)}</select></label>
         <div data-delivery-fields${isPickup ? ' class="hidden"' : ''}>
           <label>Delivery address<input name="address" type="text" placeholder="Street address" value="${esc(draft.address || '')}" required ${isPickup ? 'disabled' : ''}></label>
-          <label>Area / district<input name="area" type="text" placeholder="e.g. Old GRA, Eastern Bypass, Lekki Phase 1" value="${esc(draft.area || '')}" required ${isPickup ? 'disabled' : ''}></label>
+          <label>Area / district<input name="area" type="text" list="delivery-area-suggestions" autocomplete="off" placeholder="Start typing, then pick your area from the list" value="${esc(draft.area || '')}" required ${isPickup ? 'disabled' : ''}></label>
+          <datalist id="delivery-area-suggestions" data-area-suggestions>${areaSuggestionOptions(city)}</datalist>
           <div class="delivery-fee-display" data-delivery-fee-display>
             ${renderDeliveryFeeContent(draft.city, draft.area)}
           </div>
@@ -1595,15 +1603,6 @@ async function handleCheckoutSubmit(event) {
     return
   }
 
-  const feeCheck = draft.deliveryMethod === 'pickup'
-    ? { fee: 0 }
-    : lookupDeliveryFee(draft.city, draft.area)
-  if (draft.deliveryMethod !== 'pickup' && !feeCheck.fee) {
-    status.textContent = "We'll confirm the delivery fee for this area before payment. Please message us on Instagram or WhatsApp to complete this order."
-    status.className = 'form-status form-status-error'
-    return
-  }
-
   const payload = {
     customer: {
       fullName: draft.fullName,
@@ -1693,8 +1692,12 @@ async function verifyReturnedPayment(retryCount = 0) {
     const ref = result.transaction_ref || transactionRef
 
     if (paymentState === 'success') {
+      const paidDraft = getCheckoutDraft()
+      const feePending = (paidDraft.deliveryMethod || 'delivery') !== 'pickup' && Boolean(paidDraft.area) && !lookupDeliveryFee(paidDraft.city, paidDraft.area).fee
       if (titleEl) titleEl.textContent = 'Order confirmed!'
-      target.textContent = `Payment received (ref: ${ref}). We'll reach out on WhatsApp or Instagram shortly to confirm your delivery. Thank you for choosing Bloomfield Flowers!`
+      target.textContent = feePending
+        ? `Payment received for your bouquet (ref: ${ref}). Your delivery area isn't on our standard list, so the delivery fee wasn't included. We'll contact you on WhatsApp or Instagram shortly to confirm the delivery fee before we dispatch. Thank you for choosing Bloomfield Flowers!`
+        : `Payment received (ref: ${ref}). We'll reach out on WhatsApp or Instagram shortly to confirm your delivery. Thank you for choosing Bloomfield Flowers!`
       target.className = 'form-status form-status-persistent form-status-success'
       const purchasedCity = getCheckoutDraft().city || 'Abuja'
       const purchaseValue = checkoutGrandTotal(purchasedCity)
@@ -2072,7 +2075,11 @@ function bindEvents() {
               const feeDisplay = document.querySelector('[data-delivery-fee-display]')
               if (feeDisplay) feeDisplay.innerHTML = renderDeliveryFeeContent(newDraft.city, newDraft.area)
             }
-            if (field.name === 'city') saveCartCity(newDraft.city)
+            if (field.name === 'city') {
+              saveCartCity(newDraft.city)
+              const suggestions = document.querySelector('[data-area-suggestions]')
+              if (suggestions) suggestions.innerHTML = areaSuggestionOptions(newDraft.city)
+            }
             cartDetailed(newDraft.city).forEach((item) => {
               const el = document.querySelector(`[data-checkout-item-total="${item.key}"]`)
               if (el) el.textContent = naira.format(item.subtotal)

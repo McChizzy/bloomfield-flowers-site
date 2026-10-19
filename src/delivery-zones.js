@@ -143,9 +143,20 @@ const PORT_HARCOURT_ZONES = [
   },
 ]
 
-const CITY_FALLBACK_FEE = {
-  Abuja: 5000,
-  Lagos: 6500,
+// Spelling variants kept for matching what customers type; hidden from the suggestion list.
+const SUGGESTION_ALIASES = new Set([
+  'vi', 'lekki 1', 'lekki 2', 'victoria garden city', 'anthony', 'ojodu berger', 'gra ikeja',
+  'wuse ii', 'wuse2', 'gwarimpa', 'banana island abuja', 'a y a', 'a.y.a', 'maraba',
+  'apo mechanical village', 'apo primary school', 'idu industrial',
+  'port harcourt', 'ph', 'town', 'ph town', 'old g.r.a', 'new g.r.a', 'gra', 'd line', 'peter odili',
+])
+const SUGGESTION_LABELS = {
+  vgc: 'VGC', 'old gra': 'Old GRA', 'new gra': 'New GRA', 'd-line': 'D-Line', aya: 'AYA',
+  'naf valley': 'NAF Valley', 'kings court': "King's Court", 'port harcourt town': 'Port Harcourt Town',
+}
+
+function titleCase(area) {
+  return SUGGESTION_LABELS[area] || area.replace(/\b([a-z])/g, (m) => m.toUpperCase())
 }
 
 function normalizeArea(area) {
@@ -203,6 +214,17 @@ export function lookupDeliveryFee(city, area) {
     if (best) return { fee: best.fee, exact: true }
   }
 
-  const fallback = CITY_FALLBACK_FEE[normalCity]
-  return { fee: fallback ?? null, exact: false }
+  // Unknown area: no fee. Checkout takes payment for the bouquet only and we confirm delivery after.
+  return { fee: null, exact: false }
+}
+
+// Area names to suggest in the checkout "Area / district" field for a city.
+export function deliveryAreaSuggestions(city) {
+  const normalCity = normalizeCity(city)
+  const zones = normalCity === 'Lagos' ? LAGOS_ZONES
+    : normalCity === 'Abuja' ? ABUJA_ZONES
+    : normalCity === 'Port Harcourt' ? PORT_HARCOURT_ZONES
+    : []
+  const names = zones.flatMap((zone) => zone.areas).filter((area) => !SUGGESTION_ALIASES.has(area))
+  return [...new Set(names.map(titleCase))].sort((a, b) => a.localeCompare(b))
 }

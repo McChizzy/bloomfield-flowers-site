@@ -59,6 +59,49 @@
       "url": "https://bloomfieldflowers.ng"
     }
     </script>
+    <!-- Google Analytics 4 + Microsoft Clarity. Loaded here (not from main.js) so they still report
+         if the app bundle fails to start. Page views are sent per route by main.js. -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DVYDV8VK98"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-DVYDV8VK98', { send_page_view: false, currency: 'NGN' });
+      (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "z0djfw94yh");
+    </script>
+    <!-- Safety net: if the app hasn't drawn anything (script error, unsupported in-app browser, very slow
+         network), show a usable fallback instead of a blank page, and report why to GA4 + Clarity. -->
+    <script>
+      (function () {
+        var shown = false, firstError = '';
+        function report(reason) {
+          try { gtag('event', 'exception', { description: ('app_failed: ' + reason).slice(0, 150), fatal: true }); } catch (e) {}
+          try { clarity('event', 'app_failed'); clarity('set', 'app_failed_reason', String(reason).slice(0, 100)); } catch (e) {}
+        }
+        function fallback(reason) {
+          var app = document.getElementById('app');
+          if (shown || !app || app.childElementCount) return;
+          shown = true;
+          report(reason);
+          app.innerHTML = '<div style="max-width:440px;margin:12vh auto;padding:28px 22px;text-align:center;font-family:Georgia,serif;color:#3d2f35">' +
+            '<img src="/images/bff-logo.jpeg" alt="Bloomfield Flowers" width="72" height="72" style="display:block;margin:0 auto;border-radius:50%">' +
+            '<h1 style="font-size:24px;margin:16px 0 8px">Bloomfield Flowers</h1>' +
+            '<p style="font-family:Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;color:#73616a">This page didn\'t load properly in this browser. Please tap Reload, or open bloomfieldflowers.ng in Chrome or Safari. You can also order directly:</p>' +
+            '<p style="margin:20px 0"><a href="' + location.href.replace(/"/g, '') + '" style="display:inline-block;margin:4px;padding:12px 18px;border-radius:999px;background:#8f4c73;color:#fff;text-decoration:none;font-family:Helvetica,Arial,sans-serif">Reload</a>' +
+            '<a href="https://wa.me/2347011203325" style="display:inline-block;margin:4px;padding:12px 18px;border-radius:999px;border:1px solid #8f4c73;color:#8f4c73;text-decoration:none;font-family:Helvetica,Arial,sans-serif">WhatsApp us</a>' +
+            '<a href="https://www.instagram.com/bloomfieldflowers_/" style="display:inline-block;margin:4px;padding:12px 18px;border-radius:999px;border:1px solid #8f4c73;color:#8f4c73;text-decoration:none;font-family:Helvetica,Arial,sans-serif">Instagram</a></p></div>';
+        }
+        // Only our own failures count: our bundle/CSS failing to load, or a runtime error in our code.
+        // Third-party hiccups (ad blockers, pixels) are ignored; the 12s timeout still covers everything.
+        window.addEventListener('error', function (e) {
+          var t = e && e.target, url = t && t !== window ? (t.src || t.href || '') : (e && e.filename) || '';
+          if (!url || url.indexOf(location.origin) !== 0) return;
+          if (!firstError) firstError = (e.message || ('failed to load ' + url.replace(location.origin, ''))).slice(0, 120);
+          setTimeout(function () { fallback(firstError); }, 1500);
+        }, true);
+        setTimeout(function () { fallback(firstError || 'timeout_12s'); }, 12000);
+      })();
+    </script>
     <script type="module" src="/src/main.js"></script>
     <!-- Meta Pixel Code -->
     <script>
@@ -79,6 +122,7 @@
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=1355020789892085&ev=PageView&noscript=1"
     alt="" /></noscript>
+    <noscript><div style="max-width:440px;margin:12vh auto;padding:24px;text-align:center;font-family:Georgia,serif;color:#3d2f35"><h1>Bloomfield Flowers</h1><p>Please turn on JavaScript to shop, or order on <a href="https://wa.me/2347011203325">WhatsApp</a> or <a href="https://www.instagram.com/bloomfieldflowers_/">Instagram</a>.</p></div></noscript>
     <div id="app"></div>
   </body>
 </html>

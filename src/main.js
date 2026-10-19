@@ -8,10 +8,10 @@ import { inject as injectVercelAnalytics, pageview as vercelPageview } from '@ve
 injectVercelAnalytics({ disableAutoTrack: true })
 let lastAnalyticsPath = null
 
-// Optional Google Analytics 4 and Microsoft Clarity: set VITE_GA4_ID (G-XXXXXXX) and/or VITE_CLARITY_ID
-// in Vercel > Settings > Environment Variables and redeploy. Unset = not loaded. Their domains are in the CSP.
-const GA4_ID = import.meta.env.VITE_GA4_ID || ''
-const CLARITY_ID = import.meta.env.VITE_CLARITY_ID || ''
+// Google Analytics 4 and Microsoft Clarity (public IDs; VITE_GA4_ID / VITE_CLARITY_ID override them,
+// set either to "off" to disable). Their domains are allowed in the CSP in vercel.json.
+const GA4_ID = import.meta.env.VITE_GA4_ID || 'G-DVYDV8VK98'
+const CLARITY_ID = import.meta.env.VITE_CLARITY_ID || 'z0djfw94yh'
 
 function loadExternalScript(src) {
   const script = document.createElement('script')
@@ -28,7 +28,7 @@ if (/^G-[A-Z0-9]+$/.test(GA4_ID)) {
   loadExternalScript(`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`)
 }
 
-if (/^[a-z0-9]+$/i.test(CLARITY_ID)) {
+if (CLARITY_ID !== 'off' && /^[a-z0-9]+$/i.test(CLARITY_ID)) {
   window.clarity = window.clarity || function clarity() { (window.clarity.q = window.clarity.q || []).push(arguments) }
   loadExternalScript(`https://www.clarity.ms/tag/${CLARITY_ID}`)
 }

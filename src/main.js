@@ -197,36 +197,50 @@ const landingShowcaseSlides = [
   {
     image: '/images/hero1.webp',
     title: 'Signature Collection',
+    href: '/shop',
+    cta: 'Shop all bouquets',
     caption: 'Statement bouquets crafted for the moments that matter most.',
   },
   {
     image: '/images/optimized/hero2.webp',
     title: 'Premium Gifting',
+    href: '/shop',
+    cta: 'Shop all bouquets',
     caption: 'Because some feelings are best expressed in flowers.',
   },
   {
     image: '/images/optimized/pink-bouquet.webp',
     title: 'Romantic Bouquets',
+    href: '/shop?occasion=romance',
+    cta: 'Shop romance bouquets',
     caption: 'Soft pinks and blush tones for the most romantic moments.',
   },
   {
     image: '/images/optimized/chrysanthemum-bouquet.webp',
     title: 'Birthday Blooms',
+    href: '/product/pastel-cloud-s',
+    cta: 'View this bouquet: Petal Blush',
     caption: 'Make their birthday unforgettable with a bouquet they\'ll always remember.',
   },
   {
     image: '/images/optimized/celebration-flowers.webp',
     title: 'Celebration Flowers',
+    href: '/shop?occasion=celebration',
+    cta: 'Shop celebration bouquets',
     caption: 'Every milestone deserves a bouquet as special as the moment.',
   },
   {
     image: '/images/optimized/luxury-arrangements.webp',
     title: 'Luxury Arrangements',
+    href: '/product/the-radiant-garden',
+    cta: 'View this bouquet: The Radiant Garden',
     caption: 'Premium blooms, artfully arranged for those who appreciate the finest things.',
   },
   {
     image: '/images/optimized/just-because.webp',
     title: 'Just Because',
+    href: '/shop',
+    cta: 'Shop all bouquets',
     caption: 'Sometimes you don\'t need a reason — just the right flowers.',
   },
 ]
@@ -891,12 +905,15 @@ function homePage() {
           <div class="hero-slider-shell hero-slider-shell-below">
             ${landingShowcaseSlides.map((slide, index) => `
               <article class="hero-gallery-card hero-slide showcase-slide ${index === getHeroIndex() ? 'is-active' : ''}" data-slide="${index}">
-                <img src="${slide.image}" alt="${slide.title}" ${index === getHeroIndex() ? 'loading="eager" fetchpriority="high"' : 'loading="lazy" decoding="async"'}>
-                <div class="hero-showcase-overlay hero-showcase-overlay-soft hero-showcase-overlay-captioned">
-                  <p class="hero-showcase-label">Bloomfield bouquet deck</p>
-                  <strong>${slide.title}</strong>
-                  <span>${slide.caption}</span>
-                </div>
+                <a class="showcase-slide-link" href="${slide.href}" aria-label="${slide.title}: ${slide.cta}">
+                  <img src="${slide.image}" alt="${slide.title}" ${index === getHeroIndex() ? 'loading="eager" fetchpriority="high"' : 'loading="lazy" decoding="async"'}>
+                  <div class="hero-showcase-overlay hero-showcase-overlay-soft hero-showcase-overlay-captioned">
+                    <p class="hero-showcase-label">Bloomfield bouquet deck</p>
+                    <strong>${slide.title}</strong>
+                    <span>${slide.caption}</span>
+                    <span class="showcase-slide-cta">${slide.cta} →</span>
+                  </div>
+                </a>
               </article>
             `).join('')}
             <div class="hero-slider-controls hero-slider-controls-below">
@@ -1587,9 +1604,12 @@ function router(route = checkoutResultState()) {
   }
 
   switch (route) {
-    case 'shop':
+    case 'shop': {
+      const occasion = new URLSearchParams(location.search).get('occasion')
+      if (occasion && shopOccasionTabs.some((tab) => tab.value === occasion)) shopOccasionFilter = occasion
       setPageMeta('Shop Bouquets', 'Explore beautifully curated bouquets for birthdays, anniversaries, romantic gestures, and celebrations.')
       return shopPage()
+    }
     case 'about':
       setPageMeta('About Us', 'Bloomfield Flowers is a Nigeria-based floral studio creating beautifully curated bouquets for meaningful moments across Lagos, Abuja, and Port Harcourt.')
       return aboutPage()
@@ -1999,6 +2019,7 @@ function bindEvents() {
   document.querySelectorAll('[data-occasion-tab]').forEach((button) => {
     button.addEventListener('click', () => {
       shopOccasionFilter = button.dataset.occasionTab
+      history.replaceState(null, '', shopOccasionFilter === 'all' ? '/shop' : `/shop?occasion=${shopOccasionFilter}`)
       renderApp()
     })
   })

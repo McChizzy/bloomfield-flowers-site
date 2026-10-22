@@ -2621,3 +2621,27 @@ p {
     gap: 0.25rem;
   }
 }
+
+/* Showcase slides link to a bouquet or a filtered shop view */
+.showcase-slide-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.showcase-slide-link:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: -3px;
+  border-radius: inherit;
+}
+
+.hero-showcase-overlay-captioned .showcase-slide-cta {
+  margin-top: 0.55rem;
+  color: var(--primary-dark);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.showcase-slide-link:hover .showcase-slide-cta {
+  text-decoration: underline;
+}

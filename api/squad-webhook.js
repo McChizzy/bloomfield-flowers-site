@@ -375,7 +375,7 @@ Questions about your order? Message us on Instagram: ${INSTAGRAM_URL}
     <tr>
       <td style="background:${BRAND_SURFACE_SOFT};padding:20px 32px;text-align:center;font-size:12px;color:${BRAND_MUTED}">
         Questions about your order? Message us on Instagram <a href="${INSTAGRAM_URL}" style="color:${BRAND_PRIMARY_DARK};font-weight:600;text-decoration:none">@bloomfieldflowers_</a><br>
-        Bloomfield Flowers · Abuja &amp; Lagos, Nigeria
+        Bloomfield Flowers · Lagos, Abuja &amp; Port Harcourt, Nigeria
       </td>
     </tr>
   </table>

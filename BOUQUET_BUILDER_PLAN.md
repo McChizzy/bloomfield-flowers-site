@@ -1,5 +1,81 @@
 # Bloomfield Bouquet Builder — Research & Implementation Plan
 
+## 2026-11-01 update — reference implementation found ("Nebula")
+
+Chizzy shared an Instagram reel (`De1mA_FINC0`) for a product called Nebula
+that does almost exactly this. Downloaded the actual video (not just the
+caption) and reviewed it frame by frame. What it confirmed and changed below.
+
+**What Nebula's UI actually does** (not guessed — observed from the video):
+
+- Three preset bouquet **shapes** at the top (Classic / Dome / Flat heart).
+  Not freeform composition — a shape is a layout template the stems get
+  composited into. This is what makes a instant 2D live preview tractable
+  without a general-purpose layout engine: you only need 2-3 templates, not
+  infinite arrangements.
+- A **live 2D flat-lay preview** (flowers composited over wrap over a plain
+  background) that updates instantly as selections change, with undo/redo.
+  Same spirit as Phase 2 below, just with nicer cutout art than originally
+  scoped.
+- Three tabs under the preview: **Flowers / Wrapping / Finishing**.
+  - *Flowers*: category dropdown + search, a card grid (photo/name/price,
+    "+ Add one"), a "paint this flower" recolor option (e.g. black rose for
+    +$4), and filler flowers with named density presets (Baby's breath:
+    None/Light/Medium/Full) alongside plain +/- counters for others.
+  - *Wrapping*: named wrap styles as chips (Fan folds, Kraft folded paper,
+    Smoke-black cellophane...) plus a separate paper-tone color swatch row,
+    including a custom "Your color" option.
+  - *Finishing*: bow/plush accessories with real placement control — shown
+    as data like "Blush satin bow: ×1 · 115% · -6° · On top" — i.e.
+    drag-to-place plus pinch/rotate/layer-order, not a fixed slot.
+- Sticky footer throughout: flower/piece count, live sample price, a
+  "Review request" button.
+- **The request flow has no backend at all.** "Review request" opens a form
+  (name, optional phone, date, pickup/delivery, optional note) with an
+  explicit line: *"Your details stay in this browser and the message you
+  choose to send. The design link omits your contact details."* The
+  "Prepare request" button opens the customer's own SMS app, pre-filled with
+  a message to the shop's number plus a shareable link. The vendor opens
+  that link and gets a clean, printable, branded recap page (shop's own
+  logo) that **recalculates live from the link itself** — not a stored
+  snapshot — with a disclaimer that it's a sample, not a locked quote.
+
+**Why this changes the plan below:** the original plan (still intact further
+down) was scoped for Bloomfield's storefront with real cart/checkout/payment
+integration — that's the heavier "Cart & checkout integration" section.
+Nebula's actual flow skips that entirely: customer designs → sends a
+*request*, not an order → vendor manually confirms price/availability and
+takes payment outside the tool. That's a quote-request flow, not a checkout
+flow, which matches how `bouquet-calculator-product` already works (operator
+finalizes every quote by hand) much better than it matches the storefront's
+cart system. **This could ship as a customer-facing front end to the
+calculator's existing pricing engine, reusing its zero-backend architecture,
+instead of needing storefront/cart integration at all.**
+
+**Revised phase order:**
+
+1. Flower/wrap/finishing catalog data — same as Phase 1 below, but as a
+   searchable category grid (per Nebula) rather than a flat list. Real stem
+   photos are still the actual cost driver here, unchanged conclusion.
+2. **Shape presets** (new, wasn't in the original plan) — 2-3 fixed
+   composition templates so the live preview only needs template + stem-count
+   swapping, not general layout logic.
+3. Live 2D composite preview — this is the original Phase 2 idea below, now
+   with evidence that 3 shape templates is enough, not "infinite".
+4. **URL-encoded design state + SMS/WhatsApp handoff** — replaces the
+   "Cart & checkout integration" section below for a v1. No backend, no new
+   infrastructure, reuses the calculator's existing architecture.
+5. Vendor-side printable recap page — essentially the calculator's existing
+   quote view, pre-filled from the URL instead of typed in by the operator.
+
+Status: still a plan, not being built yet. Revisit once outreach (see
+`bouquet-calculator-product-outreach-tracker.md` and the lead docs) gives a
+concrete reason to prioritize it — e.g. a prospect asks for exactly this.
+
+---
+
+## Original plan (2026-07-21)
+
 ## The idea
 
 Let a customer build their own bouquet by picking flower types and quantities,

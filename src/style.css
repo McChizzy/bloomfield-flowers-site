@@ -2077,6 +2077,34 @@ p {
   color: var(--primary);
 }
 
+/* Port Harcourt same-day: arranged by phone / Instagram, not online checkout */
+.ph-same-day-notice {
+  background: var(--surface-soft);
+  border: 1px solid var(--primary);
+  border-left-width: 4px;
+  border-radius: 16px;
+  padding: 14px 18px;
+  margin: 0 0 16px;
+}
+
+.ph-same-day-notice[hidden] {
+  display: none;
+}
+
+.ph-same-day-notice p {
+  margin: 0 0 8px;
+  font-size: 0.93rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.ph-same-day-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 /* Delivery fee auto-display */
 .delivery-fee-display {
   padding: 0.9rem 1rem;

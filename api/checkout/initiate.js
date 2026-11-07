@@ -1,5 +1,5 @@
 import { buildSiteUrl, generateTransactionRef, getEnv, json, readJson, squadRequest, summarizeOrder } from '../_lib/squad.js'
-import { lookupDeliveryFee } from '../../src/delivery-zones.js'
+import { isPhSameDayDelivery, lookupDeliveryFee } from '../../src/delivery-zones.js'
 import { getSupabase, supabaseQuery } from '../_lib/supabase.js'
 
 export default async function handler(req, res) {
@@ -37,6 +37,10 @@ export default async function handler(req, res) {
 
   if (!isPickup && (!delivery.address || !delivery.area)) {
     return json(res, 400, { error: 'Delivery address and area are required.' })
+  }
+
+  if (isPhSameDayDelivery(delivery.city, delivery.method, delivery.deliveryDate)) {
+    return json(res, 400, { error: 'Same-day delivery in Port Harcourt is booked by phone, WhatsApp or Instagram. Please choose tomorrow or later to pay online.' })
   }
 
   if (order.hasUnavailable) {

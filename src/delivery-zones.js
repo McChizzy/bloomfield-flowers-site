@@ -228,3 +228,13 @@ export function deliveryAreaSuggestions(city) {
   const names = zones.flatMap((zone) => zone.areas).filter((area) => !SUGGESTION_ALIASES.has(area))
   return [...new Set(names.map(titleCase))].sort((a, b) => a.localeCompare(b))
 }
+
+// Today's date (YYYY-MM-DD) in Nigeria, whatever the customer's own time zone is.
+export function nigeriaToday(now = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Lagos' }).format(now)
+}
+
+// Same-day delivery in Port Harcourt is arranged by phone/Instagram, not through online checkout.
+export function isPhSameDayDelivery(city, method, deliveryDate, now = new Date()) {
+  return method !== 'pickup' && normalizeCity(city) === 'Port Harcourt' && Boolean(deliveryDate) && deliveryDate <= nigeriaToday(now)
+}

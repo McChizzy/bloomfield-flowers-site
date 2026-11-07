@@ -1,6 +1,6 @@
 import './style.css'
 import { products, parsePriceValue, priceBounds, productPriceValue, isProductAvailable } from './catalog.js'
-import { deliveryAreaSuggestions, lookupDeliveryFee } from './delivery-zones.js'
+import { deliveryAreaSuggestions, isPhSameDayDelivery, lookupDeliveryFee } from './delivery-zones.js'
 import { inject as injectVercelAnalytics, pageview as vercelPageview } from '@vercel/analytics'
 
 // Vercel Web Analytics. Page views are sent from renderApp (one per route change, query strings
@@ -112,6 +112,43 @@ function deliveryMaxDate() {
   const d = new Date()
   d.setDate(d.getDate() + 30)
   return d.toISOString().split('T')[0]
+}
+
+function phSameDayNotice(visible) {
+  const message = encodeURIComponent("Hi Bloomfield, I'd like a same-day delivery in Port Harcourt today.")
+  return `<div class="ph-same-day-notice" data-ph-same-day-notice role="alert"${visible ? '' : ' hidden'}>
+    <p><strong>Same-day delivery in Port Harcourt is arranged directly with us.</strong></p>
+    <p>For delivery today, call or text us on ${phoneNumber}, or send us a DM on Instagram, and we'll confirm what we can get to them today. To order here, choose tomorrow or a later date.</p>
+    <div class="ph-same-day-actions">
+      <a class="btn btn-primary btn-sm" href="tel:+2347011203325">Call us</a>
+      <a class="btn btn-secondary btn-sm" href="${whatsappUrl}?text=${message}" target="_blank" rel="noreferrer">Text on WhatsApp</a>
+      <a class="btn btn-secondary btn-sm" href="${instagramUrl}?hl=en" target="_blank" rel="noreferrer">DM on Instagram</a>
+    </div>
+  </div>`
+}
+
+let phSameDayTracked = false
+
+// Shows or hides the PH same-day notice for the checkout form's current values; returns true when it applies.
+function syncPhSameDayNotice(form) {
+  const blocked = isPhSameDayDelivery(
+    form.querySelector('[name="city"]')?.value,
+    form.querySelector('[name="deliveryMethod"]:checked')?.value || 'delivery',
+    form.querySelector('[name="deliveryDate"]')?.value,
+  )
+  const notice = form.querySelector('[data-ph-same-day-notice]')
+  if (notice) notice.hidden = !blocked
+  const status = form.querySelector('[data-checkout-status]')
+  if (!blocked && status?.dataset.reason === 'ph-same-day') {
+    status.textContent = ''
+    status.className = 'form-status'
+    delete status.dataset.reason
+  }
+  if (blocked && !phSameDayTracked && typeof window.gtag === 'function') {
+    phSameDayTracked = true
+    window.gtag('event', 'ph_same_day_attempt')
+  }
+  return blocked
 }
 
 function deliveryTimeOptions(selected = '', dateStr = '') {
@@ -1395,6 +1432,7 @@ function checkoutPage() {
           </div>
         </div>
         <label>Preferred date <span class="form-label-hint">(day / month / year)</span><input name="deliveryDate" type="date" min="${deliveryMinDate()}" max="${deliveryMaxDate()}" value="${esc(draft.deliveryDate || '')}" required></label>
+        ${phSameDayNotice(isPhSameDayDelivery(city, draft.deliveryMethod || 'delivery', draft.deliveryDate))}
         <label>Preferred time<select name="deliveryTime" data-delivery-time-select required><option value="" disabled${!draft.deliveryTime ? ' selected' : ''}>Select a time</option>${deliveryTimeOptions(draft.deliveryTime || '', draft.deliveryDate || '')}</select></label>
         <label>Card message<textarea name="cardMessage" rows="3" placeholder="Add a note for the recipient" maxlength="500">${esc(draft.cardMessage || '')}</textarea></label>
         <div class="coupon-row">
@@ -1667,6 +1705,14 @@ async function handleCheckoutSubmit(event) {
   if (unavailableItems.length) {
     status.textContent = `${unavailableItems.map((item) => item.product.name).join(', ')} ${unavailableItems.length === 1 ? 'is' : 'are'} not available in ${draft.city}. Please update your cart city or remove the item before checkout.`
     status.className = 'form-status form-status-error'
+    return
+  }
+
+  if (syncPhSameDayNotice(form)) {
+    status.textContent = 'Same-day delivery in Port Harcourt can only be booked by phone, WhatsApp or Instagram. Please choose tomorrow or later to pay online.'
+    status.className = 'form-status form-status-error'
+    status.dataset.reason = 'ph-same-day'
+    form.querySelector('[data-ph-same-day-notice]')?.scrollIntoView({ block: 'center', behavior: 'smooth' })
     return
   }
 
@@ -2128,8 +2174,12 @@ function bindEvents() {
         const currentCity = checkoutForm.querySelector('[name="city"]')?.value || getCartCity() || 'Lagos'
         const currentArea = checkoutForm.querySelector('[name="area"]')?.value || ''
         updateCheckoutSummary(currentCity, currentArea, pickup)
+        syncPhSameDayNotice(checkoutForm)
       })
     })
+
+    // Some mobile date pickers only fire "change", not "input".
+    checkoutForm.querySelector('[name="deliveryDate"]')?.addEventListener('change', () => syncPhSameDayNotice(checkoutForm))
 
     let feeUpdateTimeout
     checkoutForm.querySelectorAll('input, select, textarea').forEach((field) => {
@@ -2146,6 +2196,8 @@ function bindEvents() {
           [field.name]: field.value,
         }
         saveCheckoutDraft(newDraft)
+
+        if (field.name === 'city' || field.name === 'deliveryDate') syncPhSameDayNotice(checkoutForm)
 
         if (field.name === 'city' || field.name === 'area') {
           clearTimeout(feeUpdateTimeout)

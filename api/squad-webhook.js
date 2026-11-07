@@ -35,10 +35,11 @@ function formatDeliveryTime(timeStr) {
 }
 
 function itemLabel(item) {
-  const addOns = Array.isArray(item.addOns) && item.addOns.length
-    ? ` + ${item.addOns.map((addOn) => addOn.name).join(', ')}`
-    : ''
-  return `${item.name}${addOns}`
+  const all = Array.isArray(item.addOns) ? item.addOns : []
+  const choices = all.filter((addOn) => addOn.group).map((addOn) => `${addOn.group}: ${addOn.name}`)
+  const extras = all.filter((addOn) => !addOn.group)
+  const addOns = extras.length ? ` + ${extras.map((addOn) => addOn.name).join(', ')}` : ''
+  return `${item.name}${choices.length ? ` (${choices.join(', ')})` : ''}${addOns}`
 }
 
 function extractOrderDetails(event, orderRow, verifyData) {

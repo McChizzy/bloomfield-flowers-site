@@ -48,6 +48,11 @@ export default async function handler(req, res) {
     return json(res, 400, { error: `${unavailable} is not available in ${delivery.city}.` })
   }
 
+  const needsOption = order.lineItems.find((item) => item.missingOptions?.length)
+  if (needsOption) {
+    return json(res, 400, { error: `Please choose a ${needsOption.missingOptions[0].toLowerCase()} for ${needsOption.name}.` })
+  }
+
   if (!order.lineItems.length || order.total <= 0) {
     return json(res, 400, { error: 'Your cart is empty.' })
   }

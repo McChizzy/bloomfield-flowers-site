@@ -61,8 +61,12 @@ export function getCartSnapshot(items = [], city = '') {
         .map((addOn) => ({
           id: addOn.id,
           name: addOn.name,
+          ...(addOn.group ? { group: addOn.group } : {}),
           unitAmount: parsePriceValue(addOn.price, city),
         }))
+      // Required choices (e.g. balloon colour) the customer didn't pick
+      const missingOptions = [...new Set((product.addOns || []).filter((addOn) => addOn.group).map((addOn) => addOn.group))]
+        .filter((group) => !addOns.some((addOn) => addOn.group === group))
       const addOnsTotal = addOns.reduce((sum, addOn) => sum + addOn.unitAmount, 0)
       const unitAmount = productPriceValue(product, city) + addOnsTotal
       const available = isProductAvailable(product, city || 'Lagos')
@@ -71,6 +75,7 @@ export function getCartSnapshot(items = [], city = '') {
         name: product.name,
         qty,
         addOns,
+        missingOptions,
         unitAmount,
         subtotal: available ? unitAmount * qty : 0,
         available,

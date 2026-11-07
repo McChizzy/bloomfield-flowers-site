@@ -493,13 +493,14 @@ function showProductQuickView(productId) {
         ${productGalleryMarkup(product, 'quick-view')}
       </div>
       <div class="quick-view-body">
-        <p class="product-category">${esc(product.category)}</p>
+        <p class="product-category">${esc(product.category)}${product.badge ? ` · <span class="product-badge-inline">${esc(product.badge)}</span>` : ''}</p>
         <h2 id="quick-view-title">${esc(product.name)}</h2>
-        <p class="quick-view-price"><strong>${formatPrice(product.price)}</strong></p>
+        <p class="quick-view-price"><strong>${formatPrice(product.price)}${priceUnitMarkup(product)}</strong></p>
         <p>${esc(product.description || product.short)}</p>
-        ${productAddOnsMarkup(product)}
+        ${productAddOnsMarkup(product, 'quick-view')}
+        ${productQuantityMarkup(product)}
         <div class="quick-view-actions">
-          <button class="btn btn-primary" type="button" data-add="${product.id}" data-quick-view-close>Add to Cart</button>
+          <button class="btn btn-primary" type="button" data-add="${product.id}">Add to Cart</button>
           <a class="btn btn-secondary" href="/product/${product.id}" data-product-link="${product.id}" data-quick-view-close>View Details</a>
         </div>
       </div>
@@ -527,8 +528,11 @@ function showProductQuickView(productId) {
   backdrop.querySelectorAll('[data-product-link]').forEach((link) => {
     link.addEventListener('click', () => rememberShopReturn(link.dataset.productLink))
   })
+  bindProductOptions(backdrop)
   backdrop.querySelectorAll('[data-add]').forEach((button) => {
-    button.addEventListener('click', () => addToCart(button.dataset.add, selectedProductAddOns(button)))
+    button.addEventListener('click', () => {
+      if (handleAddToCart(button)) close()
+    })
   })
   document.addEventListener('keydown', onKeydown)
 }
@@ -550,10 +554,97 @@ function cartItemKey(item) {
   return `${item.id}::${[...(item.addOns || [])].sort().join(',')}`
 }
 
+const productOptionsScope = '.quick-view-body, .product-detail-copy, [data-product-options-scope]'
+const MAX_PRODUCT_QTY = 50
+
 function selectedProductAddOns(button) {
-  const scope = button.closest('.quick-view-body, .product-detail-copy, [data-product-options-scope]')
+  const scope = button.closest(productOptionsScope)
   if (!scope) return []
   return [...scope.querySelectorAll('[data-product-addon]:checked')].map((input) => input.value)
+}
+
+function selectedProductQty(button) {
+  const input = button.closest(productOptionsScope)?.querySelector('[data-product-qty]')
+  const qty = Math.round(Number(input?.value || 1))
+  return Math.min(MAX_PRODUCT_QTY, Math.max(1, Number.isFinite(qty) ? qty : 1))
+}
+
+// Add-on groups (e.g. balloon colour) are one-of choices the customer must make before adding to cart.
+function productOptionGroups(product) {
+  return [...new Set((product?.addOns || []).filter((addOn) => addOn.group).map((addOn) => addOn.group))]
+}
+
+function missingProductOptions(product, addOnIds = []) {
+  const chosen = productAddOnDetails(product, addOnIds)
+  return productOptionGroups(product).filter((group) => !chosen.some((addOn) => addOn.group === group))
+}
+
+function priceUnitMarkup(product) {
+  return product.priceUnit ? ` <span class="price-unit">${esc(product.priceUnit)}</span>` : ''
+}
+
+function productBadgeMarkup(product) {
+  return product.badge ? `<span class="product-badge">${esc(product.badge)}</span>` : ''
+}
+
+function addOnSummaryText(addOns = []) {
+  const choices = addOns.filter((addOn) => addOn.group).map((addOn) => `${addOn.group}: ${addOn.name}`)
+  const extras = addOns.filter((addOn) => !addOn.group).map((addOn) => addOn.name)
+  return [...choices, ...(extras.length ? [`Includes ${extras.join(', ')}`] : [])].join(' · ')
+}
+
+// Returns true when the item was added; otherwise asks for the missing choice.
+function handleAddToCart(button) {
+  const product = products.find((p) => p.id === button.dataset.add)
+  if (!product) return false
+  const addOns = selectedProductAddOns(button)
+  const missing = missingProductOptions(product, addOns)
+  if (missing.length) {
+    const scope = button.closest(productOptionsScope)
+    if (!scope) {
+      showProductQuickView(product.id)
+      return false
+    }
+    scope.querySelectorAll('[data-option-group]').forEach((group) => {
+      const error = group.querySelector('[data-option-error]')
+      if (error) error.hidden = !missing.includes(group.dataset.optionGroup)
+    })
+    scope.querySelector('[data-option-group] input')?.focus()
+    return false
+  }
+  addToCart(product.id, addOns, selectedProductQty(button))
+  return true
+}
+
+function bindProductOptions(root) {
+  root.querySelectorAll('[data-option-group] input').forEach((input) => {
+    input.addEventListener('change', () => {
+      const error = input.closest('[data-option-group]')?.querySelector('[data-option-error]')
+      if (error) error.hidden = true
+    })
+  })
+  root.querySelectorAll('[data-product-qty-step]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const input = button.closest('.product-qty-picker')?.querySelector('[data-product-qty]')
+      if (!input) return
+      const next = (Math.round(Number(input.value)) || 1) + Number(button.dataset.productQtyStep)
+      input.value = String(Math.min(MAX_PRODUCT_QTY, Math.max(1, next)))
+    })
+  })
+}
+
+function productQuantityMarkup(product) {
+  if (!product.quantityLabel) return ''
+  return `
+    <div class="product-qty-picker">
+      <p class="product-addons-title">${esc(product.quantityLabel)}</p>
+      <div class="qty-controls">
+        <button type="button" data-product-qty-step="-1" aria-label="Fewer">−</button>
+        <input type="number" inputmode="numeric" min="1" max="${MAX_PRODUCT_QTY}" value="1" data-product-qty aria-label="${esc(product.quantityLabel)}">
+        <button type="button" data-product-qty-step="1" aria-label="More">+</button>
+      </div>
+    </div>
+  `
 }
 
 function productAddOnDetails(product, addOns = []) {
@@ -561,12 +652,29 @@ function productAddOnDetails(product, addOns = []) {
   return (product?.addOns || []).filter((addOn) => selected.has(addOn.id))
 }
 
-function productAddOnsMarkup(product) {
+function productAddOnsMarkup(product, scope = 'detail') {
   if (!Array.isArray(product.addOns) || product.addOns.length === 0) return ''
-  return `
+  const extras = product.addOns.filter((addOn) => !addOn.group)
+  const groups = productOptionGroups(product).map((group) => `
+    <fieldset class="product-option-group" data-option-group="${esc(group)}">
+      <legend class="product-addons-title">Choose a ${esc(group.toLowerCase())}</legend>
+      <div class="product-option-chips">
+        ${product.addOns.filter((addOn) => addOn.group === group).map((addOn) => `
+          <label class="product-option-chip">
+            <input type="radio" name="${esc(`${scope}-${product.id}-${group}`)}" value="${esc(addOn.id)}" data-product-addon>
+            <span class="option-swatch" data-swatch="${esc(addOn.name.toLowerCase())}" aria-hidden="true"></span>
+            <span>${esc(addOn.name)}</span>
+          </label>
+        `).join('')}
+      </div>
+      <p class="product-option-error" data-option-error role="alert" hidden>Please choose a ${esc(group.toLowerCase())}.</p>
+    </fieldset>
+  `).join('')
+  if (!extras.length) return groups
+  return `${groups}
     <div class="product-addons">
       <p class="product-addons-title">Add-ons</p>
-      ${product.addOns.map((addOn) => `
+      ${extras.map((addOn) => `
         <label class="product-addon-option">
           <input type="checkbox" value="${esc(addOn.id)}" data-product-addon>
           <span>${esc(addOn.name)}</span>
@@ -577,7 +685,7 @@ function productAddOnsMarkup(product) {
   `
 }
 
-function addToCart(productId, addOns = []) {
+function addToCart(productId, addOns = [], qty = 1) {
   const product = products.find((p) => p.id === productId)
   if (!product) return
   const selectedAddOns = Array.isArray(addOns) ? [...new Set(addOns)] : []
@@ -585,9 +693,9 @@ function addToCart(productId, addOns = []) {
   const key = cartItemKey({ id: productId, addOns: selectedAddOns })
   const existing = cart.find((item) => cartItemKey(item) === key)
   if (existing) {
-    existing.qty += 1
+    existing.qty += qty
   } else {
-    cart.push({ id: productId, qty: 1, addOns: selectedAddOns })
+    cart.push({ id: productId, qty, addOns: selectedAddOns })
   }
   saveCart(cart)
   renderApp()
@@ -596,7 +704,7 @@ function addToCart(productId, addOns = []) {
     content_ids: [product.id],
     content_name: product.name,
     content_type: 'product',
-    value: productPriceValue(product),
+    value: productPriceValue(product) * qty,
     currency: 'NGN',
   })
 }
@@ -661,6 +769,7 @@ function productCard(product) {
     <article class="product-card" id="product-${product.id}">
       <a class="product-card-media" href="/product/${product.id}" data-product-link="${product.id}">
         <img src="${product.image}" alt="${product.name}" loading="lazy" decoding="async" width="400" height="480">
+        ${productBadgeMarkup(product)}
         <span class="product-quick-view-hint">Tap for details</span>
       </a>
       <div class="product-body">
@@ -668,9 +777,11 @@ function productCard(product) {
         <h3><a href="/product/${product.id}" data-product-link="${product.id}">${product.name}</a></h3>
         <p>${product.short}</p>
         <div class="product-meta">
-          <strong>${formatPrice(product.price)}</strong>
+          <strong>${formatPrice(product.price)}${priceUnitMarkup(product)}</strong>
           <div class="product-actions">
-            <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
+            ${productOptionGroups(product).length
+              ? `<button class="btn btn-primary" type="button" data-quick-view="${product.id}">Choose ${esc(productOptionGroups(product)[0])}</button>`
+              : `<button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>`}
             <button class="btn btn-secondary" type="button" data-quick-view="${product.id}">Quick View</button>
           </div>
         </div>
@@ -1140,11 +1251,12 @@ function productPage(id) {
           ${productGalleryMarkup(product, 'detail')}
         </div>
         <div class="about-copy product-detail-copy">
-          <p class="product-category">${product.category}</p>
+          <p class="product-category">${product.category}${product.badge ? ` · <span class="product-badge-inline">${esc(product.badge)}</span>` : ''}</p>
           <h1>${product.name}</h1>
-          <p class="product-detail-price"><strong>${formatPrice(product.price)}</strong></p>
+          <p class="product-detail-price"><strong>${formatPrice(product.price)}${priceUnitMarkup(product)}</strong></p>
           <p>${product.description}</p>
           ${productAddOnsMarkup(product)}
+          ${productQuantityMarkup(product)}
           <div class="product-actions product-detail-actions">
             <button class="btn btn-primary" data-add="${product.id}">Add to Cart</button>
             <a class="btn btn-secondary" href="${product.instagramPost || instagramUrl + '?hl=en'}" target="_blank" rel="noreferrer">DM to Customize</a>
@@ -1351,7 +1463,7 @@ function cartPage() {
               <p class="product-category">${item.product.category}</p>
               <h3>${item.product.name}</h3>
               <p>${item.available ? `${naira.format(item.unitPrice)} each` : `Not available in ${esc(city)}`}</p>
-              ${item.addOns.length ? `<p class="cart-item-addons">Includes ${item.addOns.map((addOn) => esc(addOn.name)).join(', ')}</p>` : ''}
+              ${item.addOns.length ? `<p class="cart-item-addons">${esc(addOnSummaryText(item.addOns))}</p>` : ''}
             </div>
             <div class="qty-controls">
               <button type="button" data-qty="minus" data-id="${item.key}">−</button>
@@ -1454,7 +1566,7 @@ function checkoutPage() {
       </form>
       <aside class="summary-card summary-card-emphasis">
         <h3>Order Summary</h3>
-        ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${esc(item.product.name)}${item.addOns.length ? ` + ${item.addOns.map((addOn) => esc(addOn.name)).join(', ')}` : ''} × ${item.qty}</span><strong data-checkout-item-total="${item.key}">${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
+        ${items.length ? `<div class="checkout-line-items">${items.map((item) => `<div class="checkout-line-item"><span>${esc(item.product.name)}${item.addOns.length ? ` (${esc(addOnSummaryText(item.addOns))})` : ''} × ${item.qty}</span><strong data-checkout-item-total="${item.key}">${naira.format(item.subtotal)}</strong></div>`).join('')}</div>` : '<p>No items yet.</p>'}
         <p class="summary-total">Subtotal: <span data-checkout-subtotal>${naira.format(subtotal)}</span></p>
         <p data-discount-line${appliedDiscount ? '' : ' class="hidden"'} style="color:#C27E8C;font-weight:600">Discount (<span data-discount-code-label>${appliedDiscount?.code || ''}</span>): -<span data-discount-amount>${naira.format(discountAmount())}</span></p>
         <p>Delivery: <span data-checkout-delivery>${renderCheckoutDeliveryText(deliveryFee)}</span></p>
@@ -2031,8 +2143,9 @@ function bindEvents() {
     link.addEventListener('click', () => rememberShopReturn(link.dataset.shopBack))
   })
 
+  bindProductOptions(document)
   document.querySelectorAll('[data-add]').forEach((button) => {
-    button.addEventListener('click', () => addToCart(button.dataset.add, selectedProductAddOns(button)))
+    button.addEventListener('click', () => handleAddToCart(button))
   })
 
   document.querySelectorAll('[data-quick-view]').forEach((button) => {

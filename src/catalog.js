@@ -4,6 +4,10 @@ const productImages = (id, count) => Array.from({ length: count }, (_, i) => `/i
 // the server re-validation and the order emails like any other add-on.
 const balloonColours = ['Red', 'Blue', 'Pink', 'Purple', 'Gold', 'Silver']
   .map((name) => ({ id: `colour-${name.toLowerCase()}`, name, price: 0, group: 'Colour' }))
+const balloonAddOns = [
+  ...balloonColours,
+  { id: 'inscription', name: 'Custom inscription', price: 5000, hint: 'Per balloon. Add the wording in your delivery notes at checkout.' },
+]
 
 export const products = [
   {
@@ -88,6 +92,7 @@ export const products = [
   {
     id: 'thirty-mixed-spray-roses',
     name: '30 Mixed Spray Roses',
+    badge: 'Best seller',
     category: 'Flowers',
     tags: ['romance', 'anniversary', 'birthday'],
     price: '₦260,000',
@@ -132,6 +137,7 @@ export const products = [
   {
     id: 'five-roses-fillers',
     name: '5 Roses with Fillers',
+    badge: 'Best seller',
     category: 'Flowers',
     tags: ['romance', 'birthday'],
     price: '₦45,000',
@@ -158,6 +164,7 @@ export const products = [
   {
     id: 'roses-with-fillers',
     name: 'Roses with Fillers',
+    badge: 'Best seller',
     category: 'Flowers',
     tags: ['romance', 'birthday'],
     cityPrices: { Lagos: 94000, Abuja: 106000, 'Port Harcourt': 108000 },
@@ -176,6 +183,7 @@ export const products = [
   {
     id: 'the-seraphina',
     name: 'The Seraphina',
+    badge: 'Best seller',
     category: 'Flowers',
     tags: ['birthday', 'celebration'],
     price: '₦55,000',
@@ -231,6 +239,7 @@ export const products = [
   {
     id: 'bloom-no-2',
     name: 'Bloom No. 2',
+    badge: 'Best seller',
     category: 'Flowers',
     tags: ['birthday', 'celebration'],
     price: '₦75,000',
@@ -280,6 +289,7 @@ export const products = [
   {
     id: 'barbie-deluxe-l',
     name: 'Barbie Deluxe (L)',
+    badge: 'Best seller',
     category: 'Flowers',
     tags: ['birthday', 'romance'],
     price: '₦210,000 - ₦250,000',
@@ -297,6 +307,7 @@ export const products = [
   {
     id: 'barbie-deluxe-s',
     name: 'Barbie Deluxe (S)',
+    badge: 'Best seller',
     category: 'Flowers',
     tags: ['birthday', 'romance'],
     price: '₦100,000',
@@ -497,6 +508,7 @@ export const products = [
   {
     id: 'spray-roses',
     name: 'Spray Roses',
+    badge: 'Best seller',
     category: 'Flowers',
     tags: ['romance', 'birthday'],
     cityPrices: { Lagos: 130000, Abuja: 150000, 'Port Harcourt': 150000 },
@@ -576,10 +588,10 @@ export const products = [
     priceUnit: 'per balloon',
     quantityLabel: 'Number of balloons',
     image: productImages('heart-helium-balloons', 1)[0],
-    gallery: productImages('heart-helium-balloons', 2),
-    addOns: balloonColours,
+    gallery: [...productImages('heart-helium-balloons', 1), '/images/products/birthday-combo/birthday-combo-01.webp'],
+    addOns: balloonAddOns,
     short: 'Helium-filled heart balloons. Pick your colour and how many.',
-    description: 'Heart-shaped balloons filled with helium so they float beautifully. Choose red, blue, pink, purple, gold or silver, and as many as you like. Send them on their own or add them to a bouquet order for an extra-special delivery.',
+    description: 'Heart-shaped balloons filled with helium so they float beautifully. Choose red, blue, pink, purple, gold or silver, and as many as you like. Add a custom inscription like "Happy Birthday Mum", and send them on their own or with a bouquet for an extra-special delivery.',
   },
   {
     id: 'helium-balloons',
@@ -591,10 +603,10 @@ export const products = [
     priceUnit: 'per balloon',
     quantityLabel: 'Number of balloons',
     image: productImages('helium-balloons', 1)[0],
-    gallery: productImages('helium-balloons', 2),
-    addOns: balloonColours,
+    gallery: productImages('helium-balloons', 1),
+    addOns: balloonAddOns,
     short: 'Classic round helium balloons. Pick your colour and how many.',
-    description: 'Classic round balloons filled with helium. Choose red, blue, pink, purple, gold or silver and how many you need: one to tie to a bouquet, or a bunch to fill the room. Lovely on their own or alongside any bouquet.',
+    description: 'Classic round balloons filled with helium. Choose red, blue, pink, purple, gold or silver and how many you need: one to tie to a bouquet, or a bunch to fill the room. Add a custom inscription for a personal touch.',
   },
 ]
 

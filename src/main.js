@@ -680,6 +680,7 @@ function productAddOnsMarkup(product, scope = 'detail') {
           <span>${esc(addOn.name)}</span>
           <strong>+${formatPrice(addOn.price)}</strong>
         </label>
+        ${addOn.hint ? `<p class="product-addon-hint">${esc(addOn.hint)}</p>` : ''}
       `).join('')}
     </div>
   `
@@ -1081,7 +1082,7 @@ function homePage() {
           <h2>Start with our most gift-ready bouquets</h2>
         </div>
         <div class="product-grid product-grid-featured">
-          ${products.slice(0, 3).map((product) => productCard(product)).join('')}
+          ${products.filter((product) => product.badge === 'Best seller').slice(0, 6).map((product) => productCard(product)).join('')}
         </div>
       </section>
 

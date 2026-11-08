@@ -1631,6 +1631,12 @@ p {
   accent-color: var(--primary);
 }
 
+.product-addon-hint {
+  margin: -0.3rem 0 0 1.55rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
 .product-addon-option strong {
   margin-left: auto;
   color: var(--primary-dark);

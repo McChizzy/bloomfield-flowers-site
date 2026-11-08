@@ -1039,7 +1039,7 @@ function homePage() {
         <div class="container hero-reimagined-shell hero-reimagined-shell-final">
           <div class="hero-copy-panel hero-copy-panel-reimagined hero-copy-panel-final">
             <p class="hero-mini-copy">${heroScene.eyebrow}</p>
-            <h1>${heroScene.title}</h1>
+            <h1>${heroScene.title.replace('meaningful', '<span class="pop-underline">meaningful</span>')}</h1>
             <p class="hero-copy">${heroScene.body}</p>
             <div class="hero-actions hero-actions-final">
               <a class="btn btn-primary" href="/shop">Shop Bouquets</a>

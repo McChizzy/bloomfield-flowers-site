@@ -8,6 +8,9 @@
   --primary: #8f4c73;
   --primary-dark: #6e3556;
   --accent: #d9a5b3;
+  /* The one loud colour: used sparingly for small highlights, never for body text on white */
+  --pop: #f2a93b;
+  --pop-soft: #fcebd2;
   --shadow: 0 1px 2px rgba(110, 53, 86, 0.06), 0 18px 40px rgba(110, 53, 86, 0.08);
   --shadow-lift: 0 2px 6px rgba(110, 53, 86, 0.08), 0 24px 58px rgba(110, 53, 86, 0.16);
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -96,7 +99,7 @@ body {
   height: 0.32rem;
   margin-left: 1.45rem;
   border-radius: 999px;
-  background: var(--accent);
+  background: var(--pop);
 }
 
 @keyframes promo-scroll {
@@ -248,6 +251,10 @@ body {
   border-bottom-color: var(--primary);
 }
 
+.nav-links a.is-active {
+  border-bottom-color: var(--pop);
+}
+
 .nav-links a:focus-visible,
 .cart-link:focus-visible,
 .btn:focus-visible {
@@ -280,9 +287,10 @@ body {
   height: 1.35rem;
   padding: 0 0.3rem;
   border-radius: 999px;
-  background: var(--primary);
-  color: #fff;
+  background: var(--pop);
+  color: var(--primary-dark);
   font-size: 0.74rem;
+  font-weight: 700;
   line-height: 1;
 }
 
@@ -313,6 +321,27 @@ body {
   color: var(--primary);
   margin: 0 0 1rem;
   font-weight: 700;
+}
+
+.eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 1.4rem;
+  height: 2px;
+  margin-right: 0.6rem;
+  border-radius: 2px;
+  background: var(--pop);
+  vertical-align: middle;
+}
+
+.section-heading-centered .eyebrow::before {
+  display: none;
+}
+
+/* Marker-style highlight under one word of the hero headline */
+.pop-underline {
+  background: linear-gradient(transparent 68%, rgba(242, 169, 59, 0.5) 68%, rgba(242, 169, 59, 0.5) 92%, transparent 92%);
+  padding: 0 0.06em;
 }
 
 h1, h2, h3, h4 {
@@ -652,6 +681,17 @@ p {
   border-color: rgba(143, 76, 115, 0.12);
   color: var(--primary-dark);
   font-size: 0.79rem;
+}
+
+.hero-highlight-pill-trust::before {
+  content: "";
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-right: 0.45rem;
+  border-radius: 999px;
+  background: var(--pop);
+  vertical-align: 0.08em;
 }
 
 .hero-visual {
@@ -1077,7 +1117,7 @@ p {
 }
 
 .testimonial-stars {
-  color: #f0b429;
+  color: var(--pop);
   font-size: 1.1rem;
   letter-spacing: 0.15em;
 }
@@ -1769,8 +1809,8 @@ p {
   left: 0.75rem;
   padding: 0.28rem 0.65rem;
   border-radius: 999px;
-  background: var(--primary);
-  color: #fff;
+  background: var(--pop);
+  color: var(--primary-dark);
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -1779,7 +1819,10 @@ p {
 }
 
 .product-badge-inline {
-  color: var(--primary);
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  background: var(--pop-soft);
+  color: var(--primary-dark);
   font-weight: 700;
 }
 

@@ -107,8 +107,8 @@ export const products = [
     category: 'Flowers',
     tags: ['romance', 'anniversary'],
     price: '₦220,000 - ₦240,000',
-    image: productImages('queen-of-hearts', 1)[0],
-    gallery: productImages('queen-of-hearts', 3),
+    image: '/images/products/queen-of-hearts/queen-of-hearts-03.webp',
+    gallery: productImages('queen-of-hearts', 3).reverse(),
     short: 'Red roses and deep burgundy chrysanthemums in a sleek black wrap.',
     description: "Queen of Hearts sets rich red roses among deep burgundy chrysanthemums, finished in a sleek black wrap and ribbon. Bold, dramatic and unmistakably romantic, it is made for anniversaries, Valentine's and anyone who deserves a grand gesture.",
   },
@@ -190,6 +190,7 @@ export const products = [
     image: '/images/products/the-seraphina/the-seraphina-02.webp',
     gallery: [
       '/images/products/the-seraphina/the-seraphina-02.webp',
+      '/images/products/the-seraphina/the-seraphina-01.webp',
       '/images/products/the-seraphina/the-seraphina-03.webp',
     ],
     short: 'Mixed chrysanthemum and rose bouquet.',

@@ -1599,6 +1599,23 @@ p {
   transform: translateY(-50%) scale(1.04);
 }
 
+.product-balloon-note {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+.product-balloon-note strong {
+  color: var(--primary-dark);
+}
+
+.product-balloon-note p {
+  margin: 0.4rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
 .product-addons {
   display: grid;
   gap: 0.55rem;

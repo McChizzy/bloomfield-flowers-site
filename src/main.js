@@ -185,7 +185,7 @@ const testimonials = [
     name: 'Ngozi N.',
     rating: 5,
     text: 'Very quick response, exceptional customer service. Bouquet came very fresh.',
-    image: '/images/the_seraphina.webp',
+    image: '/images/products/the-seraphina/the-seraphina-02.webp',
   },
   {
     name: 'Tems K.',
@@ -497,6 +497,7 @@ function showProductQuickView(productId) {
         <h2 id="quick-view-title">${esc(product.name)}</h2>
         <p class="quick-view-price"><strong>${formatPrice(product.price)}${priceUnitMarkup(product)}</strong></p>
         <p>${esc(product.description || product.short)}</p>
+        ${productBalloonNoteMarkup(product)}
         ${productAddOnsMarkup(product, 'quick-view')}
         ${productQuantityMarkup(product)}
         <div class="quick-view-actions">
@@ -650,6 +651,16 @@ function productQuantityMarkup(product) {
 function productAddOnDetails(product, addOns = []) {
   const selected = new Set(addOns)
   return (product?.addOns || []).filter((addOn) => selected.has(addOn.id))
+}
+
+function productBalloonNoteMarkup(product) {
+  if (product.id !== 'birthday-combo') return ''
+  return `
+    <aside class="product-balloon-note" aria-label="Add more balloons">
+      <strong>Make it a bigger celebration</strong>
+      <p>Want more balloons with your Birthday Combo? Add <a class="text-link" href="/product/helium-balloons" data-quick-view-close>Helium Balloons</a> or <a class="text-link" href="/product/heart-helium-balloons" data-quick-view-close>Heart-Shaped Helium Balloons</a> to your cart and choose your colour and quantity.</p>
+    </aside>
+  `
 }
 
 function productAddOnsMarkup(product, scope = 'detail') {
@@ -1256,6 +1267,7 @@ function productPage(id) {
           <h1>${product.name}</h1>
           <p class="product-detail-price"><strong>${formatPrice(product.price)}${priceUnitMarkup(product)}</strong></p>
           <p>${product.description}</p>
+          ${productBalloonNoteMarkup(product)}
           ${productAddOnsMarkup(product)}
           ${productQuantityMarkup(product)}
           <div class="product-actions product-detail-actions">

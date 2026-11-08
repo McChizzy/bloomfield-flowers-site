@@ -187,10 +187,10 @@ export const products = [
     category: 'Flowers',
     tags: ['birthday', 'celebration'],
     price: '₦55,000',
-    image: '/images/the_seraphina.webp',
+    image: '/images/products/the-seraphina/the-seraphina-02.webp',
     gallery: [
-      '/images/the_seraphina.webp',
-      '/images/products/the-seraphina/the-seraphina-01.webp',
+      '/images/products/the-seraphina/the-seraphina-02.webp',
+      '/images/products/the-seraphina/the-seraphina-03.webp',
     ],
     short: 'Mixed chrysanthemum and rose bouquet.',
     description: 'A delicate mixed bouquet of chrysanthemums and roses.',
@@ -456,6 +456,7 @@ export const products = [
     image: '/images/products/birthday-combo/birthday-combo-01.webp',
     gallery: [
       '/images/products/birthday-combo/birthday-combo-01.webp',
+      '/images/products/birthday-combo/birthday-combo-02.webp',
     ],
     short: 'A birthday bouquet paired with a celebratory balloon.',
     description: 'A sweet birthday package with a fresh bouquet and balloon, made to feel joyful and personal.',

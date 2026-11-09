@@ -102,6 +102,19 @@ body {
   background: var(--pop);
 }
 
+/* Campaign ticker (e.g. Black Friday): black with gold */
+.promo-ticker-campaign {
+  background: #17121a;
+  border-bottom-color: #17121a;
+  color: #f7ead6;
+}
+
+.promo-ticker-campaign strong {
+  margin: 0 0.35em; /* the flex item drops the spaces around inline tags */
+  color: var(--pop);
+  letter-spacing: 0.08em;
+}
+
 @keyframes promo-scroll {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }

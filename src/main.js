@@ -1,6 +1,6 @@
 import './style.css'
 import { products, parsePriceValue, priceBounds, productPriceValue, isProductAvailable } from './catalog.js'
-import { deliveryAreaSuggestions, isPhSameDayDelivery, lookupDeliveryFee } from './delivery-zones.js'
+import { deliveryAreaSuggestions, isPhSameDayDelivery, lookupDeliveryFee, nigeriaToday } from './delivery-zones.js'
 import { inject as injectVercelAnalytics, pageview as vercelPageview } from '@vercel/analytics'
 
 // Vercel Web Analytics. Page views are sent from renderApp (one per route change, query strings
@@ -63,13 +63,48 @@ function cityOptions(selected = '') {
   return deliveryCities.map((city) => `<option value="${city}"${selected === city ? ' selected' : ''}>${city}</option>`).join('')
 }
 
+// Seasonal campaign for the top ticker. Dates are Nigeria time (inclusive). The discount itself lives in the
+// Supabase discount_codes table. Add ?promo=teaser or ?promo=live to any URL to preview it early.
+const promoCampaign = {
+  name: 'Black Friday',
+  code: 'BFFRIDAY',
+  teaserFrom: '2026-11-16',
+  startsOn: '2026-11-27',
+  endsOn: '2026-11-30',
+  teaser: [
+    '🖤 Black Friday is coming · Friday 27 November',
+    '✨ 5% off every bouquet + free delivery above ₦250,000',
+    '🛍️ Pick your favourites now · Shop at bloomfieldflowers.ng',
+  ],
+  live: [
+    '🖤 Black Friday · Use code <strong>BFFRIDAY</strong> for 5% off any order',
+    '🚚 Free delivery on orders above ₦250,000 · Code <strong>BFFRIDAY</strong>',
+    '⏳ Ends Monday 30 November · Order before 2pm for same-day delivery',
+  ],
+}
+
+function promoCampaignPhase() {
+  let override = new URLSearchParams(location.search).get('promo')
+  try {
+    if (override) sessionStorage.setItem('bloomfield-promo-preview', override)
+    else override = sessionStorage.getItem('bloomfield-promo-preview')
+  } catch { /* storage unavailable */ }
+  if (override === 'teaser' || override === 'live') return override
+  const today = nigeriaToday()
+  if (today >= promoCampaign.startsOn && today <= promoCampaign.endsOn) return 'live'
+  if (today >= promoCampaign.teaserFrom && today < promoCampaign.startsOn) return 'teaser'
+  return null
+}
+
 function promoTicker() {
-  const tickerItems = [...promoTickerItems, ...promoTickerItems]
+  const phase = promoCampaignPhase()
+  const items = phase ? promoCampaign[phase] : promoTickerItems
+  const tickerItems = [...items, ...items, ...(phase ? items : [])]
     .map((item) => `<span class="promo-ticker-item">${item}</span>`)
     .join('')
 
   return `
-    <div class="promo-ticker" aria-label="Bloomfield Flowers highlights">
+    <div class="promo-ticker${phase ? ' promo-ticker-campaign' : ''}" aria-label="${phase ? `${promoCampaign.name} offer` : 'Bloomfield Flowers highlights'}">
       <div class="promo-ticker-track">${tickerItems}</div>
     </div>
   `
@@ -1561,7 +1596,7 @@ function checkoutPage() {
         <label>Preferred time<select name="deliveryTime" data-delivery-time-select required><option value="" disabled${!draft.deliveryTime ? ' selected' : ''}>Select a time</option>${deliveryTimeOptions(draft.deliveryTime || '', draft.deliveryDate || '')}</select></label>
         <label>Card message<textarea name="cardMessage" rows="3" placeholder="Add a note for the recipient" maxlength="500">${esc(draft.cardMessage || '')}</textarea></label>
         <div class="coupon-row">
-          <input name="couponCode" type="text" placeholder="Promo code" data-coupon-input autocomplete="off" style="text-transform:uppercase">
+          <input name="couponCode" type="text" placeholder="${promoCampaignPhase() === 'live' ? `Promo code (e.g. ${promoCampaign.code})` : 'Promo code'}" data-coupon-input autocomplete="off" style="text-transform:uppercase">
           <button type="button" class="btn btn-secondary btn-sm" data-apply-coupon>Apply</button>
         </div>
         <div class="coupon-status" data-coupon-status aria-live="polite"></div>

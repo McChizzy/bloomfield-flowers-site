@@ -64,7 +64,7 @@ function cityOptions(selected = '') {
 }
 
 // Seasonal campaign for the top ticker and the on-page banner. Times are Nigeria time (WAT, +01:00). The discount
-// itself lives in the Supabase discount_codes table. Add ?promo=teaser or ?promo=live to any URL to preview it early.
+// itself lives in the Supabase discount_codes table. Add ?promo=teaser, ?promo=live or ?promo=off to any URL to preview.
 const promoCampaign = {
   name: 'Black Friday Week',
   code: 'BFFRIDAY',
@@ -92,6 +92,8 @@ function promoCampaignPhase() {
   } catch { /* storage unavailable */ }
   if (override === 'teaser' || override === 'live') return override
   const now = Date.now()
+  // Vercel preview links show the live campaign by default so it can be reviewed before launch (?promo=off hides it)
+  if (!override && location.hostname.endsWith('.vercel.app') && now < Date.parse(promoCampaign.endsAt)) return 'live'
   if (now >= Date.parse(promoCampaign.startsAt) && now < Date.parse(promoCampaign.endsAt)) return 'live'
   if (now >= Date.parse(promoCampaign.teaserFrom) && now < Date.parse(promoCampaign.startsAt)) return 'teaser'
   return null

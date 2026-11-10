@@ -1,6 +1,6 @@
 import './style.css'
 import { products, parsePriceValue, priceBounds, productPriceValue, isProductAvailable } from './catalog.js'
-import { deliveryAreaSuggestions, isPhSameDayDelivery, lookupDeliveryFee, nigeriaToday } from './delivery-zones.js'
+import { deliveryAreaSuggestions, isPhSameDayDelivery, lookupDeliveryFee } from './delivery-zones.js'
 import { inject as injectVercelAnalytics, pageview as vercelPageview } from '@vercel/analytics'
 
 // Vercel Web Analytics. Page views are sent from renderApp (one per route change, query strings
@@ -63,23 +63,24 @@ function cityOptions(selected = '') {
   return deliveryCities.map((city) => `<option value="${city}"${selected === city ? ' selected' : ''}>${city}</option>`).join('')
 }
 
-// Seasonal campaign for the top ticker. Dates are Nigeria time (inclusive). The discount itself lives in the
-// Supabase discount_codes table. Add ?promo=teaser or ?promo=live to any URL to preview it early.
+// Seasonal campaign for the top ticker and the on-page banner. Times are Nigeria time (WAT, +01:00). The discount
+// itself lives in the Supabase discount_codes table. Add ?promo=teaser or ?promo=live to any URL to preview it early.
 const promoCampaign = {
-  name: 'Black Friday',
+  name: 'Black Friday Week',
   code: 'BFFRIDAY',
-  teaserFrom: '2026-11-16',
-  startsOn: '2026-11-27',
-  endsOn: '2026-11-30',
+  teaserFrom: '2026-11-16T00:00:00+01:00',
+  startsAt: '2026-11-20T00:00:00+01:00',
+  endsAt: '2026-11-27T12:00:00+01:00',
+  endsLabel: 'Friday 27 November at 12 noon',
   teaser: [
-    '🖤 Black Friday is coming · Friday 27 November',
-    '✨ 5% off every bouquet + free delivery above ₦250,000',
-    '🛍️ Pick your favourites now · Shop at bloomfieldflowers.ng',
+    '🖤 Black Friday Week starts Friday 20 November',
+    '✨ 5% off every order + free delivery above ₦250,000',
+    '⏳ One week only · Ends Black Friday at 12 noon',
   ],
   live: [
-    '🖤 Black Friday · Use code <strong>BFFRIDAY</strong> for 5% off any order',
+    '🖤 Black Friday Week · Use code <strong>BFFRIDAY</strong> for 5% off any order',
     '🚚 Free delivery on orders above ₦250,000 · Code <strong>BFFRIDAY</strong>',
-    '⏳ Ends Monday 30 November · Order before 2pm for same-day delivery',
+    '⏳ Ends Friday 27 November at 12 noon · Order early',
   ],
 }
 
@@ -90,10 +91,35 @@ function promoCampaignPhase() {
     else override = sessionStorage.getItem('bloomfield-promo-preview')
   } catch { /* storage unavailable */ }
   if (override === 'teaser' || override === 'live') return override
-  const today = nigeriaToday()
-  if (today >= promoCampaign.startsOn && today <= promoCampaign.endsOn) return 'live'
-  if (today >= promoCampaign.teaserFrom && today < promoCampaign.startsOn) return 'teaser'
+  const now = Date.now()
+  if (now >= Date.parse(promoCampaign.startsAt) && now < Date.parse(promoCampaign.endsAt)) return 'live'
+  if (now >= Date.parse(promoCampaign.teaserFrom) && now < Date.parse(promoCampaign.startsAt)) return 'teaser'
   return null
+}
+
+function promoBanner(variant = 'home') {
+  const phase = promoCampaignPhase()
+  if (!phase) return ''
+  const live = phase === 'live'
+  return `
+    <section class="bf-banner bf-banner-${variant}" aria-label="${promoCampaign.name} offer">
+      <div class="container bf-banner-inner">
+        <div class="bf-banner-photo">
+          <img src="/images/products/century-of-roses/century-of-roses-02.webp" alt="Red roses in a black wrap" loading="${variant === 'home' ? 'eager' : 'lazy'}" decoding="async">
+        </div>
+        <div class="bf-banner-copy">
+          <p class="bf-banner-kicker">${live ? 'On now · Until Friday 27 November, 12 noon' : 'Starts Friday 20 November'}</p>
+          <h2>Black Friday <span>Week</span></h2>
+          <p class="bf-banner-offer"><strong>5% off</strong> every order <span class="bf-plus">+</span> <strong>free delivery</strong> on orders above ₦250,000</p>
+          ${live
+            ? `<button type="button" class="bf-code" data-copy-code="${promoCampaign.code}">Use code <strong>${promoCampaign.code}</strong><span data-copy-label>Tap to copy</span></button>`
+            : '<p class="bf-banner-note">Save your favourites now. The code goes live on Friday 20 November.</p>'}
+          <p class="bf-banner-ends">One week only. Ends ${promoCampaign.endsLabel}, so order early.</p>
+          ${variant === 'home' ? '<a class="btn bf-btn" href="/shop">Shop the sale</a>' : ''}
+        </div>
+      </div>
+    </section>
+  `
 }
 
 function promoTicker() {
@@ -1090,6 +1116,8 @@ function homePage() {
         </div>
       </section>
 
+      ${promoBanner('home')}
+
       <section class="section container showcase-section section-tight-top">
         <div class="section-heading section-heading-centered">
           <p class="eyebrow">Bouquet showcase</p>
@@ -1217,6 +1245,7 @@ function shopPage() {
   const isFiltered = visible.length !== products.length
 
   return shell(`
+    ${promoBanner('shop')}
     <main class="section container">
       <div class="section-heading">
         <p class="eyebrow">Shop bouquets</p>
@@ -2189,6 +2218,19 @@ function bindEvents() {
 
   document.querySelectorAll('[data-shop-back]').forEach((link) => {
     link.addEventListener('click', () => rememberShopReturn(link.dataset.shopBack))
+  })
+
+  document.querySelectorAll('[data-copy-code]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const label = button.querySelector('[data-copy-label]')
+      try {
+        await navigator.clipboard.writeText(button.dataset.copyCode)
+        if (label) label.textContent = 'Copied ✓'
+      } catch {
+        if (label) label.textContent = 'Add it at checkout'
+      }
+      setTimeout(() => { if (label) label.textContent = 'Tap to copy' }, 2200)
+    })
   })
 
   bindProductOptions(document)

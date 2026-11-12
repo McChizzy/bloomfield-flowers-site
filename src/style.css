@@ -3043,3 +3043,323 @@ p {
     justify-content: center;
   }
 }
+
+/* ── Lily care guide (/flower-care#lily-care) ───────────────────── */
+.lily-jump-pill {
+  border-color: var(--pop);
+  background: var(--pop-soft);
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.lily-care {
+  scroll-margin-top: 96px;
+  background: linear-gradient(180deg, var(--bg), var(--surface-soft) 40%, var(--bg));
+  border-top: 1px solid var(--line);
+}
+
+.lily-care-inner {
+  max-width: 980px;
+  display: grid;
+  gap: 3rem;
+}
+
+.lily-care-heading { margin-bottom: 0; }
+.lily-care-heading p:last-child { color: var(--muted); }
+
+.lily-block h3,
+.lily-why-copy h3 {
+  margin: 0 0 1.1rem;
+}
+
+.lily-why {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.lily-why-visual {
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.lily-why-visual img {
+  width: 100%;
+  aspect-ratio: 4 / 4.4;
+  object-fit: cover;
+  display: block;
+}
+
+.lily-why-visual figcaption {
+  padding: 0.85rem 1.1rem 1rem;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.lily-reasons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.1rem;
+}
+
+.lily-reasons li {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.lily-reasons p { margin: 0.25rem 0 0; color: var(--muted); }
+
+.lily-check {
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  background: var(--pop-soft);
+  border: 1px solid var(--pop);
+  position: relative;
+  margin-top: 0.05rem;
+}
+
+.lily-check::after {
+  content: '';
+  position: absolute;
+  left: 0.52rem;
+  top: 0.3rem;
+  width: 0.38rem;
+  height: 0.7rem;
+  border: solid var(--primary-dark);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.lily-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  position: relative;
+}
+
+.lily-timeline::before {
+  content: '';
+  position: absolute;
+  top: 0.95rem;
+  left: 1rem;
+  right: 1rem;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--pop));
+}
+
+.lily-timeline-item {
+  position: relative;
+  padding-top: 0;
+}
+
+.lily-day {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 0.7rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: var(--primary-dark);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.lily-timeline-item strong { display: block; }
+.lily-timeline-item p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.93rem; }
+
+.lily-note {
+  margin: 1.2rem 0 0;
+  padding: 0.8rem 1rem;
+  border-left: 3px solid var(--pop);
+  background: var(--surface);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 0.93rem;
+}
+
+.lily-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: lily-step;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.lily-step {
+  counter-increment: lily-step;
+  position: relative;
+  padding-top: 3.4rem;
+}
+
+.lily-step::before {
+  content: counter(lily-step);
+  position: absolute;
+  top: 1.1rem;
+  left: 1.5rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.lily-step p,
+.lily-pollen p { color: var(--muted); }
+.lily-step p { margin: 0.4rem 0 0; }
+
+.lily-pollen {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.lily-pollen .eyebrow { margin-bottom: 0.5rem; }
+.lily-pollen h3 { margin-bottom: 0.7rem; }
+.lily-pollen strong { color: var(--text); }
+
+.lily-pet-callout {
+  display: grid;
+  grid-template-columns: 2.6rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--pop);
+  background: var(--pop-soft);
+}
+
+.lily-pet-callout h3 { margin: 0 0 0.5rem; }
+.lily-pet-callout p { margin: 0 0 0.8rem; }
+
+.lily-pet-icon {
+  width: 2.6rem;
+  height: 2.6rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--primary-dark);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.lily-faq {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.lily-faq-item {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.lily-faq-item summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 1rem 3rem 1rem 1.2rem;
+  font-weight: 600;
+  position: relative;
+}
+
+.lily-faq-item summary::-webkit-details-marker { display: none; }
+
+.lily-faq-item summary::after {
+  content: '+';
+  position: absolute;
+  right: 1.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--primary);
+  font-size: 1.3rem;
+  font-weight: 500;
+}
+
+.lily-faq-item[open] summary::after { content: '−'; }
+
+.lily-faq-item p {
+  margin: 0;
+  padding: 0 1.2rem 1.1rem;
+  color: var(--muted);
+}
+
+.lily-shop-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.lily-shop-head h3 { margin: 0; }
+.lily-shop-head p { margin: 0; color: var(--muted); }
+
+.lily-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.lily-shop-card {
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lily-shop-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+.lily-shop-card img {
+  width: 100%;
+  aspect-ratio: 4 / 4.2;
+  object-fit: cover;
+  display: block;
+}
+
+.lily-shop-card span { display: block; padding: 0.75rem 0.9rem; }
+
+.lily-product-note {
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-sm);
+  background: var(--pop-soft);
+  font-size: 0.92rem;
+}
+
+@media (max-width: 980px) {
+  .lily-why,
+  .lily-pollen,
+  .lily-steps { grid-template-columns: 1fr; }
+  .lily-why-visual img { aspect-ratio: 4 / 3.4; }
+  .lily-timeline { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 1.6rem; }
+  .lily-timeline::before { display: none; }
+}
+
+@media (max-width: 560px) {
+  .lily-care-inner { gap: 2.2rem; }
+  .lily-timeline { grid-template-columns: 1fr; }
+  .lily-shop-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
+  .lily-shop-card span { padding: 0.55rem 0.6rem; font-size: 0.82rem; }
+  .lily-pet-callout { grid-template-columns: 1fr; }
+}

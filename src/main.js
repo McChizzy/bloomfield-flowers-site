@@ -378,6 +378,43 @@ const careMoments = [
   },
 ]
 
+// Lily care guide on /flower-care (#lily-care). Product pages for bouquets with lilies link to it.
+const lilyCare = {
+  reasons: [
+    ['They last much longer', 'A lily cut in full bloom has already used up part of its life. Buds open in your home, so you get every day of it, often one to two weeks of flowers instead of a few days.'],
+    ['They arrive in perfect condition', 'Open lily petals are delicate and bruise easily. Closed buds handle the journey and the heat far better, so nothing arrives crushed or torn.'],
+    ['No pollen on the way', 'Open lilies shed bright orange pollen that stains petals, wrapping and clothes. Closed buds keep it sealed until the flowers are safely in your vase.'],
+    ['You get to watch them open', 'New blooms appear day after day, so the bouquet keeps changing and looks fresh for longer.'],
+  ],
+  timeline: [
+    ['Day 1', 'Arrival', 'Buds are closed and firm, green to creamy white. One or two may already show colour. This is exactly how they should look.'],
+    ['Days 2–3', 'Waking up', 'Buds swell and soften, the colour deepens and the first flowers open. Remove the pollen as each one opens.'],
+    ['Days 4–7', 'Full bloom', 'Most flowers are open and the scent is at its strongest. Snip off any bloom that starts to fade.'],
+    ['Day 8 onwards', 'Second wave', 'Later buds keep opening. Removing faded flowers sends water and energy to the buds that are left.'],
+  ],
+  steps: [
+    ['Unwrap and trim', 'Remove the wrapping and cut 2–3 cm off each stem at an angle with clean, sharp scissors.'],
+    ['Clear the waterline', 'Pull off any leaves that would sit below the water. Leaves in water rot and cloud it quickly.'],
+    ['Fill a clean vase', 'Fill it about two-thirds with fresh, cool water and add flower food, or the sugar and bleach mix above.'],
+    ['Choose the right spot', 'Keep lilies out of direct sun and away from cookers, fans, air-conditioning vents and fruit bowls. Ripening fruit gives off a gas that makes flowers fade faster.'],
+    ['Top up every day', 'Lilies drink a lot. Check the water daily, and every two days change it and trim the stems again.'],
+    ['Remove pollen and faded blooms', 'Take the pollen out of each flower as it opens, and cut off blooms once they wilt or brown, close to the main stem.'],
+  ],
+  faqs: [
+    ['My lilies are still closed. Is something wrong?', 'No. Lilies usually start opening within two to four days, and very green buds take a little longer. Keep them in water in a bright room out of direct sun and they will open in their own time.'],
+    ['Can I open the buds by hand?', 'Please don’t. Prising the petals apart bruises and tears them. To speed things up, move the vase somewhere a little warmer with plenty of indirect light and use room-temperature water.'],
+    ['How do I slow them down for an event?', 'Keep the vase in a cool, air-conditioned room out of the sun and use cool water. Move it somewhere warmer a day or two before you want the flowers open.'],
+    ['Why have some buds not opened?', 'The smallest buds at the very tip of a stem sometimes stay closed. That is normal. Cutting off faded flowers lower down gives the remaining buds the best chance.'],
+    ['How long will my lilies last?', 'With fresh water and regular trimming, a stem usually keeps flowering for one to two weeks as its buds open in turn. Each open flower lasts several days.'],
+    ['The scent is very strong. What can I do?', 'Lily fragrance is at its fullest in warm, still rooms. Move the vase to a larger or airier space, such as a living room or hallway, rather than a bedroom.'],
+  ],
+  productIds: ['ivory-ever-after', 'lily-n-rose', 'mixed-lily'],
+}
+
+function hasLilies(product) {
+  return /\blil(y|ies)\b/i.test(`${product.name} ${product.short || ''} ${product.description || ''}`)
+}
+
 const naira = new Intl.NumberFormat('en-NG', {
   style: 'currency',
   currency: 'NGN',
@@ -1333,6 +1370,7 @@ function productPage(id) {
           <h1>${product.name}</h1>
           <p class="product-detail-price"><strong>${formatPrice(product.price)}${priceUnitMarkup(product)}</strong></p>
           <p>${product.description}</p>
+          ${hasLilies(product) ? '<p class="lily-product-note">Lilies arrive in bud and open over a few days. <a class="text-link" href="/flower-care#lily-care">Read our lily care guide</a>.</p>' : ''}
           ${productBalloonNoteMarkup(product)}
           ${productAddOnsMarkup(product)}
           ${productQuantityMarkup(product)}
@@ -1461,6 +1499,7 @@ function flowerCarePage() {
               <div class="hero-highlight-pill">Fresh water matters</div>
               <div class="hero-highlight-pill">Trim stems regularly</div>
               <div class="hero-highlight-pill">Keep away from direct heat</div>
+              <a class="hero-highlight-pill lily-jump-pill" href="#lily-care">Lily care guide &darr;</a>
             </div>
           </div>
           <div class="flower-care-hero-card flower-care-hero-card-polished">
@@ -1495,8 +1534,122 @@ function flowerCarePage() {
           </div>
         </div>
       </section>
+
+      ${lilyCareSection()}
     </main>
   `, 'flower-care')
+}
+
+function lilyCareSection() {
+  const lilyProducts = lilyCare.productIds.map((pid) => products.find((p) => p.id === pid)).filter(Boolean)
+  return `
+      <section class="section lily-care" id="lily-care" aria-labelledby="lily-care-title">
+        <div class="container lily-care-inner">
+          <div class="section-heading lily-care-heading">
+            <p class="eyebrow">Lily care guide</p>
+            <h2 id="lily-care-title">Why your lilies arrive closed, and how to help them bloom</h2>
+            <p>Lilies are some of the most striking and fragrant flowers we send, and the ones we get asked about most. Here is everything you need to know, from the day they arrive to their very last bloom.</p>
+          </div>
+
+          <div class="lily-why">
+            <figure class="lily-why-visual">
+              <img src="/images/products/ivory-ever-after/ivory-ever-after-01.webp" alt="Ivory Ever After bouquet with white lilies, some open and some still in green bud" loading="lazy" decoding="async">
+              <figcaption>Closed green buds sit beside lilies that have already opened. They will all open over the next few days.</figcaption>
+            </figure>
+            <div class="lily-why-copy">
+              <h3>Why we send lilies in bud</h3>
+              <ul class="lily-reasons">
+                ${lilyCare.reasons.map(([title, body]) => `
+                  <li>
+                    <span class="lily-check" aria-hidden="true"></span>
+                    <div><strong>${title}</strong><p>${body}</p></div>
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          </div>
+
+          <div class="lily-block">
+            <h3>What to expect, day by day</h3>
+            <ol class="lily-timeline">
+              ${lilyCare.timeline.map(([day, title, body]) => `
+                <li class="lily-timeline-item">
+                  <span class="lily-day">${day}</span>
+                  <strong>${title}</strong>
+                  <p>${body}</p>
+                </li>
+              `).join('')}
+            </ol>
+            <p class="lily-note">Lilies open faster in a warm room and more slowly in air-conditioning. Both are completely normal.</p>
+          </div>
+
+          <div class="lily-block">
+            <h3>Lily care, step by step</h3>
+            <ol class="lily-steps">
+              ${lilyCare.steps.map(([title, body]) => `
+                <li class="info-card lily-step">
+                  <strong>${title}</strong>
+                  <p>${body}</p>
+                </li>
+              `).join('')}
+            </ol>
+          </div>
+
+          <div class="lily-block lily-pollen">
+            <div class="info-card">
+              <p class="eyebrow">Pollen</p>
+              <h3>Why and how to remove lily pollen</h3>
+              <p>The orange tips at the centre of each flower (the anthers) carry pollen that stains petals, tablecloths, clothes and skin. Removing them keeps the blooms clean and can help each flower last a little longer.</p>
+              <p>As each flower opens, gently pinch the anthers off with a tissue or tweezers before they turn fuzzy and powdery, and drop them straight in the bin. It doesn’t harm the flower or its scent.</p>
+            </div>
+            <div class="info-card">
+              <p class="eyebrow">Accidents happen</p>
+              <h3>Got pollen on something?</h3>
+              <p><strong>Don’t rub it and don’t wet it first</strong>, as both push the pollen deeper into the fibres.</p>
+              <p>Lift off as much as you can with sticky tape, then rinse the fabric from the back with cold water and leave it to dry in sunlight, which helps fade what is left. On petals, brush pollen away gently with a dry tissue.</p>
+            </div>
+          </div>
+
+          <aside class="lily-pet-callout" aria-label="Pet safety">
+            <span class="lily-pet-icon" aria-hidden="true">!</span>
+            <div>
+              <h3>Lilies and cats don’t mix</h3>
+              <p>Every part of a lily is highly toxic to cats, including the pollen and the vase water, and even a tiny amount can cause serious kidney damage. If there is a cat at home, keep lilies well out of reach, or ask us for a lily-free bouquet when you order. If you think a cat has touched or eaten any part of a lily, contact a vet straight away. Lilies are not for eating, so keep them away from dogs and small children too.</p>
+              <a class="text-link" href="/custom-orders">Request a lily-free bouquet</a>
+            </div>
+          </aside>
+
+          <div class="lily-block">
+            <h3>Lily questions we hear often</h3>
+            <div class="lily-faq">
+              ${lilyCare.faqs.map(([q, a]) => `
+                <details class="lily-faq-item">
+                  <summary>${q}</summary>
+                  <p>${a}</p>
+                </details>
+              `).join('')}
+            </div>
+          </div>
+
+          ${lilyProducts.length ? `
+          <div class="lily-block lily-shop">
+            <div class="lily-shop-head">
+              <h3>Bouquets with lilies</h3>
+              <p>Still have a question? <a class="text-link" href="${instagramUrl}" target="_blank" rel="noreferrer">Send us a DM on Instagram</a>.</p>
+            </div>
+            <div class="lily-shop-grid">
+              ${lilyProducts.map((p) => `
+                <a class="lily-shop-card" href="/product/${p.id}">
+                  <img src="${p.image}" alt="${esc(p.name)}" loading="lazy" decoding="async">
+                  <span>${p.name}</span>
+                </a>
+              `).join('')}
+            </div>
+          </div>
+          ` : ''}
+        </div>
+      </section>
+  `
 }
 
 function contactPage() {
@@ -1849,7 +2002,7 @@ function router(route = checkoutResultState()) {
       setPageMeta('Delivery Information', 'Delivery zones, fees, and timing for Lagos, Abuja, and Port Harcourt.')
       return deliveryPage()
     case 'flower-care':
-      setPageMeta('Flower Care Tips', 'How to care for your Bloomfield bouquet and keep it looking fresh for longer.')
+      setPageMeta('Flower Care Tips', 'How to care for your Bloomfield bouquet and keep it fresh for longer, plus our lily care guide: why lilies arrive in bud, removing pollen and keeping pets safe.')
       return flowerCarePage()
     case 'contact':
       setPageMeta('Contact Us', 'Reach Bloomfield Flowers via WhatsApp, Instagram, or email.')
@@ -2474,6 +2627,15 @@ function bindEvents() {
 
 let lastRenderedRoute = ''
 
+function scrollToHashTarget(behavior) {
+  const id = location.hash.slice(1)
+  if (!id || id.startsWith('/')) return false
+  const target = document.getElementById(decodeURIComponent(id))
+  if (!target) return false
+  target.scrollIntoView({ block: 'start', behavior })
+  return true
+}
+
 function renderApp() {
   try {
     const route = checkoutResultState()
@@ -2499,7 +2661,7 @@ function renderApp() {
         clearShopReturn()
       })
     } else if (shouldResetScroll) {
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+      if (!scrollToHashTarget('auto')) window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
     } else {
       window.scrollTo({ top: currentScrollY, left: currentScrollX, behavior: 'auto' })
     }
@@ -2609,7 +2771,13 @@ document.addEventListener('click', (event) => {
   const url = new URL(link.getAttribute('href'), location.href)
   if (url.origin !== location.origin || !isAppPath(url.pathname)) return
   event.preventDefault()
-  navigateTo(url.pathname + url.search)
+  // In-page anchors such as #lily-care: scroll on the same page, or carry the hash to the next page.
+  if (url.hash && !url.hash.startsWith('#/') && url.pathname === location.pathname && url.search === location.search) {
+    history.replaceState(null, '', url.hash)
+    scrollToHashTarget('smooth')
+    return
+  }
+  navigateTo(url.pathname + url.search + (url.hash.startsWith('#/') ? '' : url.hash))
 })
 migrateLegacyHashRoute()
 renderApp()

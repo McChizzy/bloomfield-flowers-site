@@ -31,3 +31,21 @@ ph-rollout/assets/*.png
 .vercel
 dist-pdfs/
 images/*.webp
+
+# Credentials and local secrets - never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*_key.env
+*_password.env
+*_api.env
+
+# Business data / backup exports that keep landing in this folder - not app source
+meta backups/
+leads/
+leads.zip
+*.zip
+email-template/
+tmp/

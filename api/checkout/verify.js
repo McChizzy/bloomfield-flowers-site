@@ -23,7 +23,6 @@ export default async function handler(req, res) {
       ok: squad.ok,
       status: squad.status,
       transaction_status: squad.data?.data?.transaction_status,
-      raw: JSON.stringify(squad.data).slice(0, 500),
     })
 
     if (!squad.ok) {

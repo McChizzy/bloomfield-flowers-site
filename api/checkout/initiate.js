@@ -181,6 +181,7 @@ export default async function handler(req, res) {
       discountAmount,
     })
   } catch (error) {
-    return json(res, 500, { error: error.message || 'Checkout initialization failed.' })
+    console.error('Checkout initiate failed:', error.message)
+    return json(res, 500, { error: 'Checkout initialization failed.' })
   }
 }

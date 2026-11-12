@@ -28,14 +28,14 @@ async function bootstrap(supabase) {
     `/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${shortToken}`,
     shortToken
   )
-  console.log('[ig:3] exchange result:', JSON.stringify(lt).substring(0, 300))
+  console.log('[ig:3] exchange result: token present =', Boolean(lt.access_token))
   const longToken = lt.access_token
   if (!longToken) { console.error('[ig] token exchange failed — token may be expired'); return null }
 
   // Get linked Facebook Pages
   console.log('[ig:4] fetching pages...')
   const pages = await gget('/me/accounts?fields=id,name,access_token,instagram_business_account', longToken)
-  console.log('[ig:5] pages found:', (pages.data || []).map((p) => p.name).join(', ') || JSON.stringify(pages).substring(0, 300))
+  console.log('[ig:5] pages found:', (pages.data || []).map((p) => p.name).join(', ') || 'none')
   if (!pages.data?.length) { console.error('[ig] no Facebook Pages found'); return null }
 
   // Prefer a Page with a linked Instagram account, and the Bloomfield one if there are several.

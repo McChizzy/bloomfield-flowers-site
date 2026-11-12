@@ -457,7 +457,7 @@ export default async function handler(req, res) {
           const verify = await squadRequest(secretKey, `/transaction/verify/${encodeURIComponent(ref)}`, { method: 'GET' })
           if (verify.ok) {
             verifyData = verify.data?.data || null
-            console.log('Squad verify data:', JSON.stringify(verifyData).slice(0, 800))
+            console.log('Squad verify data: present =', Boolean(verifyData), 'status =', verifyData?.transaction_status || null)
           } else {
             console.warn('Squad verify returned non-OK status:', verify.status)
           }

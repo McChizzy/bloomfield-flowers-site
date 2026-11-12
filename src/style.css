@@ -2216,6 +2216,10 @@ p {
 }
 
 /* Hidden utility */
+[data-payment-retry][hidden] {
+  display: none;
+}
+
 .hidden {
   display: none !important;
 }

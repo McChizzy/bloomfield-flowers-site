@@ -36,8 +36,8 @@ npm run build
 - Order-scoped guest verification authorisation: requires coordinated token issuance during checkout, browser return handling and appropriate database state. The current transaction reference is not claimed to prove ownership.
 - Live database RLS/grants review or changes, including privileged functions.
 - Amount/currency reconciliation, webhook replay/idempotency and notification reliability.
-- Strict checkout/cart payload validation and durable rate limiting.
-- Pending/unknown payment UI recovery and optional-tracking consent.
+- Durable rate limiting. Strict request/cart validation is covered by the subsequent local batch in `docs/request-validation.md`.
+- Optional-tracking consent. Pending/unknown payment UI recovery is covered by the subsequent local batch in `docs/pending-payment-recovery.md`.
 - Database backup/restore, vendor monitoring/billing controls and dependency updates.
 - Workspace backup exclusions: the earlier website credential/logging commit is not proof that the separate backup jobs were changed.
 

@@ -1,6 +1,7 @@
 import './style.css'
 import { products, parsePriceValue, priceBounds, productPriceValue, isProductAvailable } from './catalog.js'
 import { deliveryAreaSuggestions, isPhSameDayDelivery, lookupDeliveryFee } from './delivery-zones.js'
+import { returnedPaymentState } from './payment-status.js'
 import { inject as injectVercelAnalytics, pageview as vercelPageview } from '@vercel/analytics'
 
 // Vercel Web Analytics. Page views are sent from renderApp (one per route change, query strings
@@ -1661,8 +1662,8 @@ function checkoutCompletePage() {
   return shell(`
     <main class="section container split-page checkout-complete-layout">
       <section class="form-card checkout-form-card">
-        <p class="eyebrow">Order received</p>
-        <h1 data-payment-title>${transactionRef ? 'Thank you for your order!' : 'Payment reference missing'}</h1>
+        <p class="eyebrow">Payment status</p>
+        <h1 data-payment-title>${transactionRef ? 'Checking your payment' : 'Payment reference missing'}</h1>
         <div class="form-status form-status-persistent ${transactionRef ? 'form-status-working' : 'form-status-error'}" data-payment-status aria-live="polite">
           ${transactionRef
             ? 'We\'re confirming your payment — this only takes a moment. Please don\'t close this page.'
@@ -1670,6 +1671,7 @@ function checkoutCompletePage() {
         </div>
         ${transactionRef ? `<p class="form-note">Reference: <strong>${esc(transactionRef)}</strong></p>` : ''}
         <div class="checkout-actions">
+          ${transactionRef ? '<button class="btn btn-primary" type="button" data-payment-retry hidden>Check payment again</button>' : ''}
           <a class="btn btn-primary" href="/shop">Continue Shopping</a>
           <a class="btn btn-secondary" href="${whatsappUrl}" target="_blank" rel="noreferrer">WhatsApp us</a>
         </div>
@@ -1999,13 +2001,14 @@ async function verifyReturnedPayment(retryCount = 0) {
   try {
     const response = await fetch(`/api/checkout/verify?transaction_ref=${encodeURIComponent(transactionRef)}`)
     const result = await response.json().catch(() => ({}))
+    if (!target.isConnected) return
 
     if (!response.ok) {
       throw new Error(result.error || 'Verification failed.')
     }
 
-    const paymentState = String(result.transaction_status || 'Pending').toLowerCase()
-    const ref = result.transaction_ref || transactionRef
+    const paymentState = returnedPaymentState(result, transactionRef)
+    const ref = transactionRef
 
     if (paymentState === 'success') {
       const paidDraft = getCheckoutDraft()
@@ -2042,30 +2045,26 @@ async function verifyReturnedPayment(retryCount = 0) {
         target.className = 'form-status form-status-persistent form-status-working'
         setTimeout(() => verifyReturnedPayment(retryCount + 1), 5000)
       } else {
-        // After all retries still pending — Squad's webhook will confirm async. Clear cart.
-        if (titleEl) titleEl.textContent = 'Order received!'
-        target.textContent = `Your order has been placed (ref: ${ref}). Payment confirmation may take a few more minutes — we'll contact you on WhatsApp or Instagram once it clears. If you have any questions, message us directly.`
-        target.className = 'form-status form-status-persistent form-status-success'
-        saveCart([])
-        localStorage.removeItem('bloomfield-checkout-draft')
-        const badge = document.querySelector('.cart-badge')
-        if (badge) badge.textContent = ''
+        if (titleEl) titleEl.textContent = 'Payment not yet confirmed'
+        target.textContent = `Payment is still being confirmed (ref: ${ref}). Your cart and checkout details are saved. Please do not pay again while we check. Use the button below to check again, or contact us on WhatsApp or Instagram with your reference.`
+        target.className = 'form-status form-status-persistent form-status-working'
+        const retryButton = document.querySelector('[data-payment-retry]')
+        if (retryButton) retryButton.hidden = false
       }
     } else {
-      // Unknown status from Squad — treat pending, clear cart as safety net
-      if (titleEl) titleEl.textContent = 'Order received!'
-      target.textContent = `Your order has been placed (ref: ${ref}). We'll confirm your payment status and contact you on WhatsApp or Instagram shortly.`
-      target.className = 'form-status form-status-persistent form-status-success'
-      saveCart([])
-      localStorage.removeItem('bloomfield-checkout-draft')
-      const badge = document.querySelector('.cart-badge')
-      if (badge) badge.textContent = ''
+      if (titleEl) titleEl.textContent = 'Payment status unclear'
+      target.textContent = `We could not confirm your payment status (ref: ${ref}). Your cart and checkout details are saved. Please do not pay again yet. Check again below or contact us on WhatsApp or Instagram with your reference.`
+      target.className = 'form-status form-status-persistent form-status-working'
+      const retryButton = document.querySelector('[data-payment-retry]')
+      if (retryButton) retryButton.hidden = false
     }
   } catch (error) {
-    const d = getCheckoutDraft(); delete d._pendingCheckout; saveCheckoutDraft(d)
+    if (!target.isConnected) return
     if (titleEl) titleEl.textContent = 'Unable to verify payment'
-    target.textContent = 'Unable to verify payment status. Please contact us on Instagram or WhatsApp with your reference number.'
+    target.textContent = `Unable to verify payment status (ref: ${transactionRef}). Your cart and checkout details are saved. Please do not pay again yet. Check again below or contact us on Instagram or WhatsApp with your reference number.`
     target.className = 'form-status form-status-persistent form-status-error'
+    const retryButton = document.querySelector('[data-payment-retry]')
+    if (retryButton) retryButton.hidden = false
   }
 }
 
@@ -2210,6 +2209,12 @@ async function loadInstagramFeed() {
 }
 
 function bindEvents() {
+  document.querySelector('[data-payment-retry]')?.addEventListener('click', event => {
+    event.currentTarget.hidden = true
+    const target = document.querySelector('[data-payment-status]')
+    if (target) target.className = 'form-status form-status-persistent form-status-working'
+    verifyReturnedPayment()
+  })
   loadInstagramFeed()
   initRevealObserver()
   bindProductGalleries()

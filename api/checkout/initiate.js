@@ -1,6 +1,7 @@
 import { buildSiteUrl, generateTransactionRef, getEnv, json, readJson, squadRequest, summarizeOrder } from '../_lib/squad.js'
 import { isPhSameDayDelivery, lookupDeliveryFee } from '../../src/delivery-zones.js'
 import { getSupabase, supabaseQuery } from '../_lib/supabase.js'
+import { validateCheckoutPayload } from '../_lib/checkout-validation.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -11,17 +12,18 @@ export default async function handler(req, res) {
   let payload
   try {
     payload = await readJson(req)
-  } catch {
+  } catch (error) {
+    if (error.statusCode === 413) return json(res, 413, { error: 'Request body is too large.' })
     return json(res, 400, { error: 'Invalid JSON payload' })
   }
 
-  const { customer = {}, delivery = {}, items = [], discountCode } = payload || {}
-
-  // Validate field lengths to prevent oversized payloads
-  const fields = { fullName: customer.fullName, email: customer.email, phone: customer.phone, address: delivery.address, area: delivery.area, cardMessage: delivery.cardMessage, deliveryNotes: delivery.deliveryNotes }
-  for (const [key, val] of Object.entries(fields)) {
-    if (val && String(val).length > 500) return json(res, 400, { error: `Field '${key}' is too long.` })
+  let validated
+  try {
+    validated = validateCheckoutPayload(payload)
+  } catch (error) {
+    return json(res, 400, { error: error.message })
   }
+  const { customer, delivery, items, discountCode } = validated
 
   const isPickup = delivery.method === 'pickup'
   const { fee: zoneDeliveryFee } = isPickup ? { fee: 0 } : lookupDeliveryFee(delivery.city, delivery.area)

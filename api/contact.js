@@ -15,23 +15,47 @@ export default async function handler(req, res) {
   let body
   try {
     body = await readJson(req)
-  } catch {
+  } catch (error) {
+    if (error?.statusCode === 413) {
+      return json(res, 413, { error: 'Request body too large' })
+    }
     return json(res, 400, { error: 'Invalid request body' })
   }
 
-  const { formType, name, email, message, instagram, phone, occasion, colors, budget } = body || {}
+  if (!body || typeof body !== 'object' || Array.isArray(body) ||
+    ![Object.prototype, null].includes(Object.getPrototypeOf(body))) {
+    return json(res, 400, { error: 'Please submit a valid contact form.' })
+  }
+
+  const fieldLimits = {
+    formType: 20, name: 200, email: 200, message: 4000,
+    instagram: 100, phone: 30, occasion: 200, colors: 200, budget: 100,
+  }
+  for (const [field, limit] of Object.entries(fieldLimits)) {
+    if (!Object.hasOwn(body, field)) continue
+    if (typeof body[field] !== 'string') {
+      return json(res, 400, { error: 'Please enter text for all contact form fields.' })
+    }
+    if (body[field].length > limit) {
+      return json(res, 400, { error: 'One or more fields exceed the maximum allowed length.' })
+    }
+    if (field !== 'message' && /[\r\n]/.test(body[field])) {
+      return json(res, 400, { error: 'Only the message field may contain line breaks.' })
+    }
+  }
+
+  const { formType, name, email, message, instagram, phone, occasion, colors, budget } = body
 
   if (!name?.trim() || !message?.trim()) {
     return json(res, 400, { error: 'Name and message are required.' })
   }
 
-  if (
-    name.length > 200 || message.length > 4000 ||
-    (email && email.length > 200) || (instagram && instagram.length > 100) ||
-    (phone && phone.length > 30) || (occasion && occasion.length > 200) ||
-    (colors && colors.length > 200) || (budget && budget.length > 100)
-  ) {
-    return json(res, 400, { error: 'One or more fields exceed the maximum allowed length.' })
+  if (formType !== undefined && !['contact', 'custom-order'].includes(formType)) {
+    return json(res, 400, { error: 'Please select a valid contact form type.' })
+  }
+
+  if (email?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(email.trim())) {
+    return json(res, 400, { error: 'Please enter a valid email address.' })
   }
 
   const igHandle = instagram?.trim() ? `@${instagram.trim().replace(/^@/, '')}` : 'Not provided'

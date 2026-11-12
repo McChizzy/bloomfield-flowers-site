@@ -10,20 +10,54 @@ export function json(res, status, payload) {
   res.end(JSON.stringify(payload))
 }
 
-export function readJson(req) {
+export const MAX_JSON_BODY_BYTES = 64 * 1024
+
+export async function readJson(req) {
+  const tooLarge = () => Object.assign(new Error('Request body is too large.'), { statusCode: 413 })
+  const contentLength = req.headers?.['content-length']
+  if (contentLength !== undefined && (typeof contentLength !== 'string' || !/^\d+$/.test(contentLength))) {
+    throw new Error('Invalid content length.')
+  }
+  if (contentLength !== undefined && Number(contentLength) > MAX_JSON_BODY_BYTES) throw tooLarge()
+  if (req.body !== undefined) {
+    const body = typeof req.body === 'string' || Buffer.isBuffer(req.body)
+      ? req.body
+      : JSON.stringify(req.body)
+    if (typeof body !== 'string' && !Buffer.isBuffer(body)) throw new Error('Invalid request body.')
+    if (Buffer.byteLength(body) > MAX_JSON_BODY_BYTES) throw tooLarge()
+    return body.length ? JSON.parse(body.toString()) : {}
+  }
   return new Promise((resolve, reject) => {
-    let body = ''
+    const chunks = []
+    let bytes = 0
+    let settled = false
+    const fail = error => {
+      if (settled) return
+      settled = true
+      chunks.length = 0
+      reject(error)
+    }
     req.on('data', (chunk) => {
-      body += chunk
+      if (settled) return
+      const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
+      bytes += buffer.length
+      if (bytes > MAX_JSON_BODY_BYTES) return fail(tooLarge())
+      chunks.push(buffer)
     })
     req.on('end', () => {
+      if (settled) return
       try {
-        resolve(body ? JSON.parse(body) : {})
+        const body = Buffer.concat(chunks).toString('utf8')
+        const payload = body ? JSON.parse(body) : {}
+        settled = true
+        chunks.length = 0
+        resolve(payload)
       } catch (error) {
-        reject(error)
+        fail(error)
       }
     })
-    req.on('error', reject)
+    req.on('error', fail)
+    req.on('aborted', () => fail(new Error('Request aborted.')))
   })
 }
 

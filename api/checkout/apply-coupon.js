@@ -10,13 +10,24 @@ export default async function handler(req, res) {
   let payload
   try {
     payload = await readJson(req)
-  } catch {
+  } catch (error) {
+    if (error?.statusCode === 413) {
+      return json(res, 413, { error: 'Request body too large' })
+    }
     return json(res, 400, { error: 'Invalid request' })
   }
 
-  const { code, subtotal } = payload || {}
-  if (!code || typeof subtotal !== 'number' || subtotal < 0) {
-    return json(res, 400, { error: 'code and subtotal are required' })
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload) ||
+    ![Object.prototype, null].includes(Object.getPrototypeOf(payload))) {
+    return json(res, 400, { error: 'Please submit a valid discount request.' })
+  }
+
+  const { code, subtotal } = payload
+  if (typeof code !== 'string' || !code.trim() || code.trim().length > 100) {
+    return json(res, 400, { error: 'Please enter a discount code of up to 100 characters.' })
+  }
+  if (typeof subtotal !== 'number' || !Number.isFinite(subtotal) || subtotal < 0 || subtotal > 1e9) {
+    return json(res, 400, { error: 'Please provide a valid subtotal between 0 and 1,000,000,000.' })
   }
 
   const supabase = getSupabase()

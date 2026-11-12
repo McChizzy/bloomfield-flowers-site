@@ -400,9 +400,14 @@ const lilyCare = {
     ['Top up every day', 'Lilies drink a lot. Check the water daily, and every two days change it and trim the stems again.'],
     ['Remove pollen and faded blooms', 'Take the pollen out of each flower as it opens, and cut off blooms once they wilt or brown, close to the main stem.'],
   ],
+  arranging: [
+    ['Cut to different heights', 'Trim the stems into three or four lengths. The shortest blooms should sit just above the rim of the vase.'],
+    ['Build a support first', 'Criss-cross any greenery in the vase before the flowers go in. It forms a frame that holds the lily stems in place.'],
+    ['Tallest at the back', 'Place the tallest lilies at the back, medium ones in the middle and the shortest at the front, without turning the vase as you go.'],
+  ],
   faqs: [
     ['My lilies are still closed. Is something wrong?', 'No. Lilies usually start opening within two to four days, and very green buds take a little longer. Keep them in water in a bright room out of direct sun and they will open in their own time.'],
-    ['Can I open the buds by hand?', 'Please don’t. Prising the petals apart bruises and tears them. To speed things up, move the vase somewhere a little warmer with plenty of indirect light and use room-temperature water.'],
+    ['Can I open the buds by hand?', 'Please don’t. Prising the petals apart bruises and tears them. To speed things up, trim the stems, give them plenty of fresh water and move the vase somewhere a little warmer with indirect light.'],
     ['How do I slow them down for an event?', 'Keep the vase in a cool, air-conditioned room out of the sun and use cool water. Move it somewhere warmer a day or two before you want the flowers open.'],
     ['Why have some buds not opened?', 'The smallest buds at the very tip of a stem sometimes stay closed. That is normal. Cutting off faded flowers lower down gives the remaining buds the best chance.'],
     ['How long will my lilies last?', 'With fresh water and regular trimming, a stem usually keeps flowering for one to two weeks as its buds open in turn. Each open flower lasts several days.'],
@@ -1606,7 +1611,7 @@ function lilyCareSection() {
               <p class="eyebrow">Accidents happen</p>
               <h3>Got pollen on something?</h3>
               <p><strong>Don’t rub it and don’t wet it first</strong>, as both push the pollen deeper into the fibres.</p>
-              <p>Lift off as much as you can with sticky tape, then rinse the fabric from the back with cold water and leave it to dry in sunlight, which helps fade what is left. On petals, brush pollen away gently with a dry tissue.</p>
+              <p>Dab the stain with sticky tape, using a fresh piece each time, until no more pollen lifts off. Then leave the fabric in direct sunlight for a few hours, which fades what is left, before washing it as normal. On petals, brush pollen away gently with a dry tissue.</p>
             </div>
           </div>
 
@@ -1614,10 +1619,24 @@ function lilyCareSection() {
             <span class="lily-pet-icon" aria-hidden="true">!</span>
             <div>
               <h3>Lilies and cats don’t mix</h3>
-              <p>Every part of a lily is highly toxic to cats, including the pollen and the vase water, and even a tiny amount can cause serious kidney damage. If there is a cat at home, keep lilies well out of reach, or ask us for a lily-free bouquet when you order. If you think a cat has touched or eaten any part of a lily, contact a vet straight away. Lilies are not for eating, so keep them away from dogs and small children too.</p>
+              <p>Every part of a lily is highly toxic to cats, including the pollen and the vase water, and even a tiny amount can cause serious kidney damage. If there is a cat at home, keep lilies well out of reach, or ask us for a lily-free bouquet when you order. If you think a cat has touched or eaten any part of a lily, contact a vet straight away. Lilies can also upset a dog’s stomach, so keep them away from dogs and small children too.</p>
+              <p><strong>Sending lilies as a gift?</strong> If the person you are sending to has a cat, please choose a lily-free bouquet instead.</p>
               <a class="text-link" href="/custom-orders">Request a lily-free bouquet</a>
             </div>
           </aside>
+
+          <div class="lily-block">
+            <h3>Arranging lilies in your own vase</h3>
+            <p class="lily-block-intro">If you take your lilies out of their wrapping, this simple layered arrangement shows off every bloom.</p>
+            <ol class="lily-steps">
+              ${lilyCare.arranging.map(([title, body]) => `
+                <li class="info-card lily-step">
+                  <strong>${title}</strong>
+                  <p>${body}</p>
+                </li>
+              `).join('')}
+            </ol>
+          </div>
 
           <div class="lily-block">
             <h3>Lily questions we hear often</h3>

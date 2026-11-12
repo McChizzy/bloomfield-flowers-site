@@ -118,6 +118,10 @@ export async function squadRequest(secretKey, path, options = {}) {
 }
 
 export function verifyWebhookSignature(rawBody, signature, secretKey) {
-  const digest = crypto.createHmac('sha512', secretKey).update(rawBody).digest('hex').toUpperCase()
-  return digest === String(signature || '').toUpperCase()
+  if (typeof secretKey !== 'string' || !secretKey ||
+    (typeof rawBody !== 'string' && !Buffer.isBuffer(rawBody)) ||
+    typeof signature !== 'string' || !/^[a-fA-F0-9]{128}$/.test(signature)) return false
+  const expected = crypto.createHmac('sha512', secretKey).update(rawBody).digest()
+  const supplied = Buffer.from(signature, 'hex')
+  return crypto.timingSafeEqual(expected, supplied)
 }

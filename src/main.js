@@ -866,16 +866,25 @@ function productCard(product) {
   `
 }
 
+const CHECKOUT_DRAFT_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
+
 function getCheckoutDraft() {
   try {
-    return JSON.parse(localStorage.getItem(checkoutDraftKey) || '{}')
+    const draft = JSON.parse(localStorage.getItem(checkoutDraftKey) || '{}')
+    if (draft._savedAt && Date.now() - draft._savedAt > CHECKOUT_DRAFT_MAX_AGE_MS) {
+      localStorage.removeItem(checkoutDraftKey)
+      return {}
+    }
+    return draft
   } catch {
     return {}
   }
 }
 
 function saveCheckoutDraft(draft) {
-  try { localStorage.setItem(checkoutDraftKey, JSON.stringify(draft)) } catch { /* storage unavailable */ }
+  try {
+    localStorage.setItem(checkoutDraftKey, JSON.stringify({ ...draft, _savedAt: Date.now() }))
+  } catch { /* storage unavailable */ }
 }
 
 function getDeliveryFee() {

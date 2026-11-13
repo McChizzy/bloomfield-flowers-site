@@ -421,7 +421,6 @@ export default async function handler(req, res) {
       reference: event?.TransactionRef || event?.Body?.transaction_ref,
       status,
       type: event?.Body?.transaction_type,
-      rawBodySnippet: rawBody.slice(0, 800),
     })
 
     if (status === 'Success') {
@@ -430,6 +429,20 @@ export default async function handler(req, res) {
 
       const supabase = getSupabase()
       if (supabase && ref) {
+        // Idempotency: if this order was already marked success by an earlier
+        // delivery of this same event, skip the discount increment and emails
+        // below rather than repeating them.
+        const { data: existing, error: existingError } = await supabaseQuery(() =>
+          supabase.from('orders').select('status').eq('transaction_ref', ref).maybeSingle()
+        )
+        if (existingError) console.error('Supabase lookup failed:', existingError.message)
+        const alreadyProcessed = existing?.status === 'success'
+
+        if (alreadyProcessed) {
+          console.log('Squad webhook: order already processed, skipping duplicate side effects', { ref })
+          return json(res, 200, { received: true, duplicate: true })
+        }
+
         const { data, error } = await supabaseQuery(() =>
           supabase.from('orders').update({ status: 'success' })
             .eq('transaction_ref', ref)
